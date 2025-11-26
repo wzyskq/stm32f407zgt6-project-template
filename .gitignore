@@ -1,0 +1,12 @@
+# vscode files
+.vscode/.vscode/launch.json
+.vscode/.eide/log
+.vscode/.pack
+
+# project out
+obj
+lst
+
+# eide template
+*.ept
+*.eide-template
