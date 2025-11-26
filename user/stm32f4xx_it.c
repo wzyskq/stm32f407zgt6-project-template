@@ -35,8 +35,7 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
     /* Go to infinite loop when Hard Fault exception occurs */
-    while (1)
-    {
+    while (1) {
     }
 }
 
@@ -48,8 +47,7 @@ void HardFault_Handler(void)
 void MemManage_Handler(void)
 {
     /* Go to infinite loop when Memory Manage exception occurs */
-    while (1)
-    {
+    while (1) {
     }
 }
 
@@ -61,8 +59,7 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
     /* Go to infinite loop when Bus Fault exception occurs */
-    while (1)
-    {
+    while (1) {
     }
 }
 
@@ -74,8 +71,7 @@ void BusFault_Handler(void)
 void UsageFault_Handler(void)
 {
     /* Go to infinite loop when Usage Fault exception occurs */
-    while (1)
-    {
+    while (1) {
     }
 }
 
@@ -138,7 +134,7 @@ void PPP_IRQHandler(void)
 //  * @retval None
 //  */
 // static __IO uint32_t TimingDelay;
-// 
+//
 // void TimingDelay_Decrement(void)
 // {
 //     if (TimingDelay != 0x00)
@@ -147,16 +143,13 @@ void PPP_IRQHandler(void)
 //     }
 // }
 
-
 /**
  * \brief  USART3 中断处理函数，只缓存包内容
  */
 void USART3_IRQHandler(void)
 {
-    static BYTE packetStarted = 0;
-
-    if (USART_GetITStatus(USART3, USART_IT_RXNE) == SET)
-    {
+    if (USART_GetITStatus(USART3, USART_IT_RXNE) == SET) {
+        // ...
 
         USART_ClearITPendingBit(USART3, USART_IT_RXNE);
     }
@@ -167,9 +160,8 @@ void USART3_IRQHandler(void)
  */
 void USART2_IRQHandler(void)
 {
-    if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
-    {
-
+    if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET) {
+        // ...
         USART_ClearITPendingBit(USART2, USART_IT_RXNE);
     }
 }
@@ -179,11 +171,8 @@ void USART2_IRQHandler(void)
  */
 void USART1_IRQHandler(void)
 {
-    static BYTE packetStarted = 0;
-
-    if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
-    {
-
+    if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET) {
+        // ...
         USART_ClearITPendingBit(USART1, USART_IT_RXNE);
     }
 }
