@@ -11,18 +11,18 @@ void rotate_init(void);
 
 void rotate_stop(void);
 void rotate_forward(void);
-void rotate_backword(void);
+void rotate_backward(void);
 
 // 左轮控制
 
 void rotate_stop_lt(void);
 void rotate_forward_lt(void);
-void rotate_backword_lt(void);
+void rotate_backward_lt(void);
 
 // 右轮控制
 
 void rotate_stop_rt(void);
 void rotate_forward_rt(void);
-void rotate_backword_rt(void);
+void rotate_backward_rt(void);
 
 #endif

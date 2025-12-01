@@ -1,7 +1,7 @@
 #include "rotate.h"
 
 /**
- * @brief 初始化旋转电机控制 GPIO
+ * \brief 初始化旋转电机控制 GPIO
  */
 void rotate_init(void)
 {
@@ -24,7 +24,7 @@ void rotate_init(void)
 // 整体控制
 
 /**
- * @brief 整体停止
+ * \brief 整体停止
  */
 
 void rotate_stop(void)
@@ -34,7 +34,7 @@ void rotate_stop(void)
 }
 
 /**
- * @brief 整体向前
+ * \brief 整体向前
  */
 void rotate_forward(void)
 {
@@ -43,26 +43,26 @@ void rotate_forward(void)
 }
 
 /**
- * @brief 整体向后
+ * \brief 整体向后
  */
-void rotate_backword(void)
+void rotate_backward(void)
 {
-    rotate_backword_lt();
-    rotate_backword_rt();
+    rotate_backward_lt();
+    rotate_backward_rt();
 }
 
 // 右轮控制
 
 /**
- * @brief 右轮停止
+ * \brief 右轮停止
  */
 void rotate_stop_rt(void)
 {
-    GPIO_ResetBits(GPIOG, GPIO_Pin_10);
-    GPIO_ResetBits(GPIOG, GPIO_Pin_11);
+    GPIO_SetBits(GPIOG, GPIO_Pin_10);
+    GPIO_SetBits(GPIOG, GPIO_Pin_11);
 }
 /**
- * @brief 右轮向前
+ * \brief 右轮向前
  */
 void rotate_forward_rt(void)
 {
@@ -71,9 +71,9 @@ void rotate_forward_rt(void)
 }
 
 /**
- * @brief 右轮向后
+ * \brief 右轮向后
  */
-void rotate_backword_rt(void)
+void rotate_backward_rt(void)
 {
     GPIO_ResetBits(GPIOG, GPIO_Pin_10);
     GPIO_SetBits(GPIOG, GPIO_Pin_11);
@@ -82,16 +82,16 @@ void rotate_backword_rt(void)
 // 左轮控制
 
 /**
- * @brief 左轮停止
+ * \brief 左轮停止
  */
 void rotate_stop_lt(void)
 {
-    GPIO_ResetBits(GPIOG, GPIO_Pin_14);
-    GPIO_ResetBits(GPIOG, GPIO_Pin_15);
+    GPIO_SetBits(GPIOG, GPIO_Pin_14);
+    GPIO_SetBits(GPIOG, GPIO_Pin_15);
 }
 
 /**
- * @brief 左轮向前
+ * \brief 左轮向前
  */
 void rotate_forward_lt(void)
 {
@@ -100,9 +100,9 @@ void rotate_forward_lt(void)
 }
 
 /**
- * @brief 左轮向后
+ * \brief 左轮向后
  */
-void rotate_backword_lt(void)
+void rotate_backward_lt(void)
 {
     GPIO_SetBits(GPIOG, GPIO_Pin_14);
     GPIO_ResetBits(GPIOG, GPIO_Pin_15);

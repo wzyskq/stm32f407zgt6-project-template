@@ -4,7 +4,7 @@
 #include "main.h"
 
 void key_init(void);
-BYTE key_scan(void);
+u8 key_scan(void);
 void key_judge(void);
 void key_action(void);
 

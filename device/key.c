@@ -19,9 +19,9 @@ void key_init(void)
  * @brief 扫描按键
  * @return 按键编号，0 表示无按键按下
  */
-BYTE key_scan(void)
+u8 key_scan(void)
 {
-    for (BYTE i = 1; i <= 4; i++)
+    for (u8 i = 1; i <= 4; i++)
     {
         if (GPIO_ReadInputDataBit(GPIOF, BIT(i)) == 0)
         {
@@ -40,12 +40,12 @@ BYTE key_scan(void)
  */
 void key_judge(void)
 {
-    BYTE keyst = key_scan();
+    u8 keyst = key_scan();
     if (keyst)
     {
         if (keyst != keyBox[0] || keyBox[2] == 0) // 重置按键条件：按键不同 或 按键计时为零
         {
-            for (BYTE i = 0; i < 3; i++)
+            for (u8 i = 0; i < 3; i++)
                 keyBox[i] = 0;
 
             keyBox[0] = keyst;
@@ -74,30 +74,44 @@ void key_action(void)
     if (keyBox[0] == 1)
     {
         if (keyBox[1] == 1)
-            keyFlag = 1;
+            taskNum = 1;
         else if (keyBox[1] == 2)
-            keyFlag = 2;
+            taskNum = 2;
     }
     else if (keyBox[0] == 2)
     {
         if (keyBox[1] == 1)
-            keyFlag = 3;
+            taskNum = 3;
         else if (keyBox[1] == 2)
-            keyFlag = 4;
+            taskNum = 4;
     }
     else if (keyBox[0] == 3)
     {
         if (keyBox[1] == 1)
-            keyFlag = 5;
+            taskNum = 5;
         else if (keyBox[1] == 2)
-            keyFlag = 6;
+            taskNum = 6;
     }
     else if (keyBox[0] == 4)
     {
         if (keyBox[1] == 1)
-            keyFlag = 7;
+        {
+            pulseAvg = 1800;
+            lineState = -1; // 默认：逆时针
+            lineFollowFlag = 1;
+            taskNum = lastKeyFlag = 7;
+            // serial_printf(USART3, "{C}");
+        }
+
         else if (keyBox[1] == 2)
-            keyFlag = 8;
+        {
+            pulseAvg = 800;
+            lineState = 0; // 默认：直线
+            lineFollowFlag = 1;
+            taskNum = lastKeyFlag = 8;
+            turnCnt = 0;
+            // serial_printf(USART3, "{S}");
+        }
     }
 
     oled_printf(0, 48, OLED_8X16, "%d-%d", keyBox[0], keyBox[1]);

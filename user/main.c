@@ -1,16 +1,16 @@
 #include "main.h"
 
 // 定时中断
-BYTE serialTimeFlag = 0; // MCU 运行时间标志位
-WORD serialTime = 0;     // 运行时间 单位：10ms
+u8 serialTimeFlag = 0; // MCU 运行时间标志位
+u16 serialTime = 0;     // 运行时间 单位：10ms
 
 // 按键
-WORD keyBox[] = {0, 0, 0}; // 按键时间 {按键编号, 按键次数, 按键时间} 单位：10ms
-BYTE keyFlag = 0;          // 当前按键
+u16 keyBox[] = {0, 0, 0}; // 按键时间 {按键编号, 按键次数, 按键时间} 单位：10ms
+u8 taskNum = 0;          // 当前按键
 
 // PID
-BYTE pidIdx = 0; // PID 索引
-WORD pidErr = 0; // PID 误差
+u8 pidIdx = 0; // PID 索引
+u16 pidErr = 0; // PID 误差
 
 int main(void)
 {
@@ -40,22 +40,22 @@ int main(void)
 
         key_judge(); // 按键检测
 
-        if (keyFlag == 1)
+        if (taskNum == 1)
         {
         }
-        else if (keyFlag == 2)
+        else if (taskNum == 2)
         {
         }
-        else if (keyFlag == 3)
+        else if (taskNum == 3)
         {
         }
-        else if (keyFlag == 4)
+        else if (taskNum == 4)
         {
         }
-        else if (keyFlag == 5)
+        else if (taskNum == 5)
         {
         }
-        else if (keyFlag == 6)
+        else if (taskNum == 6)
         {
         }
 

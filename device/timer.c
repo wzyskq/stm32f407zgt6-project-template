@@ -9,8 +9,8 @@ void timer_init_2(void)  // 时钟 定时中断 0.01s
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
 	TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseInitStructure.TIM_Period = 100 - 1;  // 10000 - 1 才是 1s，这里是 0.01s
-	TIM_TimeBaseInitStructure.TIM_Prescaler = 8400 - 1;  // 84 000 000 /= 10000
+	TIM_TimeBaseInitStructure.TIM_Period = 1000 - 1;
+	TIM_TimeBaseInitStructure.TIM_Prescaler = 840 - 1;  // 84 000 000 /= 100 Hz 
 	TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
 	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseInitStructure);
 	

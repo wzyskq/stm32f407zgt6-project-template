@@ -8,7 +8,7 @@
  */
 uint8_t OLED_DisplayBuf[8][128];
 
-void oled_delay(WORD Delay)
+void oled_delay(u16 Delay)
 {
     Delay = Delay * 240 / 12;
     while (Delay--)

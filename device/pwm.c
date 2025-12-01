@@ -1,11 +1,11 @@
-#include "main.h"
+#include "pwm.h"
 
 /**
- * @brief 初始化 PWM
- * @param arr 自动重载寄存器值
- * @param psc 预分频器值
+ * \brief 初始化 PWM
+ * \param arr 自动重载寄存器值
+ * \param psc 预分频器值
  */
-void pwm_init(WORD arr, WORD psc)
+void pwm_init(u16 arr, u16 psc)
 {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
@@ -49,19 +49,35 @@ void pwm_init(WORD arr, WORD psc)
 }
 
 /**
- * @brief 设置 PWM 比较值
- * @param compare 比较值
+ * \brief 设置 PWM 比较值
+ * \param compare 比较值
+ * \note  compare 实际有效范围 [-1000, 1000], [-69, 69] 视为停止
  */
-void pwm_set_lt(WORD compare)
+void pwm_set_lt(s16 compare)
 {
-    TIM_SetCompare3(TIM1, compare);
+    if (compare >= 70)
+        rotate_forward_lt();
+    else if (compare <= -70)
+        rotate_backward_lt();
+    else
+        rotate_stop_lt();
+
+    TIM_SetCompare3(TIM1, (u16)abs(compare));
 }
 
 /**
- * @brief 设置 PWM 比较值
- * @param compare 比较值
+ * \brief 设置 PWM 比较值
+ * \param compare 比较值
+ * \note  compare 实际有效范围 [-1000, 1000], [-69, 69] 视为停止
  */
-void pwm_set_rt(WORD compare)
+void pwm_set_rt(s16 compare)
 {
-    TIM_SetCompare4(TIM1, compare);
+    if (compare >= 70)
+        rotate_forward_rt();
+    else if (compare <= -70)
+        rotate_backward_rt();
+    else
+        rotate_stop_rt();
+
+    TIM_SetCompare4(TIM1, (u16)abs(compare));
 }

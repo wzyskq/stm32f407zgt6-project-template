@@ -20,9 +20,9 @@
 
 /* Exported Types ------------------------------------------------------------*/
 
-typedef uint8_t BYTE;
-typedef uint16_t WORD;
-typedef uint32_t UINT;
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
 
 /* User Includes -------------------------------------------------------------*/
 
@@ -39,13 +39,13 @@ typedef uint32_t UINT;
 
 /* Exported Variables --------------------------------------------------------*/
 
-extern BYTE serialTimeFlag;
-extern WORD serialTime;
+extern u8 serialTimeFlag;
+extern u16 serialTime;
 
-extern WORD keyBox[];
-extern BYTE keyFlag;
+extern u16 keyBox[];
+extern u8 taskNum;
 
-extern WORD pidErr;
+extern u16 pidErr;
 
 /* Exported Functions ------------------------------------------------------- */
 

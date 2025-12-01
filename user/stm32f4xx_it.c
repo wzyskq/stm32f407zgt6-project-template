@@ -153,11 +153,11 @@ void PPP_IRQHandler(void)
  */
 void USART3_IRQHandler(void)
 {
-    static BYTE packetStarted = 0;
+    static u8 packetStarted = 0;
 
     if (USART_GetITStatus(USART3, USART_IT_RXNE) == SET)
     {
-        BYTE RxData = USART_ReceiveData(USART3);
+        u8 RxData = USART_ReceiveData(USART3);
         // serial_send_byte(USART2, RxData); // 回显到调试串口
 
         if (RxData == '{')
@@ -207,7 +207,7 @@ void USART3_IRQHandler(void)
 // {
 //     if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
 //     {
-//         BYTE RxData = USART_ReceiveData(USART2);
+//         u8 RxData = USART_ReceiveData(USART2);
 //         serial_send_byte(USART3, RxData); // 回显到调试串口
 //         // serial_send_byte(USART1, RxData); // 回显到调试串口
 //         USART_ClearITPendingBit(USART2, USART_IT_RXNE);
@@ -220,11 +220,11 @@ void USART3_IRQHandler(void)
  */
 void USART1_IRQHandler(void)
 {
-    static BYTE packetStarted = 0;
+    static u8 packetStarted = 0;
 
     if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
     {
-        BYTE RxData = USART_ReceiveData(USART1);
+        u8 RxData = USART_ReceiveData(USART1);
         // serial_send_byte(USART2, RxData); // 回显到调试串口
 
         if (RxData == '<')

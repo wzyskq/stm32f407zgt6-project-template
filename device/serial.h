@@ -5,28 +5,26 @@
 
 /* Exported Variables --------------------------------------------------------*/
 
-extern volatile BYTE serialSignBuf[];
-extern volatile BYTE serialSignOk;
-extern volatile BYTE serialPacketBuf[];
-extern volatile BYTE serialPacketOk;
-extern volatile BYTE serialPIDBuf[];
-extern volatile BYTE serialPIDOk;
-extern volatile BYTE serialCMDBuf[];
-extern volatile BYTE serialCMDOk;
+extern volatile u8 serialSignBuf[];
+extern volatile u8 serialSignOk;
+extern volatile u8 serialPacketBuf[];
+extern volatile u8 serialPacketOk;
+extern volatile u8 serialPIDBuf[];
+extern volatile u8 serialPIDOk;
+extern volatile u8 serialCMDBuf[];
+extern volatile u8 serialCMDOk;
 
 /* Exported Functions ------------------------------------------------------- */
 
 // 初始化函数
 
-void serial_init_3(UINT BaudRate); // 视觉串口
-void serial_init_2(UINT BaudRate); // 调试串口
-void serial_init_1(UINT BaudRate); // 调试串口
+void serial_init(u8 serialNum, u32 baudRate, u8 subPriority);
 
 // 发送函数
 
-void serial_send_byte(USART_TypeDef *USARTx, BYTE Byte);
-void serial_send_string(USART_TypeDef *USARTx, BYTE *String);
-void serial_printf(USART_TypeDef *USARTx, BYTE *format, ...);
+void serial_send_byte(USART_TypeDef *USARTx, u8 Byte);
+void serial_send_string(USART_TypeDef *USARTx, u8 *String);
+void serial_printf(USART_TypeDef *USARTx, u8 *format, ...);
 
 // 处理函数
 
@@ -37,12 +35,12 @@ void serial_process_cmd(void);
 
 // 等待函数
 
-BYTE serial_wait_if(BYTE *flagString, BYTE (*getFlagFun)(void));
-void serial_wait_while(BYTE *flagString, BYTE (*getFlagFun)(void));
+u8 serial_wait_if(u8 *flagString, u8 (*getFlagFun)(void));
+void serial_wait_while(u8 *flagString, u8 (*getFlagFun)(void));
 
 // 获取标志位函数
 
-BYTE get_sign_x_flag(void);
-BYTE get_sign_d_flag(void);
+u8 get_sign_x_flag(void);
+u8 get_sign_d_flag(void);
 
 #endif
