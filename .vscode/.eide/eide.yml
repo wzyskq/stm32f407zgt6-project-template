@@ -40,7 +40,7 @@ targets:
           beforeBuildTasks: []
           c/cpp-compiler:
             CXX_FLAGS: --diag_suppress=1 --diag_suppress=1295
-            C_FLAGS: --no-multibyte-chars -DUSE_STDPERIPH_DRIVER -DSTM32F40_41xxx
+            C_FLAGS: --no-multibyte-chars
             c99-mode: true
             one-elf-section-per-function: true
             optimization: level-0
@@ -58,7 +58,7 @@ targets:
             - id: 1
               isChecked: true
               mem:
-                size: "0x30000"         # 192 KB
+                size: "0x30000"
                 startAddr: "0x20000000"
               noInit: false
               tag: IRAM
@@ -67,7 +67,7 @@ targets:
               isChecked: true
               isStartup: true
               mem:
-                size: "0x100000"        # 1 MB
+                size: "0x100000"
                 startAddr: "0x08000000"
               tag: IROM
         useCustomScatterFile: false
