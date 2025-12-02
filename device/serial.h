@@ -3,22 +3,31 @@
 
 #include "main.h"
 
-/* Exported Variables --------------------------------------------------------*/
+/* Exported Macro ---------------------------------------------------------- */
 
-extern volatile u8 serialSignBuf[];
-extern volatile u8 serialSignOk;
-extern volatile u8 serialPacketBuf[];
-extern volatile u8 serialPacketOk;
-extern volatile u8 serialPIDBuf[];
-extern volatile u8 serialPIDOk;
-extern volatile u8 serialCMDBuf[];
-extern volatile u8 serialCMDOk;
+#define SRL_SIGBUF_LEN 8
+#define SRL_PKGBUF_LEN 8
+#define SRL_PIDBUF_LEN 16
+#define SRL_CMDBUF_LEN 32
 
-/* Exported Functions ------------------------------------------------------- */
+/* Exported Variables ------------------------------------------------------ */
+
+extern u8 srlReFlag; // 串口调试返回标志位
+
+extern volatile u8 srlSigBuf[];
+extern volatile u8 srlSigFlg;
+extern volatile u8 srlPidBuf[];
+extern volatile u8 srlPidFlg;
+extern volatile u8 srlCmdBuf[];
+extern volatile u8 srlCmdFlg;
+extern volatile u8 srlPkgBuf[];
+extern volatile u8 srlPkgFlg;
+
+/* Exported Functions ------------------------------------------------------ */
 
 // 初始化函数
 
-void serial_init(u8 serialNum, u32 baudRate, u8 subPriority);
+void serial_init(u8 srlNum, u32 baudRate, u8 subPriority);
 
 // 发送函数
 
@@ -37,10 +46,5 @@ void serial_process_cmd(void);
 
 u8 serial_wait_if(u8 *flagString, u8 (*getFlagFun)(void));
 void serial_wait_while(u8 *flagString, u8 (*getFlagFun)(void));
-
-// 获取标志位函数
-
-u8 get_sign_x_flag(void);
-u8 get_sign_d_flag(void);
 
 #endif

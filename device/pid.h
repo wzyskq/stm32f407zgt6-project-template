@@ -5,11 +5,11 @@
 
 typedef struct
 {
-    float err;         // 当前偏差值
-    float err_last;    // 上一次的偏差值
-    float integral;    // 积分值
-    float Kp, Ki, Kd;  // 比例、积分、微分系数
-    float output;      // 控制输出
+    float err;        // 当前偏差值
+    float err_last;   // 上一次的偏差值
+    float integral;   // 积分值
+    float Kp, Ki, Kd; // 比例、积分、微分系数
+    float output;     // 控制输出
 } _pid;
 
 typedef struct
@@ -31,8 +31,10 @@ typedef struct
     float wd;        /* 微分加权系数 */
 } _pid2;
 
-extern _pid pidValue[]; // PID 控制器数组
-extern _pid2 pidVal2[]; // PID 控制器数组
+extern _pid pidValue[];
+extern u8 pidIdx;
+extern u16 pidErr;
+extern _pid2 pidVal2[];
 
 // 通用 PID 控制器
 

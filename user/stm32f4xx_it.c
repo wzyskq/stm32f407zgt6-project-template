@@ -147,138 +147,92 @@ void PPP_IRQHandler(void)
 //     }
 // }
 
-
-/**
- * @brief  USART3 中断处理函数，只缓存包内容
- */
-void USART3_IRQHandler(void)
-{
-    static u8 packetStarted = 0;
-
-    if (USART_GetITStatus(USART3, USART_IT_RXNE) == SET)
-    {
-        u8 RxData = USART_ReceiveData(USART3);
-        // serial_send_byte(USART2, RxData); // 回显到调试串口
-
-        if (RxData == '{')
-        {
-            packetStarted = 1;
-            serialSignBuf[0] = 0; // 内容长度清零（固定为 1）
-        }
-        else if (RxData == '<'){
-            packetStarted = 2;
-            serialPacketBuf[0] = 0; // 内容长度清零（固定为 2）
-        }
-
-        // 处理不同状态下的数据接收
-        else if (packetStarted == 1)
-        {
-            if (RxData == '}')
-            {
-                serialSignOk = 1; // 数据包接收完成
-                packetStarted = 0;
-            }
-            else if (serialSignBuf[0] < SERIAL_BUF_SIZE - 1)
-            {
-                serialSignBuf[++serialSignBuf[0]] = RxData; // 只存内容
-            }
-        }
-        else if (packetStarted == 2)
-        {
-            if (RxData == '>')
-            {
-                serialPacketOk = 1; // 数据包接收完成
-                packetStarted = 0;
-            }
-            else if (serialPacketBuf[0] < SERIAL_BUF_SIZE - 1)
-            {
-                serialPacketBuf[++serialPacketBuf[0]] = RxData; // 只存内容
-            }
-        }
-        USART_ClearITPendingBit(USART3, USART_IT_RXNE);
-    }
-}
-
-// /**
-//  * @brief  USART2中断处理函数
-//  * @note   处理USART2接收数据并回显到调试串口
-//  */
-// void USART2_IRQHandler(void)
-// {
-//     if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
-//     {
-//         u8 RxData = USART_ReceiveData(USART2);
-//         serial_send_byte(USART3, RxData); // 回显到调试串口
-//         // serial_send_byte(USART1, RxData); // 回显到调试串口
-//         USART_ClearITPendingBit(USART2, USART_IT_RXNE);
-//     }
-// }
-
-/**
- * @brief  USART1中断处理函数
- * @note   处理USART1接收数据并回显到调试串口
+/******************************************************************
+ * @fn     USART1_IRQHandler
+ * @brief  该函数处理 USART1 中断请求
  */
 void USART1_IRQHandler(void)
 {
-    static u8 packetStarted = 0;
-
-    if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
-    {
-        u8 RxData = USART_ReceiveData(USART1);
-        // serial_send_byte(USART2, RxData); // 回显到调试串口
-
-        if (RxData == '<')
-        {
-            packetStarted = 1;                           // 开始接收PID数据包
-            memset(serialPIDBuf, 0, SERIAL_BUFFER_SIZE); // 清除内容
-        }
-        else if (RxData == '{')
-        {
-            packetStarted = 2; // 开始接收转发数据包
-        }
-        else if (RxData == '(')
-        {
-            packetStarted = 3;
-            memset(serialCMDBuf, 0, SERIAL_BUFFER_SIZE);
-        }
-
-        // 处理不同状态下的数据接收
-        else if (packetStarted == 1)
-        {
-            if (RxData == '>')
-            {
-                serialPIDOk = 1; // 数据包接收完成
-                packetStarted = 0;
-            }
-            else if (serialPIDBuf[0] < SERIAL_BUFFER_SIZE - 1)
-            {
-                serialPIDBuf[++serialPIDBuf[0]] = RxData;
-            }
-        }
-        else if (packetStarted == 2)
-        {
-            if (RxData == '}')
-            {
-                packetStarted = 0; // 结束转发视觉
-            }
-            else
-            {
-                serial_printf(USART3, "{%c}", RxData);
-            }
-        }
-        else if (packetStarted == 3)
-        {
-            if (RxData == ')')
-            {
-                serialCMDOk = 1; // 数据包接收完成
-                packetStarted = 0;
-            }
-            else if (serialCMDBuf[0] < SERIAL_BUFFER_SIZE - 1)
-            {
-                serialCMDBuf[++serialCMDBuf[0]] = RxData;
-            }
-        }
-
+    if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET) {
+        u8 rxData = USART_ReceiveData(USART1);
+        serial_printf(USART1, "%c", rxData);
         USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+    }
+}
+
+/******************************************************************
+ * @fn     USART2_IRQHandler
+ * @brief  该函数处理 USART2 中断请求
+ */
+void USART2_IRQHandler(void)
+{
+    volatile static u8 rxIdx = 0;
+    if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET) {
+        u8 rxData = USART_ReceiveData(USART2);
+        if (rxData == '(') {
+            rxIdx        = 2;
+            srlCmdBuf[0] = 0; // 长度位清零
+        } else if (rxData == '<') {
+            rxIdx        = 3;
+            srlPidBuf[0] = 0; // 长度位清零
+        }
+
+        else if (rxIdx == 2) {
+            if (rxData == ')') {
+                srlCmdBuf[srlCmdBuf[0] + 1] = '\0'; // 字符串结束符
+                srlCmdFlg                   = 1;    // 接收完成标志
+                rxIdx                       = 0;
+            } else if (srlCmdBuf[0] < SRL_CMDBUF_LEN - 1) {
+                srlCmdBuf[++srlCmdBuf[0]] = rxData;
+            }
+        } else if (rxIdx == 3) {
+            if (rxData == '>') {
+                srlPidBuf[srlPidBuf[0] + 1] = '\0'; // 字符串结束符
+                srlPidFlg                   = 1;    // 接收完成标志
+                rxIdx                       = 0;
+            } else if (srlPidBuf[0] < SRL_PIDBUF_LEN - 1) {
+                srlPidBuf[++srlPidBuf[0]] = rxData;
+            }
+        }
+        USART_ClearITPendingBit(USART2, USART_IT_RXNE);
+    }
+}
+
+/******************************************************************
+ * @fn     USART3_IRQHandler
+ * @brief  该函数处理 USART3 中断请求
+ */
+void USART3_IRQHandler(void)
+{
+    volatile static u8 rxIdx = 0;
+    if (USART_GetITStatus(USART3, USART_IT_RXNE) == SET) {
+        u8 rxData = USART_ReceiveData(USART3);
+        if (rxData == '{') {
+            rxIdx        = 1;
+            srlSigBuf[0] = 0; // 长度位清零
+        } else if (rxData == '[') {
+            rxIdx        = 4;
+            srlPkgBuf[0] = 0; // 长度位清零
+        }
+
+        else if (rxIdx == 1) {
+            if (rxData == '}') {
+                srlSigBuf[srlSigBuf[0] + 1] = '\0'; // 字符串结束符
+                srlSigFlg                   = 1;    // 接收完成标志
+                rxIdx                       = 0;
+            } else if (srlSigBuf[0] < SRL_SIGBUF_LEN - 1) {
+                srlSigBuf[++srlSigBuf[0]] = rxData;
+            }
+        } else if (rxIdx == 4) {
+            if (rxData == ']') {
+                srlPkgBuf[srlPkgBuf[0] + 1] = '\0'; // 字符串结束符
+                srlPkgFlg                   = 1;    // 接收完成标志
+                rxIdx                       = 0;
+            } else if (srlPkgBuf[0] < SRL_PKGBUF_LEN - 1) {
+                srlPkgBuf[++srlPkgBuf[0]] = rxData;
+            }
+        }
+
+        USART_ClearITPendingBit(USART3, USART_IT_RXNE);
     }
 }

@@ -2,15 +2,11 @@
 
 // 定时中断
 u8 serialTimeFlag = 0; // MCU 运行时间标志位
-u16 serialTime = 0;     // 运行时间 单位：10ms
+u16 serialTime    = 0; // 运行时间 单位：10ms
 
 // 按键
 u16 keyBox[] = {0, 0, 0}; // 按键时间 {按键编号, 按键次数, 按键时间} 单位：10ms
-u8 taskNum = 0;          // 当前按键
-
-// PID
-u8 pidIdx = 0; // PID 索引
-u16 pidErr = 0; // PID 误差
+u8 taskNum   = 0;         // 当前按键
 
 int main(void)
 {
@@ -24,15 +20,12 @@ int main(void)
     // pwm_init(1000, 720);
     // rotate_init();
 
-    serial_init_3(115200); // 视觉串口
-    serial_init_1(115200); // 调试串口
     timer_init_2();
 
-    oled_printf(0, 0, OLED_8X16, "你好");
+    oled_printf(0, 0, OLED_8X16, "123456");
     // oled_update();
 
-    while (1)
-    {
+    while (1) {
         serial_process_packet();
         serial_process_sign();
         serial_process_cmd();
@@ -40,23 +33,16 @@ int main(void)
 
         key_judge(); // 按键检测
 
-        if (taskNum == 1)
-        {
-        }
-        else if (taskNum == 2)
-        {
-        }
-        else if (taskNum == 3)
-        {
-        }
-        else if (taskNum == 4)
-        {
-        }
-        else if (taskNum == 5)
-        {
-        }
-        else if (taskNum == 6)
-        {
+        if (taskNum == 1) {
+        } else if (taskNum == 2) {
+
+        } else if (taskNum == 3) {
+
+        } else if (taskNum == 4) {
+
+        } else if (taskNum == 5) {
+
+        } else if (taskNum == 6) {
         }
 
         oled_update();
@@ -66,8 +52,7 @@ int main(void)
 // 定时中断触发 运行时间 10ms
 void TIM2_IRQHandler(void)
 {
-    if (TIM_GetITStatus(TIM2, TIM_IT_Update) == SET)
-    {
+    if (TIM_GetITStatus(TIM2, TIM_IT_Update) == SET) {
         // 串口
         if (serialTimeFlag)
             serialTime++;
@@ -82,7 +67,7 @@ void TIM2_IRQHandler(void)
         }
 
         // pass
-        
+
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
     }
 }

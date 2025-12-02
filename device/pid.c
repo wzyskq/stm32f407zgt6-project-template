@@ -1,6 +1,8 @@
 #include "pid.h"
 
 _pid pidValue[5]; // PID 控制器数组
+u8 pidIdx  = 0;   // 当前使用的 PID 控制器索引
+u16 pidErr = 0;   // PID 误差
 
 /**
  * \brief 初始化 PID 控制器
@@ -11,13 +13,13 @@ _pid pidValue[5]; // PID 控制器数组
  */
 void pid_init(_pid *pid, float Kp, float Ki, float Kd)
 {
-    pid->err = 0.0;
+    pid->err      = 0.0;
     pid->err_last = 0.0;
     pid->integral = 0.0;
-    pid->output = 0.0;
-    pid->Kp = Kp;
-    pid->Ki = Ki;
-    pid->Kd = Kd;
+    pid->output   = 0.0;
+    pid->Kp       = Kp;
+    pid->Ki       = Ki;
+    pid->Kd       = Kd;
 }
 
 /**
@@ -31,17 +33,17 @@ void neural_pid_init(_pid2 *vPID, float vMax, float vMin)
     vPID->setpoint = vMin; /* 设定值 */
 
     vPID->kcoef = 0.12; /* 神经元输出比例 */
-    vPID->kp = 0.4;     /* 比例学习速度 */
-    vPID->ki = 0.35;    /* 积分学习速度 */
-    vPID->kd = 0.4;     /* 微分学习速度 */
+    vPID->kp    = 0.4;  /* 比例学习速度 */
+    vPID->ki    = 0.35; /* 积分学习速度 */
+    vPID->kd    = 0.4;  /* 微分学习速度 */
 
-    vPID->lasterror = 0.0; /* 前一拍偏差 */
-    vPID->preerror = 0.0;  /* 前两拍偏差 */
-    vPID->result = vMin;   /* PID 控制器结果 */
-    vPID->output = 0.0;    /* 输出值，百分比 */
+    vPID->lasterror = 0.0;  /* 前一拍偏差 */
+    vPID->preerror  = 0.0;  /* 前两拍偏差 */
+    vPID->result    = vMin; /* PID 控制器结果 */
+    vPID->output    = 0.0;  /* 输出值，百分比 */
 
-    vPID->maximum = vMax;                    /* 输出值上限 */
-    vPID->minimum = vMin;                    /* 输出值下限 */
+    vPID->maximum  = vMax;                   /* 输出值上限 */
+    vPID->minimum  = vMin;                   /* 输出值下限 */
     vPID->deadband = (vMax - vMin) * 0.0005; /* 死区 */
 
     vPID->wp = 0.10; /* 比例加权系数 */
@@ -58,10 +60,10 @@ void neural_pid_init(_pid2 *vPID, float vMax, float vMin)
  */
 u16 pid_action(_pid *pid, float set_value, float actual_value)
 {
-    pid->err = set_value - actual_value;                                                               // 计算当前偏差
-    pid->integral += pid->err;                                                                         // 计算积分值
-    pid->output = pid->Kp * pid->err + pid->Ki * pid->integral + pid->Kd * (pid->err - pid->err_last); // 计算输出值
-    pid->err_last = pid->err;                                                                          // 更新上一次偏差
+    pid->err = set_value - actual_value;                                                                 // 计算当前偏差
+    pid->integral += pid->err;                                                                           // 计算积分值
+    pid->output   = pid->Kp * pid->err + pid->Ki * pid->integral + pid->Kd * (pid->err - pid->err_last); // 计算输出值
+    pid->err_last = pid->err;                                                                            // 更新上一次偏差
 
     // 限制范围
     if (pidIdx == 1 || pidIdx == 2) // 仅对左右轮 PID 输出进行限制
@@ -90,10 +92,9 @@ void neural_pid_action(_pid2 *vPID, float pv)
     float result;
     float deltaResult;
 
-    error = vPID->setpoint - pv;
+    error  = vPID->setpoint - pv;
     result = vPID->result;
-    if (fabs(error) > vPID->deadband)
-    {
+    if (fabs(error) > vPID->deadband) {
         x[0] = error;
         x[1] = error - vPID->lasterror;
         x[2] = error - vPID->lasterror * 2 + vPID->preerror;
@@ -104,19 +105,15 @@ void neural_pid_action(_pid2 *vPID, float pv)
         w[2] = vPID->wd / sabs;
 
         deltaResult = (w[0] * x[0] + w[1] * x[1] + w[2] * x[2]) * vPID->kcoef;
-    }
-    else
-    {
+    } else {
         deltaResult = 0;
     }
 
     result = result + deltaResult;
-    if (result > vPID->maximum)
-    {
+    if (result > vPID->maximum) {
         result = vPID->maximum;
     }
-    if (result < vPID->minimum)
-    {
+    if (result < vPID->minimum) {
         result = vPID->minimum;
     }
     vPID->result = result;
@@ -125,7 +122,7 @@ void neural_pid_action(_pid2 *vPID, float pv)
     // 单神经元学习
     neure_learning_rules(vPID, error, result, x);
 
-    vPID->preerror = vPID->lasterror;
+    vPID->preerror  = vPID->lasterror;
     vPID->lasterror = error;
 }
 
