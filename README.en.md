@@ -8,7 +8,7 @@ This repository is based on stm32f407zgt6 and has been heavily modified to be co
 ## Usage
 
 ### Prerequisites
-1. Configure the toolchain and corresponding OpenOCD path in VSCode EIDE.
+1. Configure the toolchain for VSCode EIDE and download OpenOCD as prompted by EIDE.
 2. Download the **repository archive** or obtain this project via **Git**.
 ```git
 git clone https://github.com/wzyskq/stm32f407zgt6-project-template.git
@@ -19,6 +19,10 @@ Open the 407.uvprojx file with Keil, then build and flash as usual.
 
 ### Embedded IDE
 Open the stm32f407zgt6.code-workspace workspace file in VSCode, then build and flash directly.
+
+**Additional Notes**
+- If flashing with a wired DAP Link, it is recommended to change the interface configuration to `./tools/cmsis-dap-v1.cfg`.
+- If flashing with a wireless DAP Link, it is recommended to change the interface configuration to `./tools/cmsis-dap.cfg`.
 
 ## Project Structure
 

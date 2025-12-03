@@ -9,7 +9,7 @@
 ## 使用方法
 
 ### 前置条件
-1. 配置 VSCode EIDE 的工具链和对应 OpenOCD 路径
+1. 配置 VSCode EIDE 的工具链，按 EIDE 提示下载 OpenOCD
 2. 下载**仓库压缩包**或者通过**Git**获取本项目
 ```git
 git clone https://github.com/wzyskq/stm32f407zgt6-project-template.git
@@ -20,6 +20,10 @@ git clone https://github.com/wzyskq/stm32f407zgt6-project-template.git
 
 ### Embedded IDE
 VSCode 打开 `.vscode/stm32f407zgt6.code-workspace` 工作区文件，编译烧录即可
+
+**补充说明**
+- 若用有线 DAP Link 烧录，建议将接口配置换为 `./tools/cmsis-dap-v1.cfg`
+- 若用无线 DAP Link 烧录，建议将接口配置换为 `./tools/cmsis-dap.cfg`
 
 ## 项目结构
 
