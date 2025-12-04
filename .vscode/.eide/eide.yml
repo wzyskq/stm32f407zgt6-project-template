@@ -58,7 +58,7 @@ targets:
             - id: 1
               isChecked: true
               mem:
-                size: "0x30000"  # 192 KB
+                size: "0x30000"
                 startAddr: "0x20000000"
               noInit: false
               tag: IRAM
@@ -67,7 +67,7 @@ targets:
               isChecked: true
               isStartup: true
               mem:
-                size: "0x100000"  # 1 MB
+                size: "0x100000"
                 startAddr: "0x08000000"
               tag: IROM
         useCustomScatterFile: false
@@ -75,6 +75,6 @@ targets:
       OpenOCD:
         baseAddr: "0x08000000"
         bin: ""
-        interface: cmsis-dap
-        target: stm32f4x
+        interface: ${workspaceFolder}/tools/cmsis-dap
+        target: ${workspaceFolder}/tools/stm32f4x
     uploader: OpenOCD
