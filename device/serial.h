@@ -8,7 +8,9 @@
 #define SRL_SIGBUF_LEN 8
 #define SRL_PKGBUF_LEN 8
 #define SRL_PIDBUF_LEN 16
-#define SRL_CMDBUF_LEN 32
+#define SRL_CMDBUF_LEN 1024
+
+#define SRL_PRINTF_LEN 1024
 
 /* Exported Variables ------------------------------------------------------ */
 
@@ -33,14 +35,14 @@ void serial_init(u8 srlNum, u32 baudRate, u8 subPriority);
 
 void serial_send_byte(USART_TypeDef *USARTx, u8 Byte);
 void serial_send_string(USART_TypeDef *USARTx, u8 *String);
-void serial_printf(USART_TypeDef *USARTx, u8 *format, ...);
+void serial_printf(USART_TypeDef *USARTx, const char *format, ...);
 
 // 处理函数
 
-void serial_process_sign(void);
-void serial_process_packet(void);
-void serial_process_pid(void);
-void serial_process_cmd(void);
+void serial_decode_sign(void);
+void serial_decode_packet(void);
+void serial_decode_pid(void);
+void serial_decode_cmd(void);
 
 // 等待函数
 

@@ -17,6 +17,8 @@ u8 taskNum   = 0;         // 当前按键
  */
 int main(void)
 {
+    serial_init(1, 115200, 0);
+
     // gpio_init_pa2();
     key_init();
     oled_init();
@@ -28,15 +30,15 @@ int main(void)
     // rotate_init();
 
     timer_init_2();
-
-    oled_printf(0, 0, OLED_8X16, "123456");
+    serial_printf(USART1, "System Init OK!\n");
+    oled_printf(0, 0, OLED_8X16, "你好");
     // oled_update();
 
     while (1) {
-        serial_process_packet();
-        serial_process_sign();
-        serial_process_cmd();
-        serial_process_pid();
+        serial_decode_packet();
+        serial_decode_sign();
+        serial_decode_cmd();
+        serial_decode_pid();
 
         key_judge(); // 按键检测
 
@@ -67,8 +69,7 @@ void TIM2_IRQHandler(void)
         // 按键
         if (keyBox[2])
             keyBox[2]++;
-        if (keyBox[2] == 100) // 1s 后检查
-        {
+        if (keyBox[2] == 100) { // 1s 后检查
             key_action();
             keyBox[2] = 0; // 关闭自增
         }

@@ -11,9 +11,9 @@
 static const u32 srlRccUart[] = {0, RCC_APB2Periph_USART1, RCC_APB1Periph_USART2, RCC_APB1Periph_USART3};
 static const u32 srlRccGpio[] = {0, RCC_AHB1Periph_GPIOA, RCC_AHB1Periph_GPIOD, RCC_AHB1Periph_GPIOD};
 
-static const GPIO_TypeDef *srlGpioPort[]  = {0, GPIOA, GPIOD, GPIOD};
-static const USART_TypeDef *srlUartPort[] = {0, USART1, USART2, USART3};
-static const enum IRQn srlUartIRQn[]      = {0, USART1_IRQn, USART2_IRQn, USART3_IRQn};
+static GPIO_TypeDef *srlGpioPort[]  = {0, GPIOA, GPIOD, GPIOD};
+static USART_TypeDef *srlUartPort[] = {0, USART1, USART2, USART3};
+static const u8 srlUartIRQn[]       = {0, USART1_IRQn, USART2_IRQn, USART3_IRQn};
 
 static const u16 srlGpioPinTx[] = {0, GPIO_Pin_9, GPIO_Pin_5, GPIO_Pin_8};
 static const u16 srlGpioPinRx[] = {0, GPIO_Pin_10, GPIO_Pin_6, GPIO_Pin_9};
@@ -40,14 +40,14 @@ volatile u8 srlCmdFlg                 = 0;   // 命令接收完成标志
 
 /* 发送函数 ******************** */
 
-/**************************************************************
- * \brief  串口初始化
- * \param  srlNum 串口号 x=1,2,3
- * \param  baudRate 波特率
- * \param  subPriority 响应优先级 x=0~3
+/******************************************************************
+ * \brief      串口初始化
+ * \param[in]  srlNum 串口号 x=1,2,3
+ * \param[in]  baudRate 波特率
+ * \param[in]  subPriority 响应优先级 x=0~3
  *
- * \note   - 暂时仅支持 USART1~3
- *         - 中断优先级：NVIC 分组1 (抢占1, 响应0~7)
+ * \note       - 暂时仅支持 USART1~3
+ *             - 中断优先级：NVIC 分组1 (抢占1, 响应0~7)
  */
 void serial_init(u8 srlNum, u32 baudRate, u8 subPriority)
 {
@@ -114,10 +114,10 @@ void serial_init(u8 srlNum, u32 baudRate, u8 subPriority)
 
 /* 发送函数 ******************** */
 
-/**
- * \brief  串口发送一个字节
- * \param  USARTx 对应的串口号
- * \param  Byte 要发送的字节
+/******************************************************************
+ * \brief      串口发送一个字节
+ * \param[in]  USARTx 对应的串口号
+ * \param[in]  Byte 要发送的字节
  */
 void serial_send_byte(USART_TypeDef *USARTx, u8 Byte)
 {
@@ -125,10 +125,10 @@ void serial_send_byte(USART_TypeDef *USARTx, u8 Byte)
     while (USART_GetFlagStatus(USARTx, USART_FLAG_TXE) == RESET);
 }
 
-/**
- * \brief  串口发送一个字符串
- * \param  USARTx 对应的串口号
- * \param  String 要发送的字符串
+/******************************************************************
+ * \brief      串口发送一个字符串
+ * \param[in]  USARTx 对应的串口号
+ * \param[in]  String 要发送的字符串
  */
 void serial_send_string(USART_TypeDef *USARTx, u8 *String)
 {
@@ -137,20 +137,20 @@ void serial_send_string(USART_TypeDef *USARTx, u8 *String)
         serial_send_byte(USARTx, String[i]);
 }
 
-/**
- * \brief  自定义 printf 函数
- * \param  USARTx 对应的串口号
- * \param  format 格式化字符串
- * \param  ...    可变参数列表
+/******************************************************************
+ * \brief      自定义 printf 函数
+ * \param[in]  USARTx 对应的串口号
+ * \param[in]  format 格式化字符串
+ * \param[in]  ...    可变参数列表
  */
-void serial_printf(USART_TypeDef *USARTx, u8 *format, ...)
+void serial_printf(USART_TypeDef *USARTx, const char *format, ...)
 {
-    char String[128] = {0};
+    char String[SRL_PRINTF_LEN];
     va_list arg;
     va_start(arg, format);
-    vsprintf(String, format, arg);
+    vsnprintf(String, SRL_PRINTF_LEN, format, arg);
     va_end(arg);
-    serial_send_string(USARTx, String);
+    serial_send_string(USARTx, (u8 *)String);
 }
 
 /* ******************** 发送函数 */
@@ -165,11 +165,11 @@ void serial_printf(USART_TypeDef *USARTx, u8 *format, ...)
 
 /* 处理函数 ******************** */
 
-/**
+/******************************************************************
  * \brief  处理 USART3 接收到的数据包内容
  * \note   在主循环中调用，当 srlPkgFlg 为 1 时
  */
-void serial_process_sign(void)
+void serial_decode_sign(void)
 {
     if (!srlSigFlg)
         return;
@@ -182,11 +182,11 @@ void serial_process_sign(void)
         serial_printf(USART1, "3> Sign: %c\n", t);
 }
 
-/**
+/******************************************************************
  * \brief  处理 USART3 接收到的数据包内容
  * \note   在主循环中调用，当 srlPkgFlg 为 1 时
  */
-void serial_process_packet(void)
+void serial_decode_packet(void)
 {
     if (!srlPkgFlg)
         return;
@@ -204,11 +204,11 @@ void serial_process_packet(void)
         serial_printf(USART1, "Diff: %d, %d\n", 80, diff);
 }
 
-/**
+/******************************************************************
  * \brief  处理 USART1 接收到的数据包内容
  * \note   在主循环中调用，当 srlPidFlg 为 1 时
  */
-void serial_process_pid(void)
+void serial_decode_pid(void)
 {
     if (!srlPidFlg)
         return;
@@ -244,38 +244,80 @@ void serial_process_pid(void)
         serial_printf(USART1, "1> %c %d %g\n", type, num, v);
 }
 
-/**
- * \brief  处理 USART1 接收到的目标坐标数据包
- * \note   在主循环中调用，当 srlCmdFlg 为 3 时
- *         支持命令：
- *            (spd lll rrr) 设置左右轮目标速度
- *            (auto n)      设置巡线开关，n=0 关闭，n=1 开启
- *            (apul n)      设置巡线平均脉冲，n=脉冲值
- *            (lfds n)      设置巡线方向，n=-1 左转【逆时针】，n=0 直线，n=1 右转【顺时针】
- *            (keys n)      设置按键
- *            (vofa)        切换数据引擎
+/******************************************************************
+ * \brief  解析 srlCmdBuf 数据包内容
+ * \note   在主循环中调用，当 srlCmdFlg 为 1 时
+ * \note   支持的命令：
+ *            debug -i/-o              打开/关闭调试模式
+ *            oled -d <x> <y> <str>    在 OLED 上显示字符串（大小默认为）
+ *            srl -r <x> <str>         向串口x发送字符串
+ *            led -i/-o/-t <x>         打开/关闭/切换 LEDx
+ *            svo -p/-s <t> <c> <val>  设置指定时钟舵机位置/速度
+ * \note   Q&A：
+ *            Q1: 为什么要用传递指针 rCmd？
+ *            A1: 若直接将 strmatch_s 的值赋给 cCmd，一旦第一个条件不满足，其值会直接变成 NULL，导致后续判断无法进行
  */
-void serial_process_cmd(void)
+void serial_decode_cmd(void)
 {
     if (!srlCmdFlg)
         return;
 
-    if (srlCmdBuf[1] == 's') {
-        u8 *pEnd;
-        s16 l = (s16)strtof((char *)&srlCmdBuf[5], &pEnd);
-        s16 r = (s16)strtof(pEnd + 1, NULL); // strof() 会主动跳过空格，+1 可以省略
-    } else if (srlCmdBuf[1] == 'a') {
-        s16 n = (s16)strtof((char *)&srlCmdBuf[6], NULL);
-    } else if (srlCmdBuf[1] == 'l') {
-        s8 n = (s8)strtof((char *)&srlCmdBuf[6], NULL);
-    } else if (srlCmdBuf[1] == 'k') {
-        u8 n = (u8)strtof((char *)&srlCmdBuf[6], NULL);
-    } else if (srlCmdBuf[1] == 'v') {
+    u8 *cCmd = srlCmdBuf + 1; // 正文指针
+    u8 *rCmd = NULL;          // 传递指针
+    s16 arg  = 0;
+
+    if (rCmd = strmatch_s(cCmd, "debug")) {
+        if (strmatch_s(rCmd, "-i"))
+            srlReFlag = 1;
+        else if (strmatch_s(rCmd, "-o"))
+            srlReFlag = 0;
+    } else if (rCmd = strmatch_s(cCmd, "srl")) {
+        if (cCmd = strmatch_s(rCmd, "-r")) {
+            arg = (u8)strtof(cCmd, &cCmd);
+            serial_printf(srlUartPort[arg], "%s\r\n", cCmd + 1);
+        }
+    } else if (rCmd = strmatch_s(cCmd, "oled")) {
+        if (cCmd = strmatch_s(rCmd, "-d")) {
+            u8 x = (u8)strtof(cCmd, &cCmd);
+            u8 y = (u8)strtof(cCmd, &cCmd);
+            oled_printf(x, y, OLED_8X16, "%s", cCmd + 1);
+        }
+    } else if (rCmd = strmatch_s(cCmd, "led")) {
+        // if (cCmd = strmatch_s(rCmd, "-i")) {
+        //     arg = strtof(cCmd, NULL);
+        //     led_on(arg);
+        // } else if (cCmd = strmatch_s(rCmd, "-o")) {
+        //     arg = strtof(cCmd, NULL);
+        //     led_off(arg);
+        // } else if (cCmd = strmatch_s(rCmd, "-t")) {
+        //     arg = strtof(cCmd, NULL);
+        //     led_toggle(arg);
+        // }
+    } else if (rCmd = strmatch_s(cCmd, "svo")) {
+        // u8 t = 0, c = 0;
+        // if (cCmd = strmatch_s(rCmd, "-p")) {
+        //     t   = (u8)strtof(cCmd, &cCmd); // 获取舵机时钟
+        //     c   = (u8)strtof(cCmd, &cCmd); // 获取舵机通道
+        //     arg = strtof(cCmd, NULL);      // 获取位置
+        //     servo_set_pos(t, c, arg);      // 设置舵机位置
+        // } else if (cCmd = strmatch_s(rCmd, "-s")) {
+        //     t   = (u8)strtof(cCmd, &cCmd); // 获取舵机时钟
+        //     c   = (u8)strtof(cCmd, &cCmd); // 获取舵机通道
+        //     arg = strtof(cCmd, NULL);      // 获取速度
+        //     servo_set_spd(t, c, arg);      // 设置舵机速度
+        // } else if (cCmd = strmatch_s(rCmd, "-d")) {
+        //     t   = (u8)strtof(cCmd, &cCmd);   // 获取舵机时钟
+        //     c   = (u8)strtof(cCmd, &cCmd);   // 获取舵机通道
+        //     arg = strtof(cCmd, NULL);        // 获取占空比
+        //     timer_pwmOut_setDuty(t, c, arg); // 直接设置占空比
+        // }
+    } else if (srlReFlag) {
+        serial_printf(USART1, "> Unknown CMD\n");
     }
 
     srlCmdFlg = 0;
     if (srlReFlag)
-        serial_printf(USART1, "1> CMD: %s\n", &srlCmdBuf[1]);
+        serial_printf(USART1, "> CMD: %s\n", srlCmdBuf + 1);
 }
 
 /* ******************** 处理函数 */
@@ -290,7 +332,7 @@ void serial_process_cmd(void)
 
 /* 等待函数 ******************** */
 
-/**
+/******************************************************************
  * \brief  while 型串口等待机
  * \param  flagString* 要发送的标志字符串
  * \param  getFlagFun* 获取标志位的函数指针
@@ -303,7 +345,7 @@ void serial_wait_while(u8 *flagString, u8 (*getFlagFun)(void))
     serialTimeFlag = 1;
     serialTime     = 0;
     while (!getFlagFun()) {
-        serial_process_packet();
+        serial_decode_packet();
         if (serialTimeFlag && serialTime > SERIAL_TIMEOUT) {
             serialTime = 0;
             serial_send_string(USART3, flagString);
@@ -313,7 +355,7 @@ void serial_wait_while(u8 *flagString, u8 (*getFlagFun)(void))
     serialTime     = 0; // 清除计时器
 }
 
-/**
+/******************************************************************
  * \brief  if 型串口等待机
  * \param  flagString* 要发送的标志字符串
  * \param  getFlagFun* 获取标志位的函数指针
@@ -331,7 +373,7 @@ u8 serial_wait_if(u8 *flagString, u8 (*getFlagFun)(void))
     }
 
     if (!getFlagFun()) {
-        // serial_process_packet(); // 非阻塞等待，主循环会处理数据包
+        // serial_decode_packet(); // 非阻塞等待，主循环会处理数据包
         if (serialTimeFlag && serialTime > SERIAL_TIMEOUT) {
             serialTime = 1; // 从 1 开始计时，防止 serialTime 为 0 时直接发送
             serial_send_string(USART3, flagString);

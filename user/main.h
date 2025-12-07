@@ -26,6 +26,7 @@
 #include "key.h"
 #include "oled.h"
 #include "pid.h"
+#include "rotate.h"
 #include "pwm.h"
 #include "serial.h"
 #include "timer.h"
