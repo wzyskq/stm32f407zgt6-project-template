@@ -12,9 +12,14 @@
 
 #define SRL_PRINTF_LEN 1024
 
+#define SERIAL_TIMEOUT 200 // 超时限制（单位：10ms）
+
 /* Exported Variables ------------------------------------------------------ */
 
 extern u8 srlReFlag; // 串口调试返回标志位
+
+extern u8 serialTimeFlag;
+extern u16 serialTime;
 
 extern volatile u8 srlSigBuf[];
 extern volatile u8 srlSigFlg;

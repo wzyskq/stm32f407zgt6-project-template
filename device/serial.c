@@ -25,6 +25,9 @@ static const u8 srlGpioSrcRx[]  = {0, GPIO_PinSource10, GPIO_PinSource6, GPIO_Pi
 
 u8 srlReFlag = 0; // 串口调试返回标志位
 
+u8 serialTimeFlag = 0; // MCU 运行时间标志位
+u16 serialTime    = 0; // 运行时间 单位：10ms
+
 // 串口接收缓冲区（可自定义）
 
 volatile u8 srlSigBuf[SRL_SIGBUF_LEN] = {0}; // 标志位缓存
