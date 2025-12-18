@@ -66,12 +66,12 @@ void serial_init(u8 srlNum, u32 baudRate, u8 subPriority)
 
     /* GPIO 初始化 */
     GPIO_InitTypeDef GPIO_InitStructure;
-    GPIO_InitStructure.GPIO_Pin   = srlGpioPinTx[srlNum] | srlGpioPinRx[srlNum];
-    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;                        // 配置为复用功能
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;                    // 速度 50MHz
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;                       // 推挽输出
-    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;                        // 上拉
-    GPIO_Init((GPIO_TypeDef *)srlGpioPort[srlNum], &GPIO_InitStructure); // 初始化 GPIOx
+    GPIO_InitStructure.GPIO_Pin   = srlGpioPinTx[srlNum] | srlGpioPinRx[srlNum]; // 选择引脚 Tx 和 Rx
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;                                // 配置为复用功能
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;                            // 速度 50MHz
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;                               // 推挽输出
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;                                // 上拉
+    GPIO_Init((GPIO_TypeDef *)srlGpioPort[srlNum], &GPIO_InitStructure);
 
     /* 连接引脚USARTx */
     GPIO_PinAFConfig((GPIO_TypeDef *)srlGpioPort[srlNum], srlGpioSrcTx[srlNum], srlGpioAF[srlNum]);
@@ -85,21 +85,18 @@ void serial_init(u8 srlNum, u32 baudRate, u8 subPriority)
     USART_InitStructure.USART_Parity              = USART_Parity_No;                // 奇偶校验，不需要
     USART_InitStructure.USART_StopBits            = USART_StopBits_1;               // 停止位，选择1位
     USART_InitStructure.USART_WordLength          = USART_WordLength_8b;            // 字长，选择8位
-    USART_Init((USART_TypeDef *)srlUartPort[srlNum], &USART_InitStructure);         // 将结构体变量交给USART_Init，配置USARTx
+    USART_Init((USART_TypeDef *)srlUartPort[srlNum], &USART_InitStructure);
 
     /* 中断输出配置 */
     USART_ITConfig((USART_TypeDef *)srlUartPort[srlNum], USART_IT_RXNE, ENABLE); // 开启串口接收数据的中断
 
-    /* NVIC中断分组 */
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1); // 配置NVIC为分组1 (抢占0~1，响应0~7)
-
-    /*N VIC配置 */
-    NVIC_InitTypeDef NVIC_InitStructure;                                        // 定义结构体变量
-    NVIC_InitStructure.NVIC_IRQChannel                   = srlUartIRQn[srlNum]; // 选择配置NVIC的USART3线
-    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;              // 指定NVIC线路使能
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;                   // 抢占优先级为1
+    /* NVIC配置 */
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannel                   = srlUartIRQn[srlNum]; // 选择配置 NVIC 的 USARTx 线
+    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;              // 指定 NVIC 线路使能
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;                   // 抢占优先级为 0
     NVIC_InitStructure.NVIC_IRQChannelSubPriority        = subPriority;         // 响应优先级为设定值
-    NVIC_Init(&NVIC_InitStructure);                                             // 将结构体变量交给NVIC_Init，配置NVIC外设
+    NVIC_Init(&NVIC_InitStructure);
 
     /* USART使能 */
     USART_Cmd((USART_TypeDef *)srlUartPort[srlNum], ENABLE); // 使能USARTx，串口开始运行

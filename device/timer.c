@@ -1,38 +1,148 @@
 #include "timer.h"
 
+/* Private Macros ---------------------------------------------------------- */
+
 /* Private variables ------------------------------------------------------- */
 
-static const u32 timRccTim[]  = {0, RCC_APB2Periph_TIM1, RCC_APB1Periph_TIM2, RCC_APB1Periph_TIM3, RCC_APB1Periph_TIM4, RCC_APB1Periph_TIM5, RCC_APB1Periph_TIM6, RCC_APB1Periph_TIM7, RCC_APB2Periph_TIM8, RCC_APB2Periph_TIM9, RCC_APB2Periph_TIM10};
-static const u32 timRccGpio[] = {0, RCC_APB2Periph_GPIOA, RCC_APB2Periph_GPIOA, RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB, RCC_APB2Periph_GPIOB, RCC_APB2Periph_GPIOA, 0, 0, RCC_APB2Periph_GPIOC, RCC_APB2Periph_GPIOA, RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC};
+/******************************************************************
+ * \brief    定时器编号映射表
+ * \note     由于当前芯片引脚、定时器很多，故不全部列出。请根据项目需要选择定时器，添加相关配置并完善以下映射表
+ * \extends   - STM32F407 定时器编号: 1~14
+ * \example  依次使用了 TIM14、TIM1，则 timMapping 应定义为 {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0}
+ * \warning  timMapping[0] = 0，有效值从 timMapping[1] 开始
+ */
+static const u8 timMapping[15] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// 位序参照                       {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4}
 
-static GPIO_TypeDef *timGpioPort[][4] = {
-    {0, 0, 0, 0},
-    {GPIOA, GPIOA, GPIOA, GPIOA}, // TIM1: PA8,9,10,11
-    {GPIOA, GPIOA, GPIOA, GPIOA}, // TIM2: PA0,1,2,3
-    {GPIOA, GPIOA, GPIOB, GPIOB}, // TIM3: PA6,7, PB0,1
-    {GPIOB, GPIOB, GPIOB, GPIOB}, // TIM4: PB6,7,8,9
-    {GPIOA, GPIOA, GPIOA, GPIOA}, // TIM5: PA0,1,2,3
-    {0, 0, 0, 0},                 // TIM6
-    {0, 0, 0, 0},                 // TIM7
-    {GPIOC, GPIOC, GPIOC, GPIOC}, // TIM8: PC6,7,8,9
-    {GPIOA, GPIOA, GPIOA, GPIOA}, // TIM9: PA2,3,4,5
-    {GPIOB, GPIOB, GPIOC, GPIOC}  // TIM10: PB8,9, PC3,11
+/******************************************************************
+ * \brief    定时器 RCC 外设时钟使能映射表
+ * \pre      修改索引对应 timMapping 表中的定时器编号
+ * \note     仅需列出常用定时器的 RCC 外设时钟使能宏定义
+ * \extends   - APB1 总线: TIM2, TIM3, TIM4, TIM5, TIM6, TIM7, TIM12, TIM13, TIM14
+ *            - APB2 总线: TIM1, TIM8, TIM9, TIM10, TIM11
+ * \example  RCC_APB2Periph_TIM1, RCC_APB1Periph_TIM2, etc.
+ * \warning  timRccTim[0] = 0，有效值从 timRccTim[1] 开始
+ */
+static const u32 timRccTim[] = {
+    0,
 };
 
-static TIM_TypeDef *timTimePort[] = {0, TIM1, TIM2, TIM3, TIM4, TIM5, TIM6, TIM7, TIM8, TIM9, TIM10};
+/******************************************************************
+ * \brief    GPIO 外设时钟使能映射表
+ * \pre      修改索引对应 timMapping 表中的定时器编号
+ * \note     仅需列出常用定时器的 GPIO 外设时钟使能宏定义
+ * \extends   - AHB1 总线: GPIOA, GPIOB, GPIOC, GPIOD, GPIOE
+ * \example  RCC_AHB1Periph_GPIOA, RCC_AHB1Periph_GPIOB, etc.
+ * \warning  timRccGpio[0] = 0，有效值从 timRccGpio[1] 开始
+ */
+static const u32 timRccGpio[] = {
+    0,
+};
 
+/******************************************************************
+ * \brief    定时器 GPIO 端口及引脚映射表
+ * \pre      修改索引对应 timMapping 表中的定时器编号
+ * \note     每个定时器最多支持 4 路通道输出，未使用的通道以 0 填充
+ * \extends   - GPIO 端口类型: GPIOA, GPIOB, GPIOC, GPIOD, GPIOE
+ *            - 具体参照下方 timGpioPin 映射表注释 extends 部分
+ * \example  .., {GPIOA, GPIOA, GPIOA, GPIOA}, ..
+ *           代表该定时器的 4 路通道均映射到 GPIOA 端口
+ * \warning  timGpioPort[0] = 0，有效值从 timGpioPort[1] 开始
+ */
+static GPIO_TypeDef *timGpioPort[][4] = {
+    {0, 0, 0, 0},
+};
+
+/******************************************************************
+ * \brief    定时器端口映射表
+ * \pre      修改索引对应 timMapping 表中的定时器编号
+ * \note     仅需列出常用定时器的端口定义
+ * \extends   - TIMx, x=1..14
+ * \example  ..., TIM1, TIM2, ...
+ * \warning  timTimePort[0] = 0，有效值从 timTimePort[1] 开始
+ */
+static TIM_TypeDef *timTimePort[] = {
+    0,
+};
+
+/******************************************************************
+ * \brief    定时器中断号映射表
+ * \pre      修改索引对应 timMapping 表中的定时器编号
+ * \note      - 仅需列出常用定时器的中断号宏定义；
+ *            - 部分定时器可能共用一个中断号，请根据实际需求选择
+ * \extends   - TIMx_IRQn, x=1..14
+ * \example  ..., TIM1_UP_TIM10_IRQn, TIM2_IRQn, ...
+ * \warning  timTimeIRQn[0] = 0，有效值从 timTimeIRQn[1] 开始
+ */
+static const u8 timTimeIRQn[] = {
+    0,
+};
+
+/******************************************************************
+ * \brief    定时器 GPIO 引脚映射表
+ * \pre      修改索引对应 timMapping 表中的定时器编号
+ * \note     每个定时器最多支持 4 路通道输出，未使用的通道以 0 填充
+ * \extends   = CHx   CH1           CH2          CH3        CH4
+ *            - TIM1: PA8/PE9,      PA9/PE11,    PA10/PE13, PA11/PE14
+ *            - TIM2: PA0/PA5/PA15, PA1/PB3,     PA2/PB10,  PA3/PB11
+ *            - TIM3: PA6/PB4/PC6,  PA7/PB5/PC7, PB0/PC8,   PB1/PC9
+ *            - TIM4: PB6/PD12,     PB7/PD13,    PB8/PD14,  PB9/PD15
+ *            - TIM5: PA0,          PA1,         PA2,       PA3
+ *            - TIM6:
+ *            - TIM7:
+ *            - TIM8: PC6,          PC7,         PC8,       PC9
+ *            - TIM9: PA2/PE5,      PA3/PE6
+ *            - TIM10: PB8/PF6
+ *            - TIM11: PB9/PF7
+ *            - TIM12: PB14,        PB15
+ *            - TIM13: PA6/PF8
+ *            - TIM14: PA7/PF9
+ *
+ *            = CHxN  CH1N          CH2N           CH3N
+ *            - TIM1: PA7/PB13/PE8, PB0/PB14/PE10, PB1/PB15/PE12
+ *            - TIM8: PA7/PC7,      PB0/PC8,       PB1/PC9
+ *
+ *            = ETR
+ *            - TIM1: PA12, PE7
+ *            - TIM2: PA0, PA15
+ *            - TIM3: PD2
+ *            - TIM4: PE0
+ *
+ *            = BKIN
+ *            - TIM1: PA6, PB12, PE15
+ *            - TIM8: PA6
+ *
+ * \example  .., {GPIO_Pin_8, GPIO_Pin_9, GPIO_Pin_10, GPIO_Pin_11}, ..
+ *           代表该定时器的 4 路通道分别映射到对应引脚
+ * \warning  timGpioPin[0] = 0，有效值从 timGpioPin[1] 开始
+ */
 static const u16 timGpioPin[][4] = {
     {0, 0, 0, 0},
-    {GPIO_Pin_8, GPIO_Pin_9, GPIO_Pin_10, GPIO_Pin_11}, // TIM1
-    {GPIO_Pin_0, GPIO_Pin_1, GPIO_Pin_2, GPIO_Pin_3},   // TIM2
-    {GPIO_Pin_6, GPIO_Pin_7, GPIO_Pin_0, GPIO_Pin_1},   // TIM3
-    {GPIO_Pin_6, GPIO_Pin_7, GPIO_Pin_8, GPIO_Pin_9},   // TIM4
-    {GPIO_Pin_0, GPIO_Pin_1, GPIO_Pin_2, GPIO_Pin_3},   // TIM5
-    {0, 0, 0, 0},                                       // TIM6
-    {0, 0, 0, 0},                                       // TIM7
-    {GPIO_Pin_6, GPIO_Pin_7, GPIO_Pin_8, GPIO_Pin_9},   // TIM8
-    {GPIO_Pin_2, GPIO_Pin_3, GPIO_Pin_4, GPIO_Pin_5},   // TIM9
-    {GPIO_Pin_8, GPIO_Pin_9, GPIO_Pin_3, GPIO_Pin_11}   // TIM10
+};
+
+/******************************************************************
+ * \brief    定时器 GPIO 复用功能映射表
+ * \pre      修改索引对应 timMapping 表中的定时器编号
+ * \note     仅需列出常用定时器的 GPIO 复用功能宏定义
+ * \extends   - GPIO_AF_TIMx, x=1..14
+ * \example  ..., GPIO_AF_TIM1, GPIO_AF_TIM2, ...
+ * \warning  timGpioAF[0] = 0，有效值从 timGpioAF[1] 开始
+ */
+static const u8 timGpioAF[][4] = {
+    {0, 0, 0, 0},
+};
+
+/******************************************************************
+ * \brief    定时器 GPIO 引脚源映射表
+ * \pre      修改索引对应 timMapping 表中的定时器编号
+ * \note     每个定时器最多支持 4 路通道输出，未使用的通道以 0 填充
+ * \extends   - GPIO_PinSourcex, x=0..15
+ * \example  .., {GPIO_PinSource8, GPIO_PinSource9, GPIO_PinSource10, GPIO_PinSource11}, ..
+ *           代表该定时器的 4 路通道分别映射到对应引脚源
+ * \warning  timGpioSrc[0] = 0，有效值从 timGpioSrc[1] 开始
+ */
+static const u8 timGpioSrc[][4] = {
+    {0, 0, 0, 0},
 };
 
 /* Global Functions -------------------------------------------------------- */
@@ -42,50 +152,96 @@ static const u16 timGpioPin[][4] = {
 // void timer_init_2(void)  // 时钟 定时中断 0.01s
 // {
 // 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
-// 	
+//
 // 	TIM_InternalClockConfig(TIM2);
-// 	
+//
 // 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
 // 	TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 // 	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
 // 	TIM_TimeBaseInitStructure.TIM_Period = 1000 - 1;
-// 	TIM_TimeBaseInitStructure.TIM_Prescaler = 840 - 1;  // 84 000 000 /= 100 Hz 
+// 	TIM_TimeBaseInitStructure.TIM_Prescaler = 840 - 1;  // 84 000 000 /= 100 Hz
 // 	TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
 // 	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseInitStructure);
-// 	
+//
 // 	TIM_ClearFlag(TIM2, TIM_FLAG_Update);
 // 	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
-// 	
-// 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-// 	
+//
 // 	NVIC_InitTypeDef NVIC_InitStructure;
 // 	NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
 // 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 // 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
 // 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 // 	NVIC_Init(&NVIC_InitStructure);
-// 	
+//
 // 	TIM_Cmd(TIM2, ENABLE);
 // }
 
 /******************************************************************
- * \brief  PWM 输出初始化
- * \param  timNum 定时器编号 1~5、6~10
- * \param  chNum 通道编号 1~4
- * \param  arr 自动重装载值 + 1
- * \param  psc 预分频值 + 1
- * \note   chNum 通道可无序输入多个，如：
- *         通道一和三：chNum = 13；
- *         通道一、四和二：chNum = 142
+ * \brief      定时器初始化
+ * \param[in]  timNum 定时器编号 1~5, 8~14
+ * \param[in]  arr 自动重装载值 + 1
+ * \param[in]  psc 预分频值 + 1
+ * \note        - 本函数仅完成定时器基本功能初始化，未配置中断等其他功能
+ * \warning     - 确保私有变量配置正确！
+ *              - timNum 必须在 timMapping 映射表中有对应配置!
+ *              - 注意总线主频
  */
-void timer_pwmOut_init(u8 timNum, u16 chNum, u16 arr, u16 psc)
+void timer_init(u8 timNum, u16 arr, u16 psc, u8 subPriority)
 {
-    if (timNum <= 0 || timNum == 6 || timNum == 7 || timNum >= 11)
-        return;
+    timNum = timMapping[timNum]; // 映射定时器编号
 
-    u8 chList[5] = {0}; // 通道列表
+    /* 开启时钟 */
+    if (timNum == 1 || (timNum >= 8 && timNum <= 11))
+        RCC_APB2PeriphClockCmd(timRccTim[timNum], ENABLE);
+    else
+        RCC_APB1PeriphClockCmd(timRccTim[timNum], ENABLE);
+
+    /* 使用内部时钟 */
+    TIM_InternalClockConfig(timTimePort[timNum]);
+
+    /* TIM 初始化 */
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure = {0};
+    TIM_TimeBaseInitStructure.TIM_Period            = arr - 1;        // 自动重装载值
+    TIM_TimeBaseInitStructure.TIM_Prescaler         = psc - 1;        // 预分频值
+    TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;              // 重复计数值
+    TIM_TimeBaseInitStructure.TIM_ClockDivision     = TIM_CKD_DIV1;   // 时钟分割
+    TIM_TimeBaseInitStructure.TIM_CounterMode       = TIM_CounterMode_Up; // 向上计数模式
+    TIM_TimeBaseInit(timTimePort[timNum], &TIM_TimeBaseInitStructure);
+
+    /* 配置中断 */
+    TIM_ClearFlag(timTimePort[timNum], TIM_FLAG_Update);
+    TIM_ITConfig(timTimePort[timNum], TIM_IT_Update, ENABLE);
+
+    /* NVIC 配置 */
+    NVIC_InitTypeDef NVIC_InitStructure = {0};
+    NVIC_InitStructure.NVIC_IRQChannel                   = timTimeIRQn[timNum]; // 选择配置 NVIC 的定时器线
+    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;             // 指定 NVIC 线路使能
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;                  // 抢占优先级为 1
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = subPriority;        // 响应优先级为设定值
+    NVIC_Init(&NVIC_InitStructure);
+
+    /* 使能定时器 */
+    TIM_Cmd(timTimePort[timNum], ENABLE);
+}
+
+/******************************************************************
+ * \brief      PWM 输出初始化
+ * \param[in]  timNum 定时器编号 1~5, 8~14
+ * \param[in]  chNum 通道编号 1~4
+ * \param[in]  arr 自动重装载值 + 1
+ * \param[in]  psc 预分频值 + 1
+ * \note       chNum 支持多通道无序输入，如：
+ *             通道一和三：13，通道一、四和二：142
+ * \warning     - 确保私有变量配置正确！
+ *              - timNum 必须在 timMapping 映射表中有对应配置!
+ *              - 注意总线主频
+ */
+void timer_pwm_init(u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPriority)
+{
+    timNum = timMapping[timNum]; // 映射定时器编号
 
     /* 拆分通道号 */
+    u8 chList[5] = {0}; // 通道列表
     while (chNum) {
         u8 digit = chNum % 10;
         if (digit >= 1 && digit <= 4)
@@ -94,35 +250,48 @@ void timer_pwmOut_init(u8 timNum, u16 chNum, u16 arr, u16 psc)
     }
 
     /* 开启时钟 */
-    if (timNum == 1 || timNum >= 8)
+    if (timNum == 1 || (timNum >= 8 && timNum <= 11))
         RCC_APB2PeriphClockCmd(timRccTim[timNum], ENABLE);
     else
         RCC_APB1PeriphClockCmd(timRccTim[timNum], ENABLE);
-    RCC_APB2PeriphClockCmd(timRccGpio[timNum], ENABLE);
+    RCC_AHB1PeriphClockCmd(timRccGpio[timNum], ENABLE);
+
+    /* GPIO 复用功能配置 */
+    for (u8 i = 1; i <= chList[0]; i++)
+        GPIO_PinAFConfig(timGpioPort[timNum][chList[i] - 1],
+                         timGpioSrc[timNum][chList[i] - 1],
+                         timGpioAF[timNum][chList[i] - 1]);
 
     /* GPIO 初始化 */
     for (u8 i = 1; i <= chList[0]; i++) {
         GPIO_InitTypeDef GPIO_InitStructure = {0};
-        GPIO_InitStructure.GPIO_Pin         = timGpioPin[timNum][chList[i] - 1];
-        GPIO_InitStructure.GPIO_Mode        = GPIO_Mode_AF_PP;
-        GPIO_InitStructure.GPIO_Speed       = GPIO_Speed_50MHz;
+        GPIO_InitStructure.GPIO_Pin         = timGpioPin[timNum][chList[i] - 1]; // 对应通道引脚
+        GPIO_InitStructure.GPIO_Mode        = GPIO_Mode_AF;                      // 复用功能
+        GPIO_InitStructure.GPIO_Speed       = GPIO_Speed_50MHz;                  // GPIO_Speed_50MHz;
+        GPIO_InitStructure.GPIO_OType       = GPIO_OType_PP;                     // 推挽输出
+        GPIO_InitStructure.GPIO_PuPd        = GPIO_PuPd_UP;                      // 上拉模式
         GPIO_Init(timGpioPort[timNum][chList[i] - 1], &GPIO_InitStructure);
     }
+
+    /* 使用内部时钟 */
+    TIM_InternalClockConfig(timTimePort[timNum]);
 
     /* TIM 初始化 */
     TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure = {0};
     TIM_TimeBaseInitStructure.TIM_Period              = arr - 1;            // 自动重装载值
     TIM_TimeBaseInitStructure.TIM_Prescaler           = psc - 1;            // 预分频值
+    TIM_TimeBaseInitStructure.TIM_RepetitionCounter   = 0;                  // 重复计数值
     TIM_TimeBaseInitStructure.TIM_ClockDivision       = TIM_CKD_DIV1;       // 时钟分割
     TIM_TimeBaseInitStructure.TIM_CounterMode         = TIM_CounterMode_Up; // 向上计数模式
     TIM_TimeBaseInit(timTimePort[timNum], &TIM_TimeBaseInitStructure);
 
-    /* 各通道 PWM 模式配置 */
+    /* 配置 PWM 模式 */
     TIM_OCInitTypeDef TIM_OCInitStructure = {0};
     TIM_OCInitStructure.TIM_OCMode        = TIM_OCMode_PWM1;        // 模式1：当计数器计数值<CCRx时，输出高电平，模式2反之
+    TIM_OCInitStructure.TIM_OCPolarity    = TIM_OCPolarity_High;    // 输出极性，高电平有效
     TIM_OCInitStructure.TIM_OutputState   = TIM_OutputState_Enable; // 使能输出
     TIM_OCInitStructure.TIM_Pulse         = 0;                      // 初始占空比为0
-    TIM_OCInitStructure.TIM_OCPolarity    = TIM_OCPolarity_High;    // 输出极性，高电平有效
+    TIM_OCStructInit(&TIM_OCInitStructure);
     for (u8 i = 1; i <= chList[0]; i++) {
         if (chList[i] == 1)
             TIM_OC1Init(timTimePort[timNum], &TIM_OCInitStructure);
@@ -134,7 +303,7 @@ void timer_pwmOut_init(u8 timNum, u16 chNum, u16 arr, u16 psc)
             TIM_OC4Init(timTimePort[timNum], &TIM_OCInitStructure);
     }
 
-    /* 使能各通道 PWM 输出 */
+    /* 使能 PWM 输出 */
     TIM_CtrlPWMOutputs(timTimePort[timNum], ENABLE);
     for (u8 i = 1; i <= chList[0]; i++) {
         if (chList[i] == 1)
@@ -163,27 +332,26 @@ void timer_pwmOut_init(u8 timNum, u16 chNum, u16 arr, u16 psc)
 /* 功能函数 ******************** */
 
 /******************************************************************
- * \brief  设置 PWM 占空比
- * \param  timNum 定时器编号 1~5、8~10
- * \param  chNum 通道编号 1~4
- * \param  duty 占空比 0~10000 (0.00% ~ 100.00%)
+ * \brief      设置 PWM 占空比
+ * \param[in]  timNum 定时器编号 1~5, 8~14
+ * \param[in]  chNum 通道编号 1~4
+ * \param[in]  duty 占空比 范围：0~ARR
+ * \note        - chNum 仅支持单通道设置
+ * \warning     - 确保私有变量配置正确！
+ *              - timNum 必须在 timMapping 映射表中有对应配置!
  */
-void timer_pwmOut_setDuty(u8 timNum, u8 chNum, u16 duty)
+void timer_pwm_set(u8 timNum, u8 chNum, u16 duty)
 {
-    if (timNum <= 0 || timNum == 6 || timNum == 7 || timNum >= 11)
-        return;
-
-    u16 arr   = timTimePort[timNum]->ATRLR + 1;
-    u16 pulse = (u32)duty * arr / 10000;
+    timNum = timMapping[timNum]; // 映射定时器编号
 
     if (chNum == 1)
-        timTimePort[timNum]->CH1CVR = pulse;
+        timTimePort[timNum]->CCR1 = duty;
     else if (chNum == 2)
-        timTimePort[timNum]->CH2CVR = pulse;
+        timTimePort[timNum]->CCR2 = duty;
     else if (chNum == 3)
-        timTimePort[timNum]->CH3CVR = pulse;
+        timTimePort[timNum]->CCR3 = duty;
     else if (chNum == 4)
-        timTimePort[timNum]->CH4CVR = pulse;
+        timTimePort[timNum]->CCR4 = duty;
 }
 
 /* ******************** 功能函数 */

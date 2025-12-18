@@ -9,6 +9,9 @@
  */
 int main(void)
 {
+    /* NVIC中断分组 */
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); // 抢占0~3, 响应0~3
+
     serial_init(1, 115200, 0);
 
     // gpio_init_pa2();
@@ -22,7 +25,10 @@ int main(void)
     // pwm_init(1000, 720);
     // rotate_init();
 
-    timer_init_2();
+    // timer_init_2();
+    timer_pwm_init(1, 1, 1000, 840, 1); // TIM1 CH1 PWM 初始化 10kHz
+    timer_pwm_set(1, 1, 500);           // 50% 占空比
+
     serial_printf(USART1, "System Init OK!\n");
     oled_printf(0, 0, OLED_8X16, "你好");
     // oled_update();
