@@ -26,8 +26,8 @@ int main(void)
     // rotate_init();
 
     // timer_init_2();
-    timer_pwm_init(1, 1, 1000, 840, 1); // TIM1 CH1 PWM 初始化 10kHz
-    timer_pwm_set(1, 1, 500);           // 50% 占空比
+    timer_init(1, 1000, 840, 1, timer, 0); // TIM1 10ms 响应1 定时器模式 无通道
+    timer_pwm_set(1, 1, 500);              // 50% 占空比
 
     serial_printf(USART1, "System Init OK!\n");
     oled_printf(0, 0, OLED_8X16, "你好");

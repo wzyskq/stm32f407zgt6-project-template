@@ -149,99 +149,59 @@ static const u8 timGpioSrc[][4] = {
 
 /* 初始化函数 ******************** */
 
-// void timer_init_2(void)  // 时钟 定时中断 0.01s
-// {
-// 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
-//
-// 	TIM_InternalClockConfig(TIM2);
-//
-// 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
-// 	TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
-// 	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
-// 	TIM_TimeBaseInitStructure.TIM_Period = 1000 - 1;
-// 	TIM_TimeBaseInitStructure.TIM_Prescaler = 840 - 1;  // 84 000 000 /= 100 Hz
-// 	TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
-// 	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseInitStructure);
-//
-// 	TIM_ClearFlag(TIM2, TIM_FLAG_Update);
-// 	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
-//
-// 	NVIC_InitTypeDef NVIC_InitStructure;
-// 	NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
-// 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-// 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
-// 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-// 	NVIC_Init(&NVIC_InitStructure);
-//
-// 	TIM_Cmd(TIM2, ENABLE);
-// }
-
-/******************************************************************
+/**
  * \brief      定时器初始化
- * \param[in]  timNum 定时器编号 1~5, 8~14
+ * \param[in]  timNum 定时器编号 1~14
  * \param[in]  arr 自动重装载值 + 1
  * \param[in]  psc 预分频值 + 1
- * \note        - 本函数仅完成定时器基本功能初始化，未配置中断等其他功能
+ * \param[in]  subPriority 中断响应优先级
+ * \param[in]  mode 定时器工作模式
+ *   \arg       - timer: 基本定时器模式
+ *   \arg       - pwmOut: PWM 输出模式
+ *   \arg       - encoder: 编码器解码模式
+ * \param[in]  chNum 通道编号，仅在 PWM 输出和编码器解码模式下有效，支持多通道无序输入，如：通道一和三：13，通道一、四和二：142
+ * \note        - 本函数完成定时器基本功能初始化及 PWM 输出、编码器解码模式配置
  * \warning     - 确保私有变量配置正确！
  *              - timNum 必须在 timMapping 映射表中有对应配置!
- *              - 注意总线主频
+ *              - 注意总线主频！
  */
-void timer_init(u8 timNum, u16 arr, u16 psc, u8 subPriority)
+void timer_init(u8 timNum, u16 arr, u16 psc, u8 subPriority, timMode_t mode, u16 chNum)
 {
-    timNum = timMapping[timNum]; // 映射定时器编号
+    /* 映射定时器编号 */
+    timNum = timMapping[timNum];
+    if (timNum == 0) return; // 无效定时器编号
 
     /* 开启时钟 */
-    if (timNum == 1 || (timNum >= 8 && timNum <= 11))
+    if (timNum == 1 || (timNum >= 8 && timNum <= 11)) {
         RCC_APB2PeriphClockCmd(timRccTim[timNum], ENABLE);
-    else
+    } else {
         RCC_APB1PeriphClockCmd(timRccTim[timNum], ENABLE);
+    }
 
     /* 使用内部时钟 */
     TIM_InternalClockConfig(timTimePort[timNum]);
 
-    /* TIM 初始化 */
+    /* TIM 基本初始化 */
     TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure = {0};
-    TIM_TimeBaseInitStructure.TIM_Period            = arr - 1;        // 自动重装载值
-    TIM_TimeBaseInitStructure.TIM_Prescaler         = psc - 1;        // 预分频值
-    TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;              // 重复计数值
-    TIM_TimeBaseInitStructure.TIM_ClockDivision     = TIM_CKD_DIV1;   // 时钟分割
-    TIM_TimeBaseInitStructure.TIM_CounterMode       = TIM_CounterMode_Up; // 向上计数模式
+    TIM_TimeBaseInitStructure.TIM_Period              = arr - 1;
+    TIM_TimeBaseInitStructure.TIM_Prescaler           = psc - 1;
+    TIM_TimeBaseInitStructure.TIM_ClockDivision       = TIM_CKD_DIV1;
+    TIM_TimeBaseInitStructure.TIM_CounterMode         = TIM_CounterMode_Up;
     TIM_TimeBaseInit(timTimePort[timNum], &TIM_TimeBaseInitStructure);
 
     /* 配置中断 */
     TIM_ClearFlag(timTimePort[timNum], TIM_FLAG_Update);
     TIM_ITConfig(timTimePort[timNum], TIM_IT_Update, ENABLE);
 
-    /* NVIC 配置 */
     NVIC_InitTypeDef NVIC_InitStructure = {0};
-    NVIC_InitStructure.NVIC_IRQChannel                   = timTimeIRQn[timNum]; // 选择配置 NVIC 的定时器线
-    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;             // 指定 NVIC 线路使能
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;                  // 抢占优先级为 1
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = subPriority;        // 响应优先级为设定值
+    NVIC_InitStructure.NVIC_IRQChannel = timTimeIRQn[timNum];
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = subPriority;
     NVIC_Init(&NVIC_InitStructure);
 
-    /* 使能定时器 */
-    TIM_Cmd(timTimePort[timNum], ENABLE);
-}
-
-/******************************************************************
- * \brief      PWM 输出初始化
- * \param[in]  timNum 定时器编号 1~5, 8~14
- * \param[in]  chNum 通道编号 1~4
- * \param[in]  arr 自动重装载值 + 1
- * \param[in]  psc 预分频值 + 1
- * \note       chNum 支持多通道无序输入，如：
- *             通道一和三：13，通道一、四和二：142
- * \warning     - 确保私有变量配置正确！
- *              - timNum 必须在 timMapping 映射表中有对应配置!
- *              - 注意总线主频
- */
-void timer_pwm_init(u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPriority)
-{
-    timNum = timMapping[timNum]; // 映射定时器编号
-
-    /* 拆分通道号 */
-    u8 chList[5] = {0}; // 通道列表
+    /* 解析通道号 */
+    u8 chList[5] = {0};
     while (chNum) {
         u8 digit = chNum % 10;
         if (digit >= 1 && digit <= 4)
@@ -249,73 +209,88 @@ void timer_pwm_init(u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPriority)
         chNum /= 10;
     }
 
-    /* 开启时钟 */
-    if (timNum == 1 || (timNum >= 8 && timNum <= 11))
-        RCC_APB2PeriphClockCmd(timRccTim[timNum], ENABLE);
-    else
-        RCC_APB1PeriphClockCmd(timRccTim[timNum], ENABLE);
-    RCC_AHB1PeriphClockCmd(timRccGpio[timNum], ENABLE);
+    /* GPIO 初始化（适用于 pwmOut 和 encoder 模式） */
+    if (mode == pwmOut || mode == encoder) {
+        RCC_AHB1PeriphClockCmd(timRccGpio[timNum], ENABLE);
 
-    /* GPIO 复用功能配置 */
-    for (u8 i = 1; i <= chList[0]; i++)
-        GPIO_PinAFConfig(timGpioPort[timNum][chList[i] - 1],
-                         timGpioSrc[timNum][chList[i] - 1],
-                         timGpioAF[timNum][chList[i] - 1]);
-
-    /* GPIO 初始化 */
-    for (u8 i = 1; i <= chList[0]; i++) {
         GPIO_InitTypeDef GPIO_InitStructure = {0};
-        GPIO_InitStructure.GPIO_Pin         = timGpioPin[timNum][chList[i] - 1]; // 对应通道引脚
-        GPIO_InitStructure.GPIO_Mode        = GPIO_Mode_AF;                      // 复用功能
-        GPIO_InitStructure.GPIO_Speed       = GPIO_Speed_50MHz;                  // GPIO_Speed_50MHz;
-        GPIO_InitStructure.GPIO_OType       = GPIO_OType_PP;                     // 推挽输出
-        GPIO_InitStructure.GPIO_PuPd        = GPIO_PuPd_UP;                      // 上拉模式
-        GPIO_Init(timGpioPort[timNum][chList[i] - 1], &GPIO_InitStructure);
+        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+        GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+        GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+        GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+
+        for (u8 i = 1; i <= chList[0]; i++) {
+            GPIO_PinAFConfig(timGpioPort[timNum][chList[i] - 1],
+                             timGpioSrc[timNum][chList[i] - 1],
+                             timGpioAF[timNum][chList[i] - 1]);
+
+            GPIO_InitStructure.GPIO_Pin = timGpioPin[timNum][chList[i] - 1];
+            GPIO_Init(timGpioPort[timNum][chList[i] - 1], &GPIO_InitStructure);
+        }
     }
 
-    /* 使用内部时钟 */
-    TIM_InternalClockConfig(timTimePort[timNum]);
+    /* PWM 输出模式 */
+    if (mode == pwmOut) {
+        TIM_OCInitTypeDef TIM_OCInitStructure = {0};
+        TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+        TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+        TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+        TIM_OCInitStructure.TIM_Pulse = 0;
+        TIM_OCStructInit(&TIM_OCInitStructure);
 
-    /* TIM 初始化 */
-    TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure = {0};
-    TIM_TimeBaseInitStructure.TIM_Period              = arr - 1;            // 自动重装载值
-    TIM_TimeBaseInitStructure.TIM_Prescaler           = psc - 1;            // 预分频值
-    TIM_TimeBaseInitStructure.TIM_RepetitionCounter   = 0;                  // 重复计数值
-    TIM_TimeBaseInitStructure.TIM_ClockDivision       = TIM_CKD_DIV1;       // 时钟分割
-    TIM_TimeBaseInitStructure.TIM_CounterMode         = TIM_CounterMode_Up; // 向上计数模式
-    TIM_TimeBaseInit(timTimePort[timNum], &TIM_TimeBaseInitStructure);
+        for (u8 i = 1; i <= chList[0]; i++) {
+            if (chList[i] == 1) {
+                TIM_OC1Init(timTimePort[timNum], &TIM_OCInitStructure);
+                TIM_OC1PreloadConfig(timTimePort[timNum], TIM_OCPreload_Enable);
+            } else if (chList[i] == 2) {
+                TIM_OC2Init(timTimePort[timNum], &TIM_OCInitStructure);
+                TIM_OC2PreloadConfig(timTimePort[timNum], TIM_OCPreload_Enable);
+            } else if (chList[i] == 3) {
+                TIM_OC3Init(timTimePort[timNum], &TIM_OCInitStructure);
+                TIM_OC3PreloadConfig(timTimePort[timNum], TIM_OCPreload_Enable);
+            } else if (chList[i] == 4) {
+                TIM_OC4Init(timTimePort[timNum], &TIM_OCInitStructure);
+                TIM_OC4PreloadConfig(timTimePort[timNum], TIM_OCPreload_Enable);
+            }
+        }
 
-    /* 配置 PWM 模式 */
-    TIM_OCInitTypeDef TIM_OCInitStructure = {0};
-    TIM_OCInitStructure.TIM_OCMode        = TIM_OCMode_PWM1;        // 模式1：当计数器计数值<CCRx时，输出高电平，模式2反之
-    TIM_OCInitStructure.TIM_OCPolarity    = TIM_OCPolarity_High;    // 输出极性，高电平有效
-    TIM_OCInitStructure.TIM_OutputState   = TIM_OutputState_Enable; // 使能输出
-    TIM_OCInitStructure.TIM_Pulse         = 0;                      // 初始占空比为0
-    TIM_OCStructInit(&TIM_OCInitStructure);
-    for (u8 i = 1; i <= chList[0]; i++) {
-        if (chList[i] == 1)
-            TIM_OC1Init(timTimePort[timNum], &TIM_OCInitStructure);
-        else if (chList[i] == 2)
-            TIM_OC2Init(timTimePort[timNum], &TIM_OCInitStructure);
-        else if (chList[i] == 3)
-            TIM_OC3Init(timTimePort[timNum], &TIM_OCInitStructure);
-        else if (chList[i] == 4)
-            TIM_OC4Init(timTimePort[timNum], &TIM_OCInitStructure);
+        TIM_ARRPreloadConfig(timTimePort[timNum], ENABLE);
+        TIM_CtrlPWMOutputs(timTimePort[timNum], ENABLE);
     }
 
-    /* 使能 PWM 输出 */
-    TIM_CtrlPWMOutputs(timTimePort[timNum], ENABLE);
-    for (u8 i = 1; i <= chList[0]; i++) {
-        if (chList[i] == 1)
-            TIM_OC1PreloadConfig(timTimePort[timNum], TIM_OCPreload_Enable);
-        else if (chList[i] == 2)
-            TIM_OC2PreloadConfig(timTimePort[timNum], TIM_OCPreload_Enable);
-        else if (chList[i] == 3)
-            TIM_OC3PreloadConfig(timTimePort[timNum], TIM_OCPreload_Enable);
-        else if (chList[i] == 4)
-            TIM_OC4PreloadConfig(timTimePort[timNum], TIM_OCPreload_Enable);
+    /* 编码器模式 */
+    if (mode == encoder) {
+        TIM_EncoderInterfaceConfig(timTimePort[timNum],
+                                   TIM_EncoderMode_TI12,
+                                   TIM_ICPolarity_Rising,
+                                   TIM_ICPolarity_Rising);
+
+        TIM_ICInitTypeDef TIM_ICInitStructure = {0};
+        TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;
+        TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;
+        TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;
+        TIM_ICInitStructure.TIM_ICFilter = 0x0A;
+
+        for (u8 i = 1; i <= chList[0]; i++) {
+            if (chList[i] == 1) {
+                TIM_ICInitStructure.TIM_Channel = TIM_Channel_1;
+                TIM_ICInit(timTimePort[timNum], &TIM_ICInitStructure);
+            } else if (chList[i] == 2) {
+                TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
+                TIM_ICInit(timTimePort[timNum], &TIM_ICInitStructure);
+            } else if (chList[i] == 3) {
+                TIM_ICInitStructure.TIM_Channel = TIM_Channel_3;
+                TIM_ICInit(timTimePort[timNum], &TIM_ICInitStructure);
+            } else if (chList[i] == 4) {
+                TIM_ICInitStructure.TIM_Channel = TIM_Channel_4;
+                TIM_ICInit(timTimePort[timNum], &TIM_ICInitStructure);
+            }
+        }
+
+        TIM_SetCounter(timTimePort[timNum], 0);
     }
-    TIM_ARRPreloadConfig(timTimePort[timNum], ENABLE);
+
+    /* 启动定时器 */
     TIM_Cmd(timTimePort[timNum], ENABLE);
 }
 
