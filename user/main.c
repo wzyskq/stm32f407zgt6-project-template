@@ -2,6 +2,11 @@
 
 /* Global Variables -------------------------------------------------------- */
 
+u32 oledTime = 0;
+
+u16 spdLt = 0;
+u16 spdRt = 0;
+
 /* Global Functions -------------------------------------------------------- */
 
 /******************************************************************
@@ -18,6 +23,7 @@ int main(void)
 
     oled_init();
     keys_init();
+    wheels_init();
 
     // pid_init(&pidValue[0], 0.5, 0.1, 0.05);
     // pid_init(&pidValue[1], 0.2, 0.1, 0.05);
@@ -25,13 +31,16 @@ int main(void)
     // pwm_init(1000, 720);
     // rotate_init();
 
-    // timer_init_2();
-    timer_init(1, 1000, 840, 1, timer, 0); // TIM1 10ms 响应1 定时器模式 无通道
-    timer_pwm_set(1, 1, 500);              // 50% 占空比
+    timer_init(timer, 7, 0, 1000, 840, 0);   // 定时器模式 TIM7 无通道 10ms 响应优先级0
+    timer_init(pwmOut, 1, 34, 1000, 840, 1); // PWM 输出模式 TIM1 通道3/4 10ms 响应优先级1
 
     serial_printf(USART1, "System Init OK!\n");
+
+    wheel_pwm_set(1, 10);
+    // wheel_pwm_set(2, 200);
+
+    // delay_ms(100);
     oled_printf(0, 0, OLED_8X16, "你好");
-    // oled_update();
 
     while (1) {
         serial_decode_packet();
@@ -53,17 +62,19 @@ int main(void)
         } else if (taskNum == 6) {
         }
 
+        oled_printf(0, 0, OLED_8X16, "%4d | %4d", spdLt, spdRt);
+        oled_printf(0, 16 * 2, OLED_8X16, "%4d.%02d", oledTime / 100, oledTime % 100);
         oled_update();
     }
 }
 
 // 定时中断触发 运行时间 10ms
-void TIM2_IRQHandler(void)
+void TIM7_IRQHandler(void)
 {
-    if (TIM_GetITStatus(TIM2, TIM_IT_Update) == SET) {
+    if (TIM_GetITStatus(TIM7, TIM_IT_Update) == SET) {
         // 串口
-        if (serialTimeFlag)
-            serialTime++;
+        // if (serialTimeFlag)
+        //     serialTime++;
 
         // 按键
         if (keyBox[2])
@@ -73,8 +84,13 @@ void TIM2_IRQHandler(void)
             keyBox[2] = 0; // 关闭自增
         }
 
+        // OLED 刷新
+        oledTime++;
+
+        // 获取编码器速度
+
         // pass
 
-        TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+        TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
     }
 }

@@ -10,8 +10,12 @@ extern u8 taskNum;
 
 /* Exported Functions ------------------------------------------------------ */
 
+// 初始化函数
+
 void key_init(u8 keyNum);
 void keys_init(void);
+
+// 功能函数
 
 u8 key_scan(void);
 void key_judge(void);

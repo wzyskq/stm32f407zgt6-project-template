@@ -2,7 +2,7 @@
 
 - [ ] gpio
 - [ ] pid 
-- [ ] rotate 
+- [ ] wheel
 - [ ] Tim (timer, pwm, encoder)
 - [x] key
 - [x] oled 
@@ -13,6 +13,12 @@
 - `u`：无法编译或烧录版本
 
 ## 版本
+
+### v1.4.3
+- `新增` 重命名 rotate 为 wheel 电机控制部分
+- `优化` 测试 timer 部分，修复 bug
+- `修复` oled 上电不显示问题
+- `问题` 貌似 pwm 无法调速？
 
 ### v1.4.2
 - `优化` 完善定时器模式复用初始化（未测试）

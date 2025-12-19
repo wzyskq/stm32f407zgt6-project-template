@@ -15,6 +15,11 @@
 
 /* Exported Types ---------------------------------------------------------- */
 
+typedef enum {
+    normal = 0,
+    inverse,
+} sign_t;
+
 /* User Includes ----------------------------------------------------------- */
 
 #include "delay.h"
@@ -24,10 +29,10 @@
 #include "key.h"
 #include "oled.h"
 #include "pid.h"
-#include "rotate.h"
-#include "pwm.h"
+// #include "pwm.h"
 #include "serial.h"
 #include "timer.h"
+#include "wheel.h"
 
 /* Exported Variables ------------------------------------------------------ */
 

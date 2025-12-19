@@ -13,11 +13,13 @@ typedef enum {
 
 /* Global Functions -------------------------------------------------------- */
 
-void timer_init(u8 timNum, u16 arr, u16 psc, u8 subPriority, timMode_t mode, u16 chNum);
-void timer_pwm_set(u8 timNum, u8 chNum, u16 duty);
+// 初始化函数
 
-// void timer_init_2(void);
-// void Tim_4_Init(void);
-// void Encoder_Init(void);
+void timer_init(timMode_t mode, u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPriority);
+
+// 功能函数
+
+void timer_pwm_set(u8 timNum, u8 chNum, u16 duty);
+s16 timer_encoder_read(u8 timNum, sign_t sign);
 
 #endif

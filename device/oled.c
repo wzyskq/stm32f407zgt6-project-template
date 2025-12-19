@@ -21,6 +21,14 @@ void oled_delay(u16 Delay)
         __NOP(); // 空操作，延时
 }
 
+/*
+
+
+
+
+
+*/
+
 /* Global Functions -------------------------------------------------------- */
 
 /******************************************************************
@@ -148,6 +156,7 @@ void OLED_WriteData(uint8_t *Data, uint8_t Count)
 void oled_init(void)
 {
     OLED_GPIO_Init(); // 先调用底层的端口初始化
+    delay_ms(5);      // 上电延时，等待OLED稳定
 
     /*写入一系列的命令，对OLED进行初始化配置*/
     OLED_WriteCommand(0xAE); // 设置显示开启/关闭，0xAE关闭，0xAF开启
