@@ -11,7 +11,7 @@
  * \example  依次使用了 TIM14、TIM1，则 timMapping 应定义为 {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0}
  * \warning  timMapping[0] = 0，有效值从 timMapping[1] 开始
  */
-static const u8 timMapping[15] = {0, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+static const u8 timMapping[15] = {0, 2, 0, 0, 4, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0};
 // 位序参照                       {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4}
 
 /******************************************************************
@@ -27,13 +27,15 @@ static const u32 timRccTim[] = {
     0,
     RCC_APB1Periph_TIM7,
     RCC_APB2Periph_TIM1,
+    RCC_APB1Periph_TIM5,
+    RCC_APB1Periph_TIM4,
 };
 
 /******************************************************************
  * \brief    GPIO 外设时钟使能映射表
  * \pre      修改索引对应 timMapping 表中的定时器编号
  * \note     仅需列出常用定时器的 GPIO 外设时钟使能宏定义
- * \extends   - AHB1 总线: GPIOA, GPIOB, GPIOC, GPIOD, GPIOE
+ * \extends   - AHB1 总线: GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG
  * \example  RCC_AHB1Periph_GPIOA, RCC_AHB1Periph_GPIOB, etc.
  * \warning  timRccGpio[0] = 0，有效值从 timRccGpio[1] 开始
  */
@@ -41,13 +43,15 @@ static const u32 timRccGpio[] = {
     0,
     0,
     RCC_AHB1Periph_GPIOE,
+    RCC_AHB1Periph_GPIOA,
+    RCC_AHB1Periph_GPIOB,
 };
 
 /******************************************************************
  * \brief    定时器 GPIO 端口及引脚映射表
  * \pre      修改索引对应 timMapping 表中的定时器编号
  * \note     每个定时器最多支持 4 路通道输出，未使用的通道以 0 填充
- * \extends   - GPIO 端口类型: GPIOA, GPIOB, GPIOC, GPIOD, GPIOE
+ * \extends   - GPIO 端口类型: GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG
  *            - 具体参照下方 timGpioPin 映射表注释 extends 部分
  * \example  {GPIOA, GPIOA, GPIOA, GPIOA}, etc.
  *           代表该定时器的 4 路通道均映射到 GPIOA 端口
@@ -57,6 +61,8 @@ static GPIO_TypeDef *timGpioPort[][4] = {
     {0, 0, 0, 0},
     {0, 0, 0, 0},
     {0, 0, GPIOE, GPIOE},
+    {GPIOA, GPIOA, 0, 0},
+    {GPIOB, GPIOB, 0, 0},
 };
 
 /******************************************************************
@@ -71,6 +77,8 @@ static TIM_TypeDef *timTimePort[] = {
     0,
     TIM7,
     TIM1,
+    TIM5,
+    TIM4,
 };
 
 /******************************************************************
@@ -99,7 +107,9 @@ static TIM_TypeDef *timTimePort[] = {
 static const u8 timTimeIRQn[] = {
     0,
     TIM7_IRQn,
-    TIM1_CC_IRQn,
+    0, // TIM1_CC_IRQn,
+    0, // TIM5_IRQn,
+    0, // TIM4_IRQn,
 };
 
 /******************************************************************
@@ -144,6 +154,8 @@ static const u16 timGpioPin[][4] = {
     {0, 0, 0, 0},
     {0, 0, 0, 0},
     {0, 0, GPIO_Pin_13, GPIO_Pin_14},
+    {GPIO_Pin_0, GPIO_Pin_1, 0, 0},
+    {GPIO_Pin_6, GPIO_Pin_7, 0, 0},
 };
 
 /******************************************************************
@@ -158,6 +170,8 @@ static const u8 timGpioAF[][4] = {
     {0, 0, 0, 0},
     {0, 0, 0, 0},
     {0, 0, GPIO_AF_TIM1, GPIO_AF_TIM1},
+    {GPIO_AF_TIM5, GPIO_AF_TIM5, 0, 0},
+    {GPIO_AF_TIM4, GPIO_AF_TIM4, 0, 0},
 };
 
 /******************************************************************
@@ -173,6 +187,8 @@ static const u8 timGpioSrc[][4] = {
     {0, 0, 0, 0},
     {0, 0, 0, 0},
     {0, 0, GPIO_PinSource13, GPIO_PinSource14},
+    {GPIO_PinSource0, GPIO_PinSource1, 0, 0},
+    {GPIO_PinSource6, GPIO_PinSource7, 0, 0},
 };
 
 /*
@@ -224,22 +240,25 @@ void timer_init(timMode_t mode, u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPr
 
     /* TIM 基本初始化 */
     TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure = {0};
-    TIM_TimeBaseInitStructure.TIM_Period              = arr - 1;
-    TIM_TimeBaseInitStructure.TIM_Prescaler           = psc - 1;
-    TIM_TimeBaseInitStructure.TIM_ClockDivision       = TIM_CKD_DIV1;
-    TIM_TimeBaseInitStructure.TIM_CounterMode         = TIM_CounterMode_Up;
+    TIM_TimeBaseInitStructure.TIM_Period              = (mode == encoder) ? 0xFFFF : arr - 1;
+    TIM_TimeBaseInitStructure.TIM_Prescaler           = (mode == encoder) ? 0 : psc - 1;
+    TIM_TimeBaseInitStructure.TIM_ClockDivision       = TIM_CKD_DIV1;       // 时钟分割: TDTS = Tck_tim
+    TIM_TimeBaseInitStructure.TIM_CounterMode         = TIM_CounterMode_Up; // 向上计数模式
+    TIM_TimeBaseInitStructure.TIM_RepetitionCounter   = 0;                  // 仅用于高级定时器
     TIM_TimeBaseInit(timTimePort[timNum], &TIM_TimeBaseInitStructure);
 
     /* 配置中断 */
-    TIM_ClearFlag(timTimePort[timNum], TIM_FLAG_Update);
-    TIM_ITConfig(timTimePort[timNum], TIM_IT_Update, ENABLE);
+    if (mode == timer) {
+        TIM_ClearFlag(timTimePort[timNum], TIM_FLAG_Update);
+        TIM_ITConfig(timTimePort[timNum], TIM_IT_Update, ENABLE);
 
-    NVIC_InitTypeDef NVIC_InitStructure                  = {0};
-    NVIC_InitStructure.NVIC_IRQChannel                   = timTimeIRQn[timNum];
-    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = subPriority;
-    NVIC_Init(&NVIC_InitStructure);
+        NVIC_InitTypeDef NVIC_InitStructure                  = {0};
+        NVIC_InitStructure.NVIC_IRQChannel                   = timTimeIRQn[timNum];
+        NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
+        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+        NVIC_InitStructure.NVIC_IRQChannelSubPriority        = subPriority;
+        NVIC_Init(&NVIC_InitStructure);
+    }
 
     /* 解析通道号 */
     u8 chList[5] = {0};
@@ -256,7 +275,7 @@ void timer_init(timMode_t mode, u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPr
 
         GPIO_InitTypeDef GPIO_InitStructure = {0};
         GPIO_InitStructure.GPIO_Mode        = GPIO_Mode_AF;
-        GPIO_InitStructure.GPIO_Speed       = GPIO_Speed_50MHz;
+        GPIO_InitStructure.GPIO_Speed       = GPIO_Speed_100MHz;
         GPIO_InitStructure.GPIO_OType       = GPIO_OType_PP;
         GPIO_InitStructure.GPIO_PuPd        = GPIO_PuPd_UP;
 
@@ -273,11 +292,11 @@ void timer_init(timMode_t mode, u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPr
     /* PWM 输出模式 */
     if (mode == pwmOut) {
         TIM_OCInitTypeDef TIM_OCInitStructure = {0};
-        TIM_OCInitStructure.TIM_OCMode        = TIM_OCMode_PWM1;
-        TIM_OCInitStructure.TIM_OCPolarity    = TIM_OCPolarity_High;
-        TIM_OCInitStructure.TIM_OutputState   = TIM_OutputState_Enable;
-        TIM_OCInitStructure.TIM_Pulse         = 0;
         TIM_OCStructInit(&TIM_OCInitStructure);
+        TIM_OCInitStructure.TIM_OCMode      = TIM_OCMode_PWM1;
+        TIM_OCInitStructure.TIM_OCPolarity  = TIM_OCPolarity_High;
+        TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+        TIM_OCInitStructure.TIM_Pulse       = 0;
 
         for (u8 i = 1; i <= chList[0]; i++) {
             if (chList[i] == 1) {
@@ -302,15 +321,15 @@ void timer_init(timMode_t mode, u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPr
     /* 编码器模式 */
     if (mode == encoder) {
         TIM_EncoderInterfaceConfig(timTimePort[timNum],
-                                   TIM_EncoderMode_TI12,
-                                   TIM_ICPolarity_Rising,
-                                   TIM_ICPolarity_Rising);
+                                   TIM_EncoderMode_TI12,   // 双通道编码器模式
+                                   TIM_ICPolarity_Rising,  // 上升沿捕获
+                                   TIM_ICPolarity_Rising); // 上升沿捕获
 
         TIM_ICInitTypeDef TIM_ICInitStructure = {0};
         TIM_ICInitStructure.TIM_ICPolarity    = TIM_ICPolarity_Rising;
         TIM_ICInitStructure.TIM_ICSelection   = TIM_ICSelection_DirectTI;
         TIM_ICInitStructure.TIM_ICPrescaler   = TIM_ICPSC_DIV1;
-        TIM_ICInitStructure.TIM_ICFilter      = 0x0A;
+        TIM_ICInitStructure.TIM_ICFilter      = 0x0A; // 滤波值
 
         for (u8 i = 1; i <= chList[0]; i++) {
             if (chList[i] == 1) {

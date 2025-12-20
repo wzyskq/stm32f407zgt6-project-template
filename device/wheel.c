@@ -173,22 +173,28 @@ void wheel_backward(u8 whlNum)
 /**
  * \brief      设置轮子速度
  * \pre        配置轮子对应的定时器及通道映射表 timMapping
- * \param[in]  whlNum 轮子编号
+ * \param[in]  whlNum 轮子编号，范围：0..WHL_NUM
  * \param[in]  pwm 速度(脉冲)值，范围：[-ARR, ARR]
+ * \note       whlNum 为 0 时，设置所有轮子速度
  * \warning     - 确保私有变量配置正确！
  */
 void wheel_pwm_set(u8 whlNum, s16 pwm)
 {
-    if (whlNum < 1 || whlNum > WHL_NUM) return;
+    if (whlNum > WHL_NUM) return;
 
-    if (pwm >= 70)
-        wheel_forward(whlNum);
-    else if (pwm <= -70)
-        wheel_backward(whlNum);
-    else
-        wheel_stop(whlNum);
+    u8 i = (!whlNum) ? 1 : whlNum;
+    u8 m = (!whlNum) ? WHL_NUM : whlNum;
+    for (; i <= m; i++) {
+        if (pwm >= 70)
+            wheel_forward(i);
+        else if (pwm <= -70)
+            wheel_backward(i);
+        else
+            wheel_stop(i);
 
-    timer_pwm_set(timMapping[whlNum][0], timMapping[whlNum][1], abs(pwm));
+        timer_pwm_set(timMapping[i][0], timMapping[i][1], (pwm < 0) ? -pwm : pwm);
+    }
+    return;
 }
 
 /* ******************** 功能函数 */

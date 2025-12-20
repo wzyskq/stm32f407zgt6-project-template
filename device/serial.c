@@ -311,6 +311,15 @@ void serial_decode_cmd(void)
         //     arg = strtof(cCmd, NULL);        // 获取占空比
         //     timer_pwmOut_setDuty(t, c, arg); // 直接设置占空比
         // }
+    } else if (rCmd = strmatch_s(cCmd, "pwm")) {
+        if (cCmd = strmatch_s(rCmd, "-s")) {
+            u8 t  = (u8)strtof(cCmd, &cCmd);  // 获取电机编号
+            s16 p = (s16)strtof(cCmd, &cCmd); // 获取目标 PWM
+            if (!t)
+                pwm[0] = pwm[1] = p;
+            else
+                pwm[t - 1] = p;
+        }
     } else if (srlReFlag) {
         serial_printf(USART1, "> Unknown CMD\n");
     }

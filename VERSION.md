@@ -2,8 +2,8 @@
 
 - [ ] gpio
 - [ ] pid 
-- [ ] wheel
-- [ ] Tim (timer, pwm, encoder)
+- [x] wheel
+- [x] Tim (timer, pwm, encoder)
 - [x] key
 - [x] oled 
 - [x] serial 
@@ -13,6 +13,10 @@
 - `u`：无法编译或烧录版本
 
 ## 版本
+
+### v1.4.4
+- `修复` pwm 调速问题
+- `优化` wheel 函数
 
 ### v1.4.3
 - `新增` 重命名 rotate 为 wheel 电机控制部分

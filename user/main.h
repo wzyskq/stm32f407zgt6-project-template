@@ -36,6 +36,9 @@ typedef enum {
 
 /* Exported Variables ------------------------------------------------------ */
 
+extern s16 pwm[];
+extern s16 spd[];
+
 /* Exported Functions ------------------------------------------------------ */
 
 #endif /* __MAIN_H */

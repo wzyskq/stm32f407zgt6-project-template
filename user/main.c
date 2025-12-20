@@ -4,8 +4,9 @@
 
 u32 oledTime = 0;
 
-u16 spdLt = 0;
-u16 spdRt = 0;
+s16 pwm[2]    = {0};
+s16 spd[2]    = {0};
+s16 whlCnt[2] = {0};
 
 /* Global Functions -------------------------------------------------------- */
 
@@ -33,14 +34,15 @@ int main(void)
 
     timer_init(timer, 7, 0, 1000, 840, 0);   // 定时器模式 TIM7 无通道 10ms 响应优先级0
     timer_init(pwmOut, 1, 34, 1000, 840, 1); // PWM 输出模式 TIM1 通道3/4 10ms 响应优先级1
+    timer_init(encoder, 5, 12, 0, 0, 2);     // 编码器模式 TIM5 通道1/2 10ms 响应优先级2
+    timer_init(encoder, 4, 12, 0, 0, 2);     // 编码器模式 TIM4 通道1/2 10ms 响应优先级2
 
     serial_printf(USART1, "System Init OK!\n");
 
-    wheel_pwm_set(1, 10);
-    // wheel_pwm_set(2, 200);
+    // wheel_pwm_set(1, 100);
+    // wheel_pwm_set(2, 100);
 
-    // delay_ms(100);
-    oled_printf(0, 0, OLED_8X16, "你好");
+    // oled_printf(0, 0, OLED_8X16, "你好");
 
     while (1) {
         serial_decode_packet();
@@ -62,8 +64,10 @@ int main(void)
         } else if (taskNum == 6) {
         }
 
-        oled_printf(0, 0, OLED_8X16, "%4d | %4d", spdLt, spdRt);
-        oled_printf(0, 16 * 2, OLED_8X16, "%4d.%02d", oledTime / 100, oledTime % 100);
+        oled_printf(0, 16 * 0, OLED_8X16, "%4d |%5d", pwm[0], whlCnt[0]);
+        oled_printf(0, 16 * 1, OLED_8X16, "%4d |%5d", pwm[1], whlCnt[1]);
+
+        oled_printf(8 * 4, 16 * 3, OLED_8X16, "%9d.%02d", oledTime / 100, oledTime % 100);
         oled_update();
     }
 }
@@ -88,6 +92,12 @@ void TIM7_IRQHandler(void)
         oledTime++;
 
         // 获取编码器速度
+        whlCnt[0] = timer_encoder_read(5, normal);
+        whlCnt[1] = timer_encoder_read(4, inverse);
+
+        // PWM 调速
+        wheel_pwm_set(1, pwm[0]);
+        wheel_pwm_set(2, pwm[1]);
 
         // pass
 
