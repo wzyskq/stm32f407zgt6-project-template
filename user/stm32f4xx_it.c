@@ -4,17 +4,13 @@
  * @{
  */
 
-/* Private typedef --------------------------------------------------------- */
+/* Private Typedef --------------------------------------------------------- */
 
-/* Private define ---------------------------------------------------------- */
+/* Private Macro ----------------------------------------------------------- */
 
-/* Private macro ----------------------------------------------------------- */
+/* Global Variables ------------------------------------------------------- */
 
-/* Global variables ------------------------------------------------------- */
-
-extern uint16_t Serial_RxData;
-
-/* Global functions ------------------------------------------------------- */
+/* Global Functions ------------------------------------------------------- */
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Exceptions Handlers                         */
@@ -22,8 +18,6 @@ extern uint16_t Serial_RxData;
 
 /**
  * @brief  This function handles NMI exception.
- * @param  None
- * @retval None
  */
 void NMI_Handler(void)
 {
@@ -31,60 +25,42 @@ void NMI_Handler(void)
 
 /**
  * @brief  This function handles Hard Fault exception.
- * @param  None
- * @retval None
  */
 void HardFault_Handler(void)
 {
     /* Go to infinite loop when Hard Fault exception occurs */
-    while (1)
-    {
-    }
+    while (1)   {    }
 }
 
 /**
  * @brief  This function handles Memory Manage exception.
- * @param  None
- * @retval None
  */
 void MemManage_Handler(void)
 {
     /* Go to infinite loop when Memory Manage exception occurs */
-    while (1)
-    {
-    }
+    while (1)    {    }
 }
 
 /**
  * @brief  This function handles Bus Fault exception.
- * @param  None
- * @retval None
  */
 void BusFault_Handler(void)
 {
     /* Go to infinite loop when Bus Fault exception occurs */
-    while (1)
-    {
-    }
+    while (1)    {    }
 }
 
 /**
  * @brief  This function handles Usage Fault exception.
- * @param  None
- * @retval None
  */
 void UsageFault_Handler(void)
 {
     /* Go to infinite loop when Usage Fault exception occurs */
-    while (1)
-    {
-    }
+    while (1)    {    }
 }
 
 /**
  * @brief  This function handles SVCall exception.
- * @param  None
- * @retval None
  */
 void SVC_Handler(void)
 {
@@ -92,8 +68,6 @@ void SVC_Handler(void)
 
 /**
  * @brief  This function handles Debug Monitor exception.
- * @param  None
- * @retval None
  */
 void DebugMon_Handler(void)
 {
@@ -101,8 +75,6 @@ void DebugMon_Handler(void)
 
 /**
  * @brief  This function handles PendSVC exception.
- * @param  None
- * @retval None
  */
 void PendSV_Handler(void)
 {
@@ -127,8 +99,6 @@ void PendSV_Handler(void)
 
 /**
  * @brief  This function handles PPP interrupt request.
- * @param  None
- * @retval None
  */
 void PPP_IRQHandler(void)
 {
@@ -136,8 +106,6 @@ void PPP_IRQHandler(void)
 
 // /**
 //  * @brief  Decrement the TimingDelay variable.
-//  * @param  None
-//  * @retval None
 //  */
 // static __IO uint32_t TimingDelay;
 // 
@@ -236,5 +204,38 @@ void USART3_IRQHandler(void)
         }
 
         USART_ClearITPendingBit(USART3, USART_IT_RXNE);
+    }
+}
+
+// 定时中断触发 运行时间 10ms
+void TIM7_IRQHandler(void)
+{
+    if (TIM_GetITStatus(TIM7, TIM_IT_Update) == SET) {
+        // 串口
+        // if (serialTimeFlag)
+        //     serialTime++;
+
+        // 按键
+        if (keyBox[2])
+            keyBox[2]++;
+        if (keyBox[2] == 100) { // 1s 后检查
+            key_action();
+            keyBox[2] = 0; // 关闭自增
+        }
+
+        // OLED 刷新
+        sysTime++;
+
+        // 获取编码器速度
+        whlCnt[0] = timer_encoder_read(5, normal);
+        whlCnt[1] = timer_encoder_read(4, inverse);
+
+        // PWM 调速
+        wheel_pwm_set(1, pwm[0]);
+        wheel_pwm_set(2, pwm[1]);
+
+        // pass
+
+        TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
     }
 }

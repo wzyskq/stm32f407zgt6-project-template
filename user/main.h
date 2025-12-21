@@ -22,22 +22,19 @@ typedef enum {
 
 /* User Includes ----------------------------------------------------------- */
 
-#include "delay.h"
-#include "funs.h"
-
 #include "gpio.h"
 #include "key.h"
 #include "oled.h"
 #include "pid.h"
-// #include "pwm.h"
 #include "serial.h"
 #include "timer.h"
 #include "wheel.h"
 
-/* Exported Variables ------------------------------------------------------ */
+#include "sys.h"
+#include "funs.h"
+#include "pid.h"
 
-extern s16 pwm[];
-extern s16 spd[];
+/* Exported Variables ------------------------------------------------------ */
 
 /* Exported Functions ------------------------------------------------------ */
 

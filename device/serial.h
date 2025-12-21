@@ -38,9 +38,9 @@ void serial_init(u8 srlNum, u32 baudRate, u8 subPriority);
 
 // 发送函数
 
-void serial_send_byte(USART_TypeDef *USARTx, u8 Byte);
-void serial_send_string(USART_TypeDef *USARTx, u8 *String);
-void serial_printf(USART_TypeDef *USARTx, const char *format, ...);
+void serial_send_byte(u8 srlNum, u8 Byte);
+void serial_send_string(u8 srlNum, u8 *String);
+void serial_printf(u8 srlNum, const char *format, ...);
 
 // 处理函数
 

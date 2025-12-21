@@ -5,6 +5,7 @@ deviceName: STM32F407ZGTx
 packDir: null
 srcDirs:
   - ../sdk
+  - ../app
   - ../device
   - ../user
 virtualFolder:
@@ -23,6 +24,7 @@ targets:
         - .
         - ../sdk/library
         - ../sdk/startup
+        - ../app
         - ../device
         - ../user
       libList: []

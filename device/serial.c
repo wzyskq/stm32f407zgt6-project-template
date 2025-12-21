@@ -116,41 +116,41 @@ void serial_init(u8 srlNum, u32 baudRate, u8 subPriority)
 
 /******************************************************************
  * \brief      串口发送一个字节
- * \param[in]  USARTx 对应的串口号
+ * \param[in]  srlNum 对应的串口号
  * \param[in]  Byte 要发送的字节
  */
-void serial_send_byte(USART_TypeDef *USARTx, u8 Byte)
+void serial_send_byte(u8 srlNum, u8 Byte)
 {
-    USART_SendData(USARTx, Byte);
-    while (USART_GetFlagStatus(USARTx, USART_FLAG_TXE) == RESET);
+    USART_SendData((USART_TypeDef *)srlUartPort[srlNum], Byte);
+    while (USART_GetFlagStatus((USART_TypeDef *)srlUartPort[srlNum], USART_FLAG_TXE) == RESET);
 }
 
 /******************************************************************
  * \brief      串口发送一个字符串
- * \param[in]  USARTx 对应的串口号
+ * \param[in]  srlNum 对应的串口号
  * \param[in]  String 要发送的字符串
  */
-void serial_send_string(USART_TypeDef *USARTx, u8 *String)
+void serial_send_string(u8 srlNum, u8 *String)
 {
     u8 i;
     for (i = 0; String[i] != '\0'; i++)
-        serial_send_byte(USARTx, String[i]);
+        serial_send_byte(srlNum, String[i]);
 }
 
 /******************************************************************
  * \brief      自定义 printf 函数
- * \param[in]  USARTx 对应的串口号
+ * \param[in]  srlNum 对应的串口号
  * \param[in]  format 格式化字符串
  * \param[in]  ...    可变参数列表
  */
-void serial_printf(USART_TypeDef *USARTx, const char *format, ...)
+void serial_printf(u8 srlNum, const char *format, ...)
 {
     char String[SRL_PRINTF_LEN];
     va_list arg;
     va_start(arg, format);
     vsnprintf(String, SRL_PRINTF_LEN, format, arg);
     va_end(arg);
-    serial_send_string(USARTx, (u8 *)String);
+    serial_send_string(srlNum, (u8 *)String);
 }
 
 /* ******************** 发送函数 */
@@ -179,7 +179,7 @@ void serial_decode_sign(void)
 
     srlSigFlg = 0;
     if (srlReFlag)
-        serial_printf(USART1, "3> Sign: %c\n", t);
+        serial_printf(1, "3> Sign: %c\n", t);
 }
 
 /******************************************************************
@@ -201,7 +201,7 @@ void serial_decode_packet(void)
 
     srlPkgFlg = 0;
     if (srlReFlag)
-        serial_printf(USART1, "Diff: %d, %d\n", 80, diff);
+        serial_printf(1, "Diff: %d, %d\n", 80, diff);
 }
 
 /******************************************************************
@@ -226,22 +226,23 @@ void serial_decode_pid(void)
 
     // e.g. {Pn 0.05}
 
-    switch (type) {
-        case 'P':
-            pidValue[num].Kp = v;
-            break;
-        case 'I':
-            pidValue[num].Ki = v;
-            break;
-        case 'D':
-            pidValue[num].Kd = v;
-            break;
-        default:
-            break;
-    }
+    // switch (type) {
+    //     case 'P':
+    //         pidValue[num].Kp = v;
+    //         break;
+    //     case 'I':
+    //         pidValue[num].Ki = v;
+    //         break;
+    //     case 'D':
+    //         pidValue[num].Kd = v;
+    //         break;
+    //     default:
+    //         break;
+    // }
+
     srlPidFlg = 0;
     if (srlReFlag)
-        serial_printf(USART1, "1> %c %d %g\n", type, num, v);
+        serial_printf(1, "1> %c %d %g\n", type, num, v);
 }
 
 /******************************************************************
@@ -274,7 +275,7 @@ void serial_decode_cmd(void)
     } else if (rCmd = strmatch_s(cCmd, "srl")) {
         if (cCmd = strmatch_s(rCmd, "-r")) {
             arg = (u8)strtof(cCmd, &cCmd);
-            serial_printf(srlUartPort[arg], "%s\r\n", cCmd + 1);
+            serial_printf(arg, "%s\r\n", cCmd + 1);
         }
     } else if (rCmd = strmatch_s(cCmd, "oled")) {
         if (cCmd = strmatch_s(rCmd, "-d")) {
@@ -321,12 +322,12 @@ void serial_decode_cmd(void)
                 pwm[t - 1] = p;
         }
     } else if (srlReFlag) {
-        serial_printf(USART1, "> Unknown CMD\n");
+        serial_printf(1, "> Unknown CMD\n");
     }
 
     srlCmdFlg = 0;
     if (srlReFlag)
-        serial_printf(USART1, "> CMD: %s\n", srlCmdBuf + 1);
+        serial_printf(1, "> CMD: %s\n", srlCmdBuf + 1);
 }
 
 /* ******************** 处理函数 */
@@ -350,14 +351,14 @@ void serial_decode_cmd(void)
  */
 void serial_wait_while(u8 *flagString, u8 (*getFlagFun)(void))
 {
-    serial_send_string(USART3, flagString);
+    serial_send_string(3, flagString);
     serialTimeFlag = 1;
     serialTime     = 0;
     while (!getFlagFun()) {
         serial_decode_packet();
         if (serialTimeFlag && serialTime > SERIAL_TIMEOUT) {
             serialTime = 0;
-            serial_send_string(USART3, flagString);
+            serial_send_string(3, flagString);
         }
     }
     serialTimeFlag = 0;
@@ -376,7 +377,7 @@ u8 serial_wait_if(u8 *flagString, u8 (*getFlagFun)(void))
 {
     if (!serialTimeFlag) // 如果 serialTimeFlag 为 0，表示首次调用
     {
-        serial_send_string(USART3, flagString);
+        serial_send_string(3, flagString);
         serialTimeFlag = 1;
         return 0; // 由于串口解析是在主循环中进行的，这里不阻塞等待
     }
@@ -385,7 +386,7 @@ u8 serial_wait_if(u8 *flagString, u8 (*getFlagFun)(void))
         // serial_decode_packet(); // 非阻塞等待，主循环会处理数据包
         if (serialTimeFlag && serialTime > SERIAL_TIMEOUT) {
             serialTime = 1; // 从 1 开始计时，防止 serialTime 为 0 时直接发送
-            serial_send_string(USART3, flagString);
+            serial_send_string(3, flagString);
         }
         return 0; // 获取失败
     }
