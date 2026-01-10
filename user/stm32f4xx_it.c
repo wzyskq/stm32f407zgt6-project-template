@@ -29,7 +29,7 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
     /* Go to infinite loop when Hard Fault exception occurs */
-    while (1)   {    }
+    while (1) {}
 }
 
 /**
@@ -38,7 +38,7 @@ void HardFault_Handler(void)
 void MemManage_Handler(void)
 {
     /* Go to infinite loop when Memory Manage exception occurs */
-    while (1)    {    }
+    while (1) {}
 }
 
 /**
@@ -47,7 +47,7 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
     /* Go to infinite loop when Bus Fault exception occurs */
-    while (1)    {    }
+    while (1) {}
 }
 
 /**
@@ -56,7 +56,7 @@ void BusFault_Handler(void)
 void UsageFault_Handler(void)
 {
     /* Go to infinite loop when Usage Fault exception occurs */
-    while (1)    {    }
+    while (1) {}
 }
 
 /**
@@ -108,7 +108,7 @@ void PPP_IRQHandler(void)
 //  * @brief  Decrement the TimingDelay variable.
 //  */
 // static __IO uint32_t TimingDelay;
-// 
+//
 // void TimingDelay_Decrement(void)
 // {
 //     if (TimingDelay != 0x00)
@@ -223,16 +223,15 @@ void TIM7_IRQHandler(void)
             keyBox[2] = 0; // 关闭自增
         }
 
-        // OLED 刷新
-        sysTime++;
+        // 时间刷新
+        // sysTime++;
+        // whlTime++;
 
-        // 获取编码器速度
-        whlCnt[0] = timer_encoder_read(5, normal);
-        whlCnt[1] = timer_encoder_read(4, inverse);
+        // 速度环
+        speed_loop();
 
-        // PWM 调速
-        wheel_pwm_set(1, pwm[0]);
-        wheel_pwm_set(2, pwm[1]);
+        if (spdLogFlag)
+            serial_printf(1, "spd:%d, %d, %d\n", whlSpd[0], whlCnt[0], whlCnt[1]);
 
         // pass
 

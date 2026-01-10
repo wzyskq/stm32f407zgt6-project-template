@@ -25,7 +25,6 @@ typedef enum {
 #include "gpio.h"
 #include "key.h"
 #include "oled.h"
-#include "pid.h"
 #include "serial.h"
 #include "timer.h"
 #include "wheel.h"

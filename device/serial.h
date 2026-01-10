@@ -21,6 +21,8 @@ extern u8 srlReFlag; // 串口调试返回标志位
 extern u8 serialTimeFlag;
 extern u16 serialTime;
 
+extern u8 spdLogFlag;
+
 extern volatile u8 srlSigBuf[];
 extern volatile u8 srlSigFlg;
 extern volatile u8 srlPidBuf[];

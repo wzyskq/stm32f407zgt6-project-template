@@ -28,6 +28,8 @@ u8 srlReFlag = 0; // 串口调试返回标志位
 u8 serialTimeFlag = 0; // MCU 运行时间标志位
 u16 serialTime    = 0; // 运行时间 单位：10ms
 
+u8 spdLogFlag = 1; // 速度调试标志位
+
 // 串口接收缓冲区（可自定义）
 
 volatile u8 srlSigBuf[SRL_SIGBUF_LEN] = {0}; // 标志位缓存
@@ -226,19 +228,22 @@ void serial_decode_pid(void)
 
     // e.g. {Pn 0.05}
 
-    // switch (type) {
-    //     case 'P':
-    //         pidValue[num].Kp = v;
-    //         break;
-    //     case 'I':
-    //         pidValue[num].Ki = v;
-    //         break;
-    //     case 'D':
-    //         pidValue[num].Kd = v;
-    //         break;
-    //     default:
-    //         break;
-    // }
+    switch (type) {
+        // case 'C':
+        //     pidValue[num].kcoef = v;
+        //     break;
+        case 'P':
+            pidValue[num].kp = v;
+            break;
+        case 'I':
+            pidValue[num].ki = v;
+            break;
+        case 'D':
+            pidValue[num].kd = v;
+            break;
+        default:
+            break;
+    }
 
     srlPidFlg = 0;
     if (srlReFlag)
@@ -278,10 +283,13 @@ void serial_decode_cmd(void)
             serial_printf(arg, "%s\r\n", cCmd + 1);
         }
     } else if (rCmd = strmatch_s(cCmd, "oled")) {
-        if (cCmd = strmatch_s(rCmd, "-d")) {
-            u8 x = (u8)strtof(cCmd, &cCmd);
-            u8 y = (u8)strtof(cCmd, &cCmd);
-            oled_printf(x, y, OLED_8X16, "%s", cCmd + 1);
+        // if (cCmd = strmatch_s(rCmd, "-d")) {
+        //     u8 x = (u8)strtof(cCmd, &cCmd);
+        //     u8 y = (u8)strtof(cCmd, &cCmd);
+        //     oled_printf(x, y, OLED_8X16, "%s", cCmd + 1);
+        // } else
+        if (cCmd = strmatch_s(rCmd, "-v")) {
+            oledViewIdx = (u8)strtof(cCmd, NULL);
         }
     } else if (rCmd = strmatch_s(cCmd, "led")) {
         // if (cCmd = strmatch_s(rCmd, "-i")) {
@@ -312,14 +320,26 @@ void serial_decode_cmd(void)
         //     arg = strtof(cCmd, NULL);        // 获取占空比
         //     timer_pwmOut_setDuty(t, c, arg); // 直接设置占空比
         // }
-    } else if (rCmd = strmatch_s(cCmd, "pwm")) {
+    } else if (rCmd = strmatch_s(cCmd, "whl")) {
+        if (cCmd = strmatch_s(rCmd, "--step"))
+            whlStepNum = (u8)strtof(cCmd, NULL);
+        else if (cCmd = strmatch_s(rCmd, "--err"))
+            whlMinStepErr = (u8)strtof(cCmd, NULL);
+        else if (cCmd = strmatch_s(rCmd, "--exp"))
+            whlExponent = (u8)strtof(cCmd, NULL);
+    } else if (rCmd = strmatch_s(cCmd, "spd")) {
         if (cCmd = strmatch_s(rCmd, "-s")) {
             u8 t  = (u8)strtof(cCmd, &cCmd);  // 获取电机编号
             s16 p = (s16)strtof(cCmd, &cCmd); // 获取目标 PWM
             if (!t)
-                pwm[0] = pwm[1] = p;
+                whlSpd[0] = whlSpd[1] = p;
             else
-                pwm[t - 1] = p;
+                whlSpd[t - 1] = p;
+        } else if (cCmd = strmatch_s(rCmd, "-l")) {
+            if (strmatch_s(cCmd, "-i"))
+                spdLogFlag = 1;
+            else if (strmatch_s(cCmd, "-o"))
+                spdLogFlag = 0;
         }
     } else if (srlReFlag) {
         serial_printf(1, "> Unknown CMD\n");

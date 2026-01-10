@@ -798,7 +798,7 @@ void oled_printf(int16_t X, int16_t Y, uint8_t FontSize, char *format, ...)
  */
 void oled_draw_point(int16_t X, int16_t Y)
 {
-    if (X >= 0 && X <= 127 && Y >= 0 && Y <= 31)      // 超出屏幕的内容不显示
+    if (X >= 0 && X <= 127 && Y >= 0 && Y <= 63)      // 超出屏幕的内容不显示
         OLED_DisplayBuf[Y / 8][X] |= 0x01 << (Y % 8); // 将显存数组指定位置的一个Bit数据置1
 }
 
