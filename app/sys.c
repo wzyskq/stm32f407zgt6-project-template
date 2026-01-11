@@ -3,21 +3,21 @@
 /* Global Variables -------------------------------------------------------- */
 
 u32 sysTime    = 0;
+u8 whlTime     = 0;
 u8 oledViewIdx = 0;
 
-u8 whlTime = 0;
-
-s16 whlVn = 0; // 速度临时变量
-u8 whlS   = 0; // 位置临时变量
-
+// 速度环
 s16 whlSpd[2] = {0}; // 目标速度
 s16 whlCnt[2] = {0}; // 实际速度
 s16 whlPwm[2] = {0}; // 实际输出
 
-// 速度环
-u8 whlStepNum    = 6; // 步进段数
-u8 whlMinStepErr = 20; // 最小误差
-u8 whlExponent   = 3; // 步进指数
+u8 whlStepNum    = 6;   // 步进段数
+u8 whlMinStepErr = 150; // 最小误差
+u8 whlExponent   = 4;   // 步进指数（1-4）
+
+// 临时调试变量
+// u8 tWhlS   = 0; // 时刻状态变量
+// s16 tWhlVn = 0; // 时刻速度变量
 
 /* Global Functions -------------------------------------------------------- */
 
@@ -69,28 +69,30 @@ void speed_loop(void)
 
     // 步进实现
     if (Vt0[0] != whlSpd[0]) {
-        l[0]       = ceil((whlSpd[0] - whlCnt[0]) / pow(whlStepNum, whlExponent));
+        float diff = (float)(whlSpd[0] - whlCnt[0]);
+        float div  = pow(whlStepNum, whlExponent);
+        l[0]       = (diff > 0) ? floor(diff / div) : ceil(diff / div);
         Vt0[0]     = whlSpd[0];
         Vn[0]      = whlCnt[0];
         s[0]       = 0;
         sbsFlag[0] = 1;
     }
     if (sbsFlag[0]) {
-        if (abs16(Vn[0] - whlCnt[0]) < whlMinStepErr * (whlStepNum + 1 - s[0])) {
+        if (abs16(Vn[0] - whlCnt[0]) < whlMinStepErr) {
             s[0]++;
             if (s[0] == whlStepNum) {
                 Vn[0]      = whlSpd[0];
                 sbsFlag[0] = 0;
             } else {
-                if (whlExponent == 2)
-                    Vn[0] += l[0] * (2 * whlStepNum - 2 * s[0] + 1);
-                else if (whlExponent == 3) {
-                    u8 k = whlStepNum - s[0];
-                    Vn[0] += l[0] * (3 * k * k - 3 * k + 1);
-                } else if (whlExponent == 4) {
-                    u8 k = whlStepNum - s[0];
+                u8 k = whlStepNum - s[0];
+                if (whlExponent == 1)
+                    Vn[0] += l[0];
+                else if (whlExponent == 2)
+                    Vn[0] += l[0] * (2 * k + 1);
+                else if (whlExponent == 3)
+                    Vn[0] += l[0] * (3 * k * k + 3 * k + 1);
+                else if (whlExponent == 4)
                     Vn[0] += l[0] * (4 * k * k * k - 6 * k * k + 4 * k + 1);
-                }
             }
         }
     } else {
@@ -98,36 +100,38 @@ void speed_loop(void)
     }
 
     if (Vt0[1] != whlSpd[1]) {
-        l[1]       = ceil((whlSpd[1] - whlCnt[1]) / pow(whlStepNum, whlExponent));
+        float diff = (float)(whlSpd[1] - whlCnt[1]);
+        float div  = pow(whlStepNum, whlExponent);
+        l[1]       = (diff > 0) ? floor(diff / div) : ceil(diff / div);
         Vt0[1]     = whlSpd[1];
         Vn[1]      = whlCnt[1];
         s[1]       = 0;
         sbsFlag[1] = 1;
     }
     if (sbsFlag[1]) {
-        if (abs16(Vn[1] - whlCnt[1]) < whlMinStepErr * (whlStepNum + 1 - s[1])) {
+        if (abs16(Vn[1] - whlCnt[1]) < whlMinStepErr) {
             s[1]++;
             if (s[1] == whlStepNum) {
                 Vn[1]      = whlSpd[1];
                 sbsFlag[1] = 0;
             } else {
-                if (whlExponent == 2)
-                    Vn[1] += l[1] * (2 * whlStepNum - 2 * s[1] + 1);
-                else if (whlExponent == 3) {
-                    u8 k = whlStepNum - s[1];
-                    Vn[1] += l[1] * (3 * k * k - 3 * k + 1);
-                } else if (whlExponent == 4) {
-                    u8 k = whlStepNum - s[1];
+                u8 k = whlStepNum - s[1];
+                if (whlExponent == 1)
+                    Vn[1] += l[1];
+                else if (whlExponent == 2)
+                    Vn[1] += l[1] * (2 * k + 1);
+                else if (whlExponent == 3)
+                    Vn[1] += l[1] * (3 * k * k + 3 * k + 1);
+                else if (whlExponent == 4)
                     Vn[1] += l[1] * (4 * k * k * k - 6 * k * k + 4 * k + 1);
-                }
             }
         }
     } else {
         Vn[1] = whlSpd[1];
     }
 
-    whlS  = s[0];
-    whlVn = Vn[0];
+    // tWhlS  = s[0];
+    // tWhlVn = Vn[0];
 
     // 速度环计算
     /*
@@ -184,9 +188,9 @@ void oled_ui(void)
         oled_printf(8 * 2, 16 * 1, OLED_8X16, "L %d", whlSpd[0]);
         oled_printf(8 * 2, 16 * 2, OLED_8X16, "R %d", whlSpd[1]);
 
-        oled_printf(8 * 9, 8 * 0, OLED_6X8, "whlStp %d", whlStepNum);
-        oled_printf(8 * 9, 8 * 2, OLED_6X8, "whlErr %d", whlMinStepErr);
-        oled_printf(8 * 9, 8 * 4, OLED_6X8, "whlExp %d", whlExponent);
+        oled_printf(8 * 9, 8 * 0, OLED_6X8, "wStp %d", whlStepNum);
+        oled_printf(8 * 9, 8 * 2, OLED_6X8, "wErr %d", whlMinStepErr);
+        oled_printf(8 * 9, 8 * 4, OLED_6X8, "wExp %d", whlExponent);
 
     } else if (oledViewIdx == 1) {
 
