@@ -15,6 +15,9 @@ extern u8 oledViewIdx;
 extern u32 sysTime;
 extern u8 whlTime;
 
+extern u8 whlS;
+extern s16 whlVn;
+
 extern s16 whlSpd[];
 extern s16 whlCnt[];
 extern s16 whlPwm[];
