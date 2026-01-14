@@ -11,13 +11,13 @@ s16 whlSpd[2] = {0}; // 目标速度
 s16 whlCnt[2] = {0}; // 实际速度
 s16 whlPwm[2] = {0}; // 实际输出
 
-u8 whlStepNum    = 6;   // 步进段数
-u8 whlMinStepErr = 150; // 最小误差
-u8 whlExponent   = 4;   // 步进指数（1-4）
+u8 whlStepDiv = 5;   // 步进段数
+u8 whlStepErr = 150; // 最小误差
+u8 whlStepExp = 6;   // 步进指数
 
 // 临时调试变量
-// u8 tWhlS   = 0; // 时刻状态变量
-// s16 tWhlVn = 0; // 时刻速度变量
+u8 tWhlS   = 0; // 时刻状态变量
+s16 tWhlVn = 0; // 时刻速度变量
 
 /* Global Functions -------------------------------------------------------- */
 
@@ -56,82 +56,14 @@ void loop(void)
  */
 void speed_loop(void)
 {
-    static s16 l[2]   = {0}; // 步进单位长度
-    static s16 Vt0[2] = {0}; // 目标速度备份
-    static s16 Vn[2]  = {0}; // 下一步目标速度
-    static s16 s[2]   = {0}; // 步进状态
-
-    static u8 sbsFlag[2] = {0}; // 步进标志位
-
     // 获取编码器速度
     whlCnt[0] = timer_encoder_read(5, normal);
     whlCnt[1] = timer_encoder_read(4, inverse);
 
-    // 步进实现
-    if (Vt0[0] != whlSpd[0]) {
-        float diff = (float)(whlSpd[0] - whlCnt[0]);
-        float div  = pow(whlStepNum, whlExponent);
-        l[0]       = (diff > 0) ? floor(diff / div) : ceil(diff / div);
-        Vt0[0]     = whlSpd[0];
-        Vn[0]      = whlCnt[0];
-        s[0]       = 0;
-        sbsFlag[0] = 1;
-    }
-    if (sbsFlag[0]) {
-        if (abs16(Vn[0] - whlCnt[0]) < whlMinStepErr) {
-            s[0]++;
-            if (s[0] == whlStepNum) {
-                Vn[0]      = whlSpd[0];
-                sbsFlag[0] = 0;
-            } else {
-                u8 k = whlStepNum - s[0];
-                if (whlExponent == 1)
-                    Vn[0] += l[0];
-                else if (whlExponent == 2)
-                    Vn[0] += l[0] * (2 * k + 1);
-                else if (whlExponent == 3)
-                    Vn[0] += l[0] * (3 * k * k + 3 * k + 1);
-                else if (whlExponent == 4)
-                    Vn[0] += l[0] * (4 * k * k * k - 6 * k * k + 4 * k + 1);
-            }
-        }
-    } else {
-        Vn[0] = whlSpd[0];
-    }
-
-    if (Vt0[1] != whlSpd[1]) {
-        float diff = (float)(whlSpd[1] - whlCnt[1]);
-        float div  = pow(whlStepNum, whlExponent);
-        l[1]       = (diff > 0) ? floor(diff / div) : ceil(diff / div);
-        Vt0[1]     = whlSpd[1];
-        Vn[1]      = whlCnt[1];
-        s[1]       = 0;
-        sbsFlag[1] = 1;
-    }
-    if (sbsFlag[1]) {
-        if (abs16(Vn[1] - whlCnt[1]) < whlMinStepErr) {
-            s[1]++;
-            if (s[1] == whlStepNum) {
-                Vn[1]      = whlSpd[1];
-                sbsFlag[1] = 0;
-            } else {
-                u8 k = whlStepNum - s[1];
-                if (whlExponent == 1)
-                    Vn[1] += l[1];
-                else if (whlExponent == 2)
-                    Vn[1] += l[1] * (2 * k + 1);
-                else if (whlExponent == 3)
-                    Vn[1] += l[1] * (3 * k * k + 3 * k + 1);
-                else if (whlExponent == 4)
-                    Vn[1] += l[1] * (4 * k * k * k - 6 * k * k + 4 * k + 1);
-            }
-        }
-    } else {
-        Vn[1] = whlSpd[1];
-    }
-
-    // tWhlS  = s[0];
-    // tWhlVn = Vn[0];
+    // 指数步进实现
+    static s16 Vn[2] = {0}; // 下一步目标速度
+    Vn[0]            = exp_step_core(0, whlStepDiv, whlStepExp, whlStepErr, whlSpd[0], whlCnt[0]);
+    Vn[1]            = exp_step_core(1, whlStepDiv, whlStepExp, whlStepErr, whlSpd[1], whlCnt[1]);
 
     // 速度环计算
     /*
@@ -188,9 +120,9 @@ void oled_ui(void)
         oled_printf(8 * 2, 16 * 1, OLED_8X16, "L %d", whlSpd[0]);
         oled_printf(8 * 2, 16 * 2, OLED_8X16, "R %d", whlSpd[1]);
 
-        oled_printf(8 * 9, 8 * 0, OLED_6X8, "wStp %d", whlStepNum);
-        oled_printf(8 * 9, 8 * 2, OLED_6X8, "wErr %d", whlMinStepErr);
-        oled_printf(8 * 9, 8 * 4, OLED_6X8, "wExp %d", whlExponent);
+        oled_printf(8 * 9, 8 * 0, OLED_6X8, "wDiv %d", whlStepDiv);
+        oled_printf(8 * 9, 8 * 2, OLED_6X8, "wErr %d", whlStepErr);
+        oled_printf(8 * 9, 8 * 4, OLED_6X8, "wExp %d", whlStepExp);
 
     } else if (oledViewIdx == 1) {
 

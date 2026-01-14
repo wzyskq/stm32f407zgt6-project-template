@@ -231,8 +231,8 @@ void TIM7_IRQHandler(void)
         speed_loop();
 
         if (spdLogFlag)
-            serial_printf(1, "spd:%d, %d, %d\n", whlSpd[0], whlCnt[0], whlCnt[1]);
-            // serial_printf(1, "spd:%d, %d, %d, %d\n", tWhlVn, whlCnt[0], whlCnt[1], tWhlS * 100);
+            // serial_printf(1, "spd:%d, %d, %d\n", whlSpd[0], whlCnt[0], whlCnt[1]);
+            serial_printf(1, "spd:%d, %d, %d, %d\n", tWhlVn, whlCnt[0], whlCnt[1], whlSpd[0]);
 
         // pass
 

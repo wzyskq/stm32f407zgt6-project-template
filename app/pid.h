@@ -25,5 +25,6 @@ extern pid_t pidValue[]; // PID 控制器数组
 
 void pid_init(pid_t *pid, float kp, float ki, float kd);
 float pid_action(pid_t *pid, float set_value, float actual_value);
+s16 exp_step_core(u8 tarIdx, u8 n, u8 exp, u8 e, s16 Vt, s16 V0);
 
 #endif

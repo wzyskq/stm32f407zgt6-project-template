@@ -302,6 +302,7 @@ void serial_decode_cmd(void)
         //     arg = strtof(cCmd, NULL);
         //     led_toggle(arg);
         // }
+
     } else if (rCmd = strmatch_s(cCmd, "svo")) {
         // u8 t = 0, c = 0;
         // if (cCmd = strmatch_s(rCmd, "-p")) {
@@ -320,13 +321,15 @@ void serial_decode_cmd(void)
         //     arg = strtof(cCmd, NULL);        // 获取占空比
         //     timer_pwmOut_setDuty(t, c, arg); // 直接设置占空比
         // }
+
     } else if (rCmd = strmatch_s(cCmd, "whl")) {
-        if (cCmd = strmatch_s(rCmd, "--step"))
-            whlStepNum = (u8)strtof(cCmd, NULL);
+        if (cCmd = strmatch_s(rCmd, "--div"))
+            whlStepDiv = (u8)strtof(cCmd, NULL);
         else if (cCmd = strmatch_s(rCmd, "--err"))
-            whlMinStepErr = (u8)strtof(cCmd, NULL);
+            whlStepErr = (u8)strtof(cCmd, NULL);
         else if (cCmd = strmatch_s(rCmd, "--exp"))
-            whlExponent = (u8)strtof(cCmd, NULL);
+            whlStepExp = (u8)strtof(cCmd, NULL);
+
     } else if (rCmd = strmatch_s(cCmd, "spd")) {
         if (cCmd = strmatch_s(rCmd, "-s")) {
             u8 t  = (u8)strtof(cCmd, &cCmd);  // 获取电机编号
@@ -341,6 +344,7 @@ void serial_decode_cmd(void)
             else if (strmatch_s(cCmd, "-o"))
                 spdLogFlag = 0;
         }
+        
     } else if (srlReFlag) {
         serial_printf(1, "> Unknown CMD\n");
     }
