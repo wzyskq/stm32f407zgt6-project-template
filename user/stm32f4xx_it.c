@@ -227,6 +227,9 @@ void TIM7_IRQHandler(void)
         // sysTime++;
         // whlTime++;
 
+        // 位置环
+        position_loop();
+
         // 速度环
         speed_loop();
 

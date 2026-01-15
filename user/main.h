@@ -23,6 +23,7 @@ typedef enum {
 /* User Includes ----------------------------------------------------------- */
 
 #include "gpio.h"
+#include "grayscale.h"
 #include "key.h"
 #include "oled.h"
 #include "serial.h"

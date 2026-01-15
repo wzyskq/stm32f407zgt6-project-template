@@ -28,7 +28,7 @@ u8 srlReFlag = 0; // 串口调试返回标志位
 u8 serialTimeFlag = 0; // MCU 运行时间标志位
 u16 serialTime    = 0; // 运行时间 单位：10ms
 
-u8 spdLogFlag = 1; // 速度调试标志位
+u8 spdLogFlag = 0; // 速度调试标志位（1：开启；0：关闭）
 
 // 串口接收缓冲区（可自定义）
 

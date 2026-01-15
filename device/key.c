@@ -122,20 +122,20 @@ void key_action(void)
         if (keyBox[1] == 1)
             taskNum = 1;
         else if (keyBox[1] == 2)
-            taskNum = 2;
+            taskNum = 5;
     } else if (keyBox[0] == 2) {
+        if (keyBox[1] == 1)
+            taskNum = 2;
+        else if (keyBox[1] == 2)
+            taskNum = 6;
+    } else if (keyBox[0] == 3) {
         if (keyBox[1] == 1)
             taskNum = 3;
         else if (keyBox[1] == 2)
-            taskNum = 4;
-    } else if (keyBox[0] == 3) {
-        if (keyBox[1] == 1)
-            taskNum = 5;
-        else if (keyBox[1] == 2)
-            taskNum = 6;
+            taskNum = 7;
     } else if (keyBox[0] == 4) {
         if (keyBox[1] == 1)
-            taskNum = 7;
+            taskNum = 4;
         else if (keyBox[1] == 2)
             taskNum = 8;
     }

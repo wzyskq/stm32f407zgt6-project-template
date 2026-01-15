@@ -17,13 +17,14 @@ int main(void)
     // gpio_init_pa2();
 
     oled_init();
+    grays_init();
     keys_init();
     wheels_init();
 
     // neural_pid_init(&pidValue[1], 1000.0, -1000.0);
     // neural_pid_init(&pidValue[2], 1000.0, -1000.0);
 
-    // 速度环
+    // 速度环 PID
     pid_init(&pidValue[1], 0.7, 0.07, 0.05);
     pid_init(&pidValue[2], 0.7, 0.07, 0.05);
 

@@ -4,7 +4,14 @@
 
 u32 sysTime    = 0;
 u8 whlTime     = 0;
-u8 oledViewIdx = 0;
+u8 oledViewIdx = 1;
+
+// 巡线
+s16 lineSpd = 0; // 巡线速度
+
+// 位置环
+u8 gray[9] = {0}; // 滤波灰度值
+s8 grayVal = 0;   // 量化灰度值
 
 // 速度环
 s16 whlSpd[2] = {0}; // 目标速度
@@ -35,10 +42,18 @@ void loop(void)
         key_judge(); // 按键检测
 
         if (taskNum == 1) {
+            oledViewIdx++;
+            if (oledViewIdx > 2) oledViewIdx = 0;
+            taskNum = 0;
         } else if (taskNum == 2) {
         } else if (taskNum == 3) {
         } else if (taskNum == 4) {
         } else if (taskNum == 5) {
+            if (!oledViewIdx)
+                oledViewIdx = 2;
+            else
+                oledViewIdx--;
+            taskNum = 0;
         } else if (taskNum == 6) {
         }
 
@@ -92,6 +107,16 @@ void speed_loop(void)
 }
 
 /******************************************************************
+ * \brief  位置环
+ */
+void position_loop(void)
+{
+    // 灰度传感器检测与滤波
+    gray_scan();
+    grayVal = gray_quant_core(graySrc, gray);
+}
+
+/******************************************************************
  * \brief  OLED UI
  */
 void oled_ui(void)
@@ -125,6 +150,15 @@ void oled_ui(void)
         oled_printf(8 * 9, 8 * 4, OLED_6X8, "wExp %d", whlStepExp);
 
     } else if (oledViewIdx == 1) {
+        oled_printf(0, 16 * 0, OLED_8X16, "Gray: %d", grayVal);
+        // oled_printf(0, 16 * 0, OLED_8X16, "%d %d %d %d  %d %d %d %d",
+        //             graySrc[1], graySrc[2], graySrc[3], graySrc[4],
+        //             graySrc[5], graySrc[6], graySrc[7], graySrc[8]);
+        oled_printf(0, 16 * 1, OLED_8X16, "%d %d %d %d  %d %d %d %d",
+                    gray[1], gray[2], gray[3], gray[4],
+                    gray[5], gray[6], gray[7], gray[8]);
+
+    } else if (oledViewIdx == 2) {
 
         // pidc
         pidIdx = 1;

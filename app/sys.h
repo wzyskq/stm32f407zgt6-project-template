@@ -15,6 +15,15 @@ extern u8 oledViewIdx;
 extern u32 sysTime;
 extern u8 whlTime;
 
+/* 巡线 */
+
+extern s16 lineSpd;
+
+/* 位置环 */
+
+extern u8 gray[];
+extern s8 grayVal;
+
 /* 速度环 */ 
 
 extern s16 whlSpd[];
@@ -34,6 +43,7 @@ extern s16 tWhlVn;
 
 void loop(void);
 void speed_loop(void);
+void position_loop(void);
 void oled_ui(void);
 
 #endif
