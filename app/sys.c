@@ -4,10 +4,12 @@
 
 u32 sysTime    = 0;
 u8 whlTime     = 0;
-u8 oledViewIdx = 1;
+u8 oledViewIdx = 3; // OLED 界面索引
 
 // 巡线
 s16 lineSpd = 0; // 巡线速度
+
+// 方向环
 
 // 位置环
 u8 gray[9] = {0}; // 滤波灰度值
@@ -43,14 +45,14 @@ void loop(void)
 
         if (taskNum == 1) {
             oledViewIdx++;
-            if (oledViewIdx > 2) oledViewIdx = 0;
+            if (oledViewIdx > 3) oledViewIdx = 0;
             taskNum = 0;
         } else if (taskNum == 2) {
         } else if (taskNum == 3) {
         } else if (taskNum == 4) {
         } else if (taskNum == 5) {
             if (!oledViewIdx)
-                oledViewIdx = 2;
+                oledViewIdx = 3;
             else
                 oledViewIdx--;
             taskNum = 0;
@@ -150,16 +152,6 @@ void oled_ui(void)
         oled_printf(8 * 9, 8 * 4, OLED_6X8, "wExp %d", whlStepExp);
 
     } else if (oledViewIdx == 1) {
-        oled_printf(0, 16 * 0, OLED_8X16, "Gray: %d", grayVal);
-        // oled_printf(0, 16 * 0, OLED_8X16, "%d %d %d %d  %d %d %d %d",
-        //             graySrc[1], graySrc[2], graySrc[3], graySrc[4],
-        //             graySrc[5], graySrc[6], graySrc[7], graySrc[8]);
-        oled_printf(0, 16 * 1, OLED_8X16, "%d %d %d %d  %d %d %d %d",
-                    gray[1], gray[2], gray[3], gray[4],
-                    gray[5], gray[6], gray[7], gray[8]);
-
-    } else if (oledViewIdx == 2) {
-
         // pidc
         pidIdx = 1;
         oled_printf(74, 8 * 0, OLED_6X8, "P1 %g", pidValue[pidIdx].kp);
@@ -172,5 +164,30 @@ void oled_ui(void)
         oled_printf(74, 8 * 5, OLED_6X8, "I2 %g", pidValue[pidIdx].ki);
         oled_printf(74, 8 * 6, OLED_6X8, "D2 %g", pidValue[pidIdx].kd);
         // oled_printf(74, 8 * 7, OLED_6X8, "C2 %g", pidValue[pidIdx].kcoef);
+    }
+
+    else if (oledViewIdx == 2) {
+        // gray
+        oled_printf(0, 16 * 0, OLED_8X16, "Gray: %d", grayVal);
+        // oled_printf(0, 16 * 0, OLED_8X16, "%d %d %d %d  %d %d %d %d",
+        //             graySrc[1], graySrc[2], graySrc[3], graySrc[4],
+        //             graySrc[5], graySrc[6], graySrc[7], graySrc[8]);
+        oled_printf(0, 16 * 1, OLED_8X16, "%d %d %d %d  %d %d %d %d",
+                    gray[1], gray[2], gray[3], gray[4],
+                    gray[5], gray[6], gray[7], gray[8]);
+        // oled_printf(0, 16 * 2, OLED_8X16, "0x%x", mpu_read_id());
+    }
+
+    else if (oledViewIdx == 3) {
+        // mpu6050
+        oled_printf(8 * 0, 16 * 0, OLED_8X16, "%+d", mpuData.Accel_X);
+        oled_printf(8 * 0, 16 * 1, OLED_8X16, "%+d", mpuData.Accel_Y);
+        oled_printf(8 * 0, 16 * 2, OLED_8X16, "%+d", mpuData.Accel_Z);
+
+        oled_printf(8 * 8, 16 * 0, OLED_8X16, "%+d", mpuData.Gyro_X);
+        oled_printf(8 * 8, 16 * 1, OLED_8X16, "%+d", mpuData.Gyro_Y);
+        oled_printf(8 * 8, 16 * 2, OLED_8X16, "%+d", mpuData.Gyro_Z);
+
+        oled_printf(8 * 8, 16 * 3, OLED_8X16, "%+d", mpuData.Temp);
     }
 }

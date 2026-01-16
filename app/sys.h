@@ -19,6 +19,8 @@ extern u8 whlTime;
 
 extern s16 lineSpd;
 
+/* 方向环 */
+
 /* 位置环 */
 
 extern u8 gray[];

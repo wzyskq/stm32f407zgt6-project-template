@@ -16,6 +16,8 @@ int main(void)
 
     // gpio_init_pa2();
 
+    mpu_init();
+
     oled_init();
     grays_init();
     keys_init();

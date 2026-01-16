@@ -36,8 +36,6 @@ void oled_delay(u16 Delay)
  */
 void OLED_GPIO_Init(void)
 {
-    oled_delay(10);
-
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);
 
     GPIO_InitTypeDef GPIO_InitStructure;
@@ -45,9 +43,7 @@ void OLED_GPIO_Init(void)
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
     GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_5;
-    GPIO_Init(GPIOF, &GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_5 | GPIO_Pin_6;
     GPIO_Init(GPIOF, &GPIO_InitStructure);
 
     OLED_W_SCL(SET);

@@ -24,7 +24,9 @@ typedef enum {
 
 #include "gpio.h"
 #include "grayscale.h"
+#include "i2c.h"
 #include "key.h"
+#include "mpu6050.h"
 #include "oled.h"
 #include "serial.h"
 #include "timer.h"

@@ -175,15 +175,25 @@ u8 gray_filter_core(u8 *src, u8 *res)
  */
 s8 gray_quant_core(u8 *src, u8 *res)
 {
-    s8 v = 0; // 量化结果
-    u8 s = gray_filter_core(src, res);
-    for (u8 i = s; i < s + res[0]; i++)
-        v += grayWeight[i];
+    static s8 v0 = 0; // 上一次量化结果
 
-    if (res[0] == 0)
-        return 0;
-    else
-        return (s8)(v / res[0]);
+    s8 v = 0; // 量化结果
+    s8 s = 0; // 权重和
+
+    u8 sm = gray_filter_core(src, res);
+    for (u8 i = sm; i < sm + res[0]; i++)
+        s += grayWeight[i];
+
+    v = (res[0] == 0) ? 0 : (s / res[0]);
+
+    // 超限保持算法
+    if (v == 0) {
+        if (v0 == 35 || v0 == -35)
+            v = v0; // 保持上一次的极值
+    }
+    v0 = v;
+
+    return v;
 }
 
 /* ******************** 算法函数 */
