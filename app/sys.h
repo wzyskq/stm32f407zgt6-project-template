@@ -46,6 +46,7 @@ extern s16 tWhlVn;
 void loop(void);
 void speed_loop(void);
 void position_loop(void);
+void direction_loop(void);
 void oled_ui(void);
 
 #endif

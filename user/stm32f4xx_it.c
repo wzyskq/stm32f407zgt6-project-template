@@ -228,7 +228,7 @@ void TIM7_IRQHandler(void)
         // whlTime++;
 
         // 方向环
-        mpu_read_data(&mpuData);
+        direction_loop();
 
         // 位置环
         position_loop();

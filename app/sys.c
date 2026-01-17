@@ -119,6 +119,18 @@ void position_loop(void)
 }
 
 /******************************************************************
+ * \brief  方向环
+ */
+void direction_loop(void)
+{
+    // MPU6050 数据读取
+    mpu_read_data(&mpuData);
+
+    // 偏航角计算
+    mpu_yaw_core(&mpuData, &mpuYaw);
+}
+
+/******************************************************************
  * \brief  OLED UI
  */
 void oled_ui(void)
@@ -180,14 +192,18 @@ void oled_ui(void)
 
     else if (oledViewIdx == 3) {
         // mpu6050
-        oled_printf(8 * 0, 16 * 0, OLED_8X16, "%+d", mpuData.Accel_X);
-        oled_printf(8 * 0, 16 * 1, OLED_8X16, "%+d", mpuData.Accel_Y);
-        oled_printf(8 * 0, 16 * 2, OLED_8X16, "%+d", mpuData.Accel_Z);
+        oled_printf(8 * 0, 8 * 0, OLED_6X8, "%+d", mpuData.accel_x);
+        oled_printf(8 * 0, 8 * 1, OLED_6X8, "%+d", mpuData.accel_y);
+        oled_printf(8 * 0, 8 * 2, OLED_6X8, "%+d", mpuData.accel_z);
 
-        oled_printf(8 * 8, 16 * 0, OLED_8X16, "%+d", mpuData.Gyro_X);
-        oled_printf(8 * 8, 16 * 1, OLED_8X16, "%+d", mpuData.Gyro_Y);
-        oled_printf(8 * 8, 16 * 2, OLED_8X16, "%+d", mpuData.Gyro_Z);
+        oled_printf(8 * 0, 8 * 3, OLED_6X8, "%+d", mpuData.gyro_x);
+        oled_printf(8 * 0, 8 * 4, OLED_6X8, "%+d", mpuData.gyro_y);
+        oled_printf(8 * 0, 8 * 5, OLED_6X8, "%+d", mpuData.gyro_z);
 
-        oled_printf(8 * 8, 16 * 3, OLED_8X16, "%+d", mpuData.Temp);
+        oled_printf(8 * 8, 16 * 3, OLED_8X16, "%+d", mpuData.temp);
+
+        oled_printf(8 * 8, 16 * 0, OLED_8X16, "%+d", mpuYaw.yaw_x);
+        oled_printf(8 * 8, 16 * 1, OLED_8X16, "%+d", mpuYaw.yaw_y);
+        oled_printf(8 * 8, 16 * 2, OLED_8X16, "%+d", mpuYaw.yaw_z);
     }
 }
