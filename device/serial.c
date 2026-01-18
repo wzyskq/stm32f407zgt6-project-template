@@ -284,14 +284,6 @@ void serial_decode_cmd(void)
             serial_printf(arg, "%s\r\n", cCmd + 1);
         }
 
-    } else if (rCmd = strmatch_s(cCmd, "whl")) {
-        if (cCmd = strmatch_s(rCmd, "--div"))
-            whlStepDiv = (u8)strtof(cCmd, NULL);
-        else if (cCmd = strmatch_s(rCmd, "--err"))
-            whlStepErr = (u8)strtof(cCmd, NULL);
-        else if (cCmd = strmatch_s(rCmd, "--exp"))
-            whlStepExp = (u8)strtof(cCmd, NULL);
-
     } else if (rCmd = strmatch_s(cCmd, "dir")) {
         if (cCmd = strmatch_s(rCmd, "-s")) {
             s16 p = (s16)strtof(cCmd, &cCmd);
@@ -314,7 +306,12 @@ void serial_decode_cmd(void)
                 spdLogFlag = 1;
             else if (strmatch_s(cCmd, "-o"))
                 spdLogFlag = 0;
-        }
+        } else if (cCmd = strmatch_s(rCmd, "--div"))
+            spdStepDiv = (u8)strtof(cCmd, NULL);
+        else if (cCmd = strmatch_s(rCmd, "--err"))
+            spdStepErr = (u8)strtof(cCmd, NULL);
+        else if (cCmd = strmatch_s(rCmd, "--exp"))
+            spdStepExp = (u8)strtof(cCmd, NULL);
 
     } else if (rCmd = strmatch_s(cCmd, "oled")) {
         // if (cCmd = strmatch_s(rCmd, "-d")) {

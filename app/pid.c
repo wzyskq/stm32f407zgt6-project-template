@@ -82,7 +82,7 @@ float pid_action(pid_t *pid, float set_value, float actual_value)
 
 /******************************************************************
  * \brief      指数步进算法
- * \param[in]  tarIdx  目标编号，0..1
+ * \param[in]  tarIdx  目标编号
  * \param[in]  n       步进段数，1..255
  * \param[in]  exp     步进指数，1..255
  * \param[in]  e       最大误差，0..255
@@ -95,21 +95,24 @@ float pid_action(pid_t *pid, float set_value, float actual_value)
  */
 s16 exp_step_core(u8 tarIdx, u8 n, u8 exp, u8 e, s16 Vt, s16 V0)
 {
-    static u8 sbsFlag[2] = {0}; // 步进标志位
-    static u8 n0[2]      = {0}; // 原始分段备份
-    static u8 exp0[2]    = {0}; // 原始指数备份
-    static s16 Vt0[2]    = {0}; // 目标速度备份
+    static u8 sbsFlag[EXP_ARR_LEN] = {0}; // 步进标志位
+    static u8 n0[EXP_ARR_LEN]      = {0}; // 原始分段备份
+    static u8 exp0[EXP_ARR_LEN]    = {0}; // 原始指数备份
+    static s16 Vt0[EXP_ARR_LEN]    = {0}; // 目标速度备份
 
-    static s16 x[2]          = {0}; // 原始距离差
-    static s16 s[2]          = {0}; // 步进状态
-    static s16 Vn[2]         = {0}; // 下一步目标速度
-    static float expArr[256] = {0}; // 指数记忆化存储数组
+    static s16 x[EXP_ARR_LEN]  = {0}; // 原始距离差
+    static s16 s[EXP_ARR_LEN]  = {0}; // 步进状态
+    static s16 Vn[EXP_ARR_LEN] = {0}; // 下一步目标速度
+
+    // 可扩展指数数组
+    static u8 arrIdx            = 0;   // 指数数组索引
+    static float expArr[1][256] = {0}; // 指数记忆化存储数组（速度环 + 方向环）
 
     // 步进实现
     if (Vt0[tarIdx] != Vt || n0[tarIdx] != n || exp0[tarIdx] != exp) {
         if (exp0[tarIdx] != exp) {
             for (u8 i = 0; i <= n0[tarIdx]; i++)
-                expArr[i] = 0;
+                expArr[arrIdx][i] = 0;
             exp0[tarIdx] = exp;
         }
 
@@ -129,9 +132,9 @@ s16 exp_step_core(u8 tarIdx, u8 n, u8 exp, u8 e, s16 Vt, s16 V0)
             } else {
                 u8 a = n + 1 - s[tarIdx];
                 u8 b = n - s[tarIdx];
-                if (!expArr[a]) expArr[a] = powf(a, exp);
-                if (!expArr[b]) expArr[b] = powf(b, exp);
-                Vn[tarIdx] += (s16)(x[tarIdx] * (expArr[a] - expArr[b]) / expArr[n]);
+                if (!expArr[arrIdx][a]) expArr[arrIdx][a] = powf(a, exp);
+                if (!expArr[arrIdx][b]) expArr[arrIdx][b] = powf(b, exp);
+                Vn[tarIdx] += (s16)(x[tarIdx] * (expArr[arrIdx][a] - expArr[arrIdx][b]) / expArr[arrIdx][n]);
             }
         }
     } else {

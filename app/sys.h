@@ -34,9 +34,9 @@ extern s16 whlSpd[];
 extern s16 whlCnt[];
 extern s16 whlPwm[];
 
-extern u8 whlStepDiv;
-extern u8 whlStepErr;
-extern u8 whlStepExp;
+extern u8 spdStepDiv;
+extern u8 spdStepErr;
+extern u8 spdStepExp;
 
 /* 临时调试变量 */ 
 

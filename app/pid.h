@@ -5,6 +5,8 @@
 
 /* Global Macro ------------------------------------------------------------ */
 
+#define EXP_ARR_LEN 2 // 指数步进算法数组长度
+
 /* Global Types ------------------------------------------------------------ */
 
 typedef enum {
@@ -13,6 +15,11 @@ typedef enum {
     pidObj_pos   = 3,
     pidObj_dir   = 4
 } pidObj_t;
+
+typedef enum {
+    expIdx_whlLt = 0,
+    expIdx_whlRt = 1
+} expIdx_t;
 
 typedef struct
 {

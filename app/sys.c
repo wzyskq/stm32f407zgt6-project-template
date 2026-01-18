@@ -4,7 +4,7 @@
 
 u32 sysTime    = 0;
 u8 whlTime     = 0;
-u8 oledViewIdx = 1; // OLED 界面索引
+u8 oledViewIdx = 0; // OLED 界面索引
 
 // 巡线
 s16 lineSpd = 0; // 巡线速度
@@ -21,9 +21,9 @@ s16 whlSpd[2] = {0}; // 目标速度
 s16 whlCnt[2] = {0}; // 实际速度
 s16 whlPwm[2] = {0}; // 实际输出
 
-u8 whlStepDiv = 5;   // 步进段数
-u8 whlStepErr = 150; // 最小误差
-u8 whlStepExp = 6;   // 步进指数
+u8 spdStepDiv = 5;   // 步进段数
+u8 spdStepErr = 150; // 最小误差
+u8 spdStepExp = 6;   // 步进指数
 
 // 临时调试变量
 u8 tWhlS   = 0; // 时刻状态变量
@@ -80,8 +80,8 @@ void speed_loop(void)
 
     // 指数步进实现
     static s16 Vn[2] = {0}; // 下一步目标速度
-    Vn[0]            = exp_step_core(0, whlStepDiv, whlStepExp, whlStepErr, whlSpd[0], whlCnt[0]);
-    Vn[1]            = exp_step_core(1, whlStepDiv, whlStepExp, whlStepErr, whlSpd[1], whlCnt[1]);
+    Vn[0]            = exp_step_core(expIdx_whlLt, spdStepDiv, spdStepExp, spdStepErr, whlSpd[0], whlCnt[0]);
+    Vn[1]            = exp_step_core(expIdx_whlRt, spdStepDiv, spdStepExp, spdStepErr, whlSpd[1], whlCnt[1]);
 
     // 速度环计算
     pidIdx    = pidObj_whlLt;
@@ -156,9 +156,9 @@ void oled_ui(void)
         oled_printf(8 * 2, 16 * 1, OLED_8X16, "L %d", whlSpd[0]);
         oled_printf(8 * 2, 16 * 2, OLED_8X16, "R %d", whlSpd[1]);
 
-        oled_printf(8 * 9, 8 * 0, OLED_6X8, "wDiv %d", whlStepDiv);
-        oled_printf(8 * 9, 8 * 2, OLED_6X8, "wErr %d", whlStepErr);
-        oled_printf(8 * 9, 8 * 4, OLED_6X8, "wExp %d", whlStepExp);
+        oled_printf(8 * 9, 8 * 0, OLED_6X8, "wDiv %d", spdStepDiv);
+        oled_printf(8 * 9, 8 * 2, OLED_6X8, "wErr %d", spdStepErr);
+        oled_printf(8 * 9, 8 * 4, OLED_6X8, "wExp %d", spdStepExp);
 
     } else if (oledViewIdx == 1) {
         // pidc
