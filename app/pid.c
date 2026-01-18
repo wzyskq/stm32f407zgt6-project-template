@@ -48,13 +48,17 @@ void pid_init(pid_t *pid, float kp, float ki, float kd)
  */
 float pid_action(pid_t *pid, float set_value, float actual_value)
 {
-    pid->err = set_value - actual_value;                                                                 // 计算当前偏差
+    pid->err = set_value - actual_value; // 计算当前偏差
+    if (pidIdx == pidObj_dir) {          // 方向环特殊处理，计算最短偏差
+        if (pid->err <= -180.0f) pid->err += 360.0f;
+        if (pid->err > 180.0f) pid->err -= 360.0f;
+    }
     pid->integral += pid->err;                                                                           // 计算积分值
     pid->output   = pid->kp * pid->err + pid->ki * pid->integral + pid->kd * (pid->err - pid->err_last); // 计算输出值
     pid->err_last = pid->err;                                                                            // 更新上一次偏差
 
     // 速度环限幅
-    if (pidIdx == 1 || pidIdx == 2) {
+    if (pidIdx == pidObj_whlLt || pidIdx == pidObj_whlRt) {
         if (pid->output > 1000)
             pid->output = 1000;
         else if (pid->output < -1000)

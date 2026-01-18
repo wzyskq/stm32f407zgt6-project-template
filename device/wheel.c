@@ -185,9 +185,9 @@ void wheel_pwm_set(u8 whlNum, s16 pwm)
     u8 i = (!whlNum) ? 1 : whlNum;
     u8 m = (!whlNum) ? WHL_NUM : whlNum;
     for (; i <= m; i++) {
-        if (pwm >= 70)
+        if (pwm > 0)
             wheel_forward(i);
-        else if (pwm <= -70)
+        else if (pwm < 0)
             wheel_backward(i);
         else
             wheel_stop(i);

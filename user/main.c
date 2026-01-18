@@ -23,17 +23,16 @@ int main(void)
     keys_init();
     wheels_init();
 
-    // neural_pid_init(&pidValue[1], 1000.0, -1000.0);
-    // neural_pid_init(&pidValue[2], 1000.0, -1000.0);
-
     // 速度环 PID
-    pid_init(&pidValue[1], 0.7, 0.07, 0.05);
-    pid_init(&pidValue[2], 0.7, 0.07, 0.05);
+    pid_init(&pidValue[pidObj_whlLt], 0.7, 0.07, 0.05);
+    pid_init(&pidValue[pidObj_whlRt], 0.7, 0.07, 0.05);
+    pid_init(&pidValue[pidObj_dir], 10, 0, 0);
 
-    timer_init(timer, 7, 0, 1000, 840, 0);   // 定时器模式 TIM7 无通道 10ms 响应优先级0
-    timer_init(pwmOut, 1, 34, 1000, 840, 1); // PWM 输出模式 TIM1 通道3/4 10ms 响应优先级1
-    timer_init(encoder, 5, 12, 0, 0, 2);     // 编码器模式 TIM5 通道1/2 10ms 响应优先级2
-    timer_init(encoder, 4, 12, 0, 0, 2);     // 编码器模式 TIM4 通道1/2 10ms 响应优先级2
+    // 定时器初始化
+    timer_init(timObj_timer, 7, 0, 1000, 840, 0);   // 定时器模式 TIM7 无通道 10ms 响应优先级0
+    timer_init(timObj_pwmOut, 1, 34, 1000, 840, 1); // PWM 输出模式 TIM1 通道3/4 10ms 响应优先级1
+    timer_init(timObj_encoder, 5, 12, 0, 0, 2);     // 编码器模式 TIM5 通道1/2 10ms 响应优先级2
+    timer_init(timObj_encoder, 4, 12, 0, 0, 2);     // 编码器模式 TIM4 通道1/2 10ms 响应优先级2
 
     serial_printf(1, "System Init OK!\n");
 

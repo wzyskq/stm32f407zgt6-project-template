@@ -206,9 +206,9 @@ static const u8 timGpioSrc[][4] = {
 /**
  * \brief      定时器初始化
  * \param[in]  mode 定时器工作模式
- *   \arg       - timer: 基本定时器模式
- *   \arg       - pwmOut: PWM 输出模式
- *   \arg       - encoder: 编码器解码模式
+ *   \arg        timObj_timer: 基本定时器模式
+ *   \arg        timObj_pwmOut: PWM 输出模式
+ *   \arg        timObj_encoder: 编码器解码模式
  * \param[in]  timNum 定时器编号 1..14
  * \param[in]  chNum 通道编号，若为定时器模式则填 0；
  *                    - 支持多通道无序输入，如：通道一和三：13，通道一、四和二：142
@@ -221,7 +221,7 @@ static const u8 timGpioSrc[][4] = {
  *              - timNum 必须在 timMapping 映射表中有对应配置!
  *              - 注意总线主频！
  */
-void timer_init(timMode_t mode, u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPriority)
+void timer_init(u8 mode, u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPriority)
 {
     /* 定时器检测 */
     if (timNum < 1 || timNum > 14) return;
@@ -240,15 +240,15 @@ void timer_init(timMode_t mode, u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPr
 
     /* TIM 基本初始化 */
     TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure = {0};
-    TIM_TimeBaseInitStructure.TIM_Period              = (mode == encoder) ? 0xFFFF : arr - 1;
-    TIM_TimeBaseInitStructure.TIM_Prescaler           = (mode == encoder) ? 0 : psc - 1;
+    TIM_TimeBaseInitStructure.TIM_Period              = (mode == timObj_encoder) ? 0xFFFF : arr - 1;
+    TIM_TimeBaseInitStructure.TIM_Prescaler           = (mode == timObj_encoder) ? 0 : psc - 1;
     TIM_TimeBaseInitStructure.TIM_ClockDivision       = TIM_CKD_DIV1;       // 时钟分割: TDTS = Tck_tim
     TIM_TimeBaseInitStructure.TIM_CounterMode         = TIM_CounterMode_Up; // 向上计数模式
     TIM_TimeBaseInitStructure.TIM_RepetitionCounter   = 0;                  // 仅用于高级定时器
     TIM_TimeBaseInit(timTimePort[timNum], &TIM_TimeBaseInitStructure);
 
     /* 配置中断 */
-    if (mode == timer) {
+    if (mode == timObj_timer) {
         TIM_ClearFlag(timTimePort[timNum], TIM_FLAG_Update);
         TIM_ITConfig(timTimePort[timNum], TIM_IT_Update, ENABLE);
 
@@ -270,7 +270,7 @@ void timer_init(timMode_t mode, u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPr
     }
 
     /* GPIO 初始化（适用于 pwmOut 和 encoder 模式） */
-    if (mode == pwmOut || mode == encoder) {
+    if (mode == timObj_pwmOut || mode == timObj_encoder) {
         RCC_AHB1PeriphClockCmd(timRccGpio[timNum], ENABLE);
 
         GPIO_InitTypeDef GPIO_InitStructure = {0};
@@ -290,7 +290,7 @@ void timer_init(timMode_t mode, u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPr
     }
 
     /* PWM 输出模式 */
-    if (mode == pwmOut) {
+    if (mode == timObj_pwmOut) {
         TIM_OCInitTypeDef TIM_OCInitStructure = {0};
         TIM_OCStructInit(&TIM_OCInitStructure);
         TIM_OCInitStructure.TIM_OCMode      = TIM_OCMode_PWM1;
@@ -319,7 +319,7 @@ void timer_init(timMode_t mode, u8 timNum, u16 chNum, u16 arr, u16 psc, u8 subPr
     }
 
     /* 编码器模式 */
-    if (mode == encoder) {
+    if (mode == timObj_encoder) {
         TIM_EncoderInterfaceConfig(timTimePort[timNum],
                                    TIM_EncoderMode_TI12,   // 双通道编码器模式
                                    TIM_ICPolarity_Rising,  // 上升沿捕获

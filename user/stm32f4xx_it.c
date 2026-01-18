@@ -238,7 +238,8 @@ void TIM7_IRQHandler(void)
 
         if (spdLogFlag)
             // serial_printf(1, "spd:%d, %d, %d\n", whlSpd[0], whlCnt[0], whlCnt[1]);
-            serial_printf(1, "spd:%d, %d, %d, %d\n", tWhlVn, whlCnt[0], whlCnt[1], whlSpd[0]);
+            // serial_printf(1, "spd:%d, %d, %d, %d\n", tWhlVn, whlCnt[0], whlCnt[1], whlSpd[0]); // 速度调试
+            serial_printf(1, "dir:%d, %d\n", carDeg, mpuYaw.yaw_z); // 方向调试
 
         // pass
 

@@ -4,12 +4,13 @@
 
 u32 sysTime    = 0;
 u8 whlTime     = 0;
-u8 oledViewIdx = 3; // OLED 界面索引
+u8 oledViewIdx = 1; // OLED 界面索引
 
 // 巡线
 s16 lineSpd = 0; // 巡线速度
 
 // 方向环
+s16 carDeg = 0; // 目标偏航角
 
 // 位置环
 u8 gray[9] = {0}; // 滤波灰度值
@@ -83,20 +84,10 @@ void speed_loop(void)
     Vn[1]            = exp_step_core(1, whlStepDiv, whlStepExp, whlStepErr, whlSpd[1], whlCnt[1]);
 
     // 速度环计算
-    /*
-        pidIdx                    = 1;
-        pidValue[pidIdx].setpoint = (float)whlSpd[0];
-        neural_pid_action(&pidValue[pidIdx], (float)whlCnt[0]);
-        whlPwm[0] = (s16)pidValue[pidIdx].result;
-        pidIdx                    = 2;
-        pidValue[pidIdx].setpoint = (float)whlSpd[1];
-        neural_pid_action(&pidValue[pidIdx], (float)whlCnt[1]);
-        whlPwm[1] = (s16)pidValue[pidIdx].result;
-    */
-    pidIdx    = 1;
+    pidIdx    = pidObj_whlLt;
     whlPwm[0] = (s16)pid_action(&pidValue[pidIdx], (float)Vn[0], (float)whlCnt[0]);
 
-    pidIdx    = 2;
+    pidIdx    = pidObj_whlRt;
     whlPwm[1] = (s16)pid_action(&pidValue[pidIdx], (float)Vn[1], (float)whlCnt[1]);
 
     // 最低限幅速度
@@ -123,11 +114,17 @@ void position_loop(void)
  */
 void direction_loop(void)
 {
-    // MPU6050 数据读取
+    // MPU6050 计算偏航角
     mpu_read_data(&mpuData);
-
-    // 偏航角计算
     mpu_yaw_core(&mpuData, &mpuYaw);
+
+    // 方向环计算
+    pidIdx   = pidObj_dir;
+    s16 diff = (s16)pid_action(&pidValue[pidIdx], (float)carDeg, (float)mpuYaw.yaw_z);
+
+    // 设定目标速度
+    whlSpd[0] = lineSpd - diff;
+    whlSpd[1] = lineSpd + diff;
 }
 
 /******************************************************************
@@ -165,13 +162,19 @@ void oled_ui(void)
 
     } else if (oledViewIdx == 1) {
         // pidc
-        pidIdx = 1;
+        pidIdx = pidObj_dir;
+        oled_printf(0, 8 * 0, OLED_6X8, "P4 %g", pidValue[pidIdx].kp);
+        oled_printf(0, 8 * 1, OLED_6X8, "I4 %g", pidValue[pidIdx].ki);
+        oled_printf(0, 8 * 2, OLED_6X8, "D4 %g", pidValue[pidIdx].kd);
+        oled_printf(0, 8 * 3, OLED_8X16, "%+d", mpuYaw.yaw_z);
+
+        pidIdx = pidObj_whlLt;
         oled_printf(74, 8 * 0, OLED_6X8, "P1 %g", pidValue[pidIdx].kp);
         oled_printf(74, 8 * 1, OLED_6X8, "I1 %g", pidValue[pidIdx].ki);
         oled_printf(74, 8 * 2, OLED_6X8, "D1 %g", pidValue[pidIdx].kd);
         // oled_printf(74, 8 * 3, OLED_6X8, "C1 %g", pidValue[pidIdx].kcoef);
 
-        pidIdx = 2;
+        pidIdx = pidObj_whlRt;
         oled_printf(74, 8 * 4, OLED_6X8, "P2 %g", pidValue[pidIdx].kp);
         oled_printf(74, 8 * 5, OLED_6X8, "I2 %g", pidValue[pidIdx].ki);
         oled_printf(74, 8 * 6, OLED_6X8, "D2 %g", pidValue[pidIdx].kd);

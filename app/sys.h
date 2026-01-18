@@ -21,6 +21,8 @@ extern s16 lineSpd;
 
 /* 方向环 */
 
+extern s16 carDeg;
+
 /* 位置环 */
 
 extern u8 gray[];

@@ -271,19 +271,21 @@ void mpu_yaw_core(const mpuData_t *src, mpuYaw_t *yaw)
     yaw->yaw_z = (s16)yaw_deg;
 }
 
-/* ******************** 算法函数 */
-
-/* 将角度归一到 (-180, 180]，用于外部误差计算 */
-s16 mpu_wrap_deg(s16 deg)
-{
-    if (deg <= -180) { deg += 360; }
-    if (deg > 180) { deg -= 360; }
-    return deg;
-}
-
+/******************************************************************
+ * \brief       计算航向角误差
+ * \param[in]   target_deg 目标航向角，单位：度
+ * \param[in]   meas_deg   实际航向角，单位：度
+ * \return      航向角误差，单位：度
+ */
 /* 计算航向设定与测量的最短角度误差，避免跨界长转 */
 s16 mpu_yaw_error(s16 target_deg, s16 meas_deg)
 {
     s16 err = target_deg - meas_deg;
-    return mpu_wrap_deg(err);
+
+    // 归一化误差到 (-180, 180]
+    if (err <= -180) { err += 360; }
+    if (err > 180) { err -= 360; }
+    return err;
 }
+
+/* ******************** 算法函数 */

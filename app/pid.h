@@ -7,6 +7,13 @@
 
 /* Global Types ------------------------------------------------------------ */
 
+typedef enum {
+    pidObj_whlLt = 1,
+    pidObj_whlRt = 2,
+    pidObj_pos   = 3,
+    pidObj_dir   = 4
+} pidObj_t;
+
 typedef struct
 {
     float err;        // 当前偏差值
@@ -18,7 +25,7 @@ typedef struct
 
 /* Global Variables -------------------------------------------------------- */
 
-extern u8 pidIdx;       // 当前使用的 PID 控制器索引
+extern u8 pidIdx;        // 当前使用的 PID 控制器索引
 extern pid_t pidValue[]; // PID 控制器数组
 
 /* Global Functions -------------------------------------------------------- */
