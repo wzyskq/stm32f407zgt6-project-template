@@ -147,7 +147,7 @@ u8 mpu_read_id(void)
  */
 void mpu_read_data(mpuData_t *mpuData)
 {
-    i2cIdx = i2cObj_MPU6050;
+    i2cIdx     = i2cObj_MPU6050;
     u8 buf[14] = {0};
 
     i2c_start();
@@ -200,7 +200,7 @@ void mpu_read_data(mpuData_t *mpuData)
  *               - 采用互补滤波融合加速度与陀螺仪数据
  *               - 附带温度补偿功能
  */
-void mpu_yaw_core(const mpuData_t* src, mpuYaw_t* yaw)
+void mpu_yaw_core(const mpuData_t *src, mpuYaw_t *yaw)
 {
     /* 简易姿态解算：先利用静态样本估计零偏，再用互补滤波融合加速度与陀螺仪。 */
     if ((src == 0) || (yaw == 0)) {
@@ -211,13 +211,13 @@ void mpu_yaw_core(const mpuData_t* src, mpuYaw_t* yaw)
         CALIB_SAMPLES = 200
     };
 
-    const float dt         = 0.01f;       // 采样周期约 100Hz
-    const float gyro_sens  = 16.4f;       // ±2000dps 灵敏度
-    const float accel_sens = 2048.0f;     // ±16g 灵敏度
-    const float alpha      = 0.98f;       // 互补滤波系数
+    const float dt         = 0.01f;   // 采样周期约 100Hz
+    const float gyro_sens  = 16.4f;   // ±2000dps 灵敏度
+    const float accel_sens = 2048.0f; // ±16g 灵敏度
+    const float alpha      = 0.98f;   // 互补滤波系数
     const float rad2deg    = 57.2957795f;
 
-    static u16   sample_cnt = 0;
+    static u16 sample_cnt = 0;
     static float gx_bias = 0.0f, gy_bias = 0.0f, gz_bias = 0.0f;
     static float roll_deg = 0.0f, pitch_deg = 0.0f, yaw_deg = 0.0f;
 
@@ -256,7 +256,15 @@ void mpu_yaw_core(const mpuData_t* src, mpuYaw_t* yaw)
     /* 互补滤波融合陀螺积分与加速度解算 */
     roll_deg  = alpha * (roll_deg + gx_dps * dt) + (1.0f - alpha) * roll_acc;
     pitch_deg = alpha * (pitch_deg + gy_dps * dt) + (1.0f - alpha) * pitch_acc;
-    yaw_deg  += gz_dps * dt; // 无磁力计，仅积分得到相对航向
+    yaw_deg += gz_dps * dt; // 无磁力计，仅积分得到相对航向
+
+    /* 将角度限定在 (-180, 180]，避免数值不断累积 */
+    if (roll_deg <= -180.0f) { roll_deg += 360.0f; }
+    if (roll_deg > 180.0f) { roll_deg -= 360.0f; }
+    if (pitch_deg <= -180.0f) { pitch_deg += 360.0f; }
+    if (pitch_deg > 180.0f) { pitch_deg -= 360.0f; }
+    if (yaw_deg <= -180.0f) { yaw_deg += 360.0f; }
+    if (yaw_deg > 180.0f) { yaw_deg -= 360.0f; }
 
     yaw->yaw_x = (s16)roll_deg;
     yaw->yaw_y = (s16)pitch_deg;
@@ -264,3 +272,18 @@ void mpu_yaw_core(const mpuData_t* src, mpuYaw_t* yaw)
 }
 
 /* ******************** 算法函数 */
+
+/* 将角度归一到 (-180, 180]，用于外部误差计算 */
+s16 mpu_wrap_deg(s16 deg)
+{
+    if (deg <= -180) { deg += 360; }
+    if (deg > 180) { deg -= 360; }
+    return deg;
+}
+
+/* 计算航向设定与测量的最短角度误差，避免跨界长转 */
+s16 mpu_yaw_error(s16 target_deg, s16 meas_deg)
+{
+    s16 err = target_deg - meas_deg;
+    return mpu_wrap_deg(err);
+}

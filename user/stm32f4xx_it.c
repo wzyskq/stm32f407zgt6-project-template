@@ -224,7 +224,7 @@ void TIM7_IRQHandler(void)
         }
 
         // 时间刷新
-        // sysTime++;
+        sysTime++;
         // whlTime++;
 
         // 方向环

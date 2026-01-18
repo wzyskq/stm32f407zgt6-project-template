@@ -17,7 +17,7 @@
 #define OLED_UNFILLED 0
 #define OLED_FILLED 1
 
-/* Exported Functions ------------------------------------------------------ */
+/* Global Functions -------------------------------------------------------- */
 
 // 初始化函数
 

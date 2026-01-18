@@ -200,7 +200,8 @@ void oled_ui(void)
         oled_printf(8 * 0, 8 * 4, OLED_6X8, "%+d", mpuData.gyro_y);
         oled_printf(8 * 0, 8 * 5, OLED_6X8, "%+d", mpuData.gyro_z);
 
-        oled_printf(8 * 8, 16 * 3, OLED_8X16, "%+d", mpuData.temp);
+        // oled_printf(8 * 8, 16 * 3, OLED_8X16, "%+d", mpuData.temp);
+        oled_printf(8 * 4, 16 * 3, OLED_8X16, "%9d.%02d", sysTime / 100, sysTime % 100);
 
         oled_printf(8 * 8, 16 * 0, OLED_8X16, "%+d", mpuYaw.yaw_x);
         oled_printf(8 * 8, 16 * 1, OLED_8X16, "%+d", mpuYaw.yaw_y);

@@ -3,7 +3,7 @@
 
 #include "main.h"
 
-/* Exported Macro ---------------------------------------------------------- */
+/* Global Macro ------------------------------------------------------------ */
 
 #define SRL_SIGBUF_LEN 8
 #define SRL_PKGBUF_LEN 8
@@ -14,7 +14,7 @@
 
 #define SERIAL_TIMEOUT 200 // 超时限制（单位：10ms）
 
-/* Exported Variables ------------------------------------------------------ */
+/* Global Variables -------------------------------------------------------- */
 
 extern u8 srlReFlag; // 串口调试返回标志位
 
@@ -32,7 +32,7 @@ extern volatile u8 srlCmdFlg;
 extern volatile u8 srlPkgBuf[];
 extern volatile u8 srlPkgFlg;
 
-/* Exported Functions ------------------------------------------------------ */
+/* Global Functions -------------------------------------------------------- */
 
 // 初始化函数
 
