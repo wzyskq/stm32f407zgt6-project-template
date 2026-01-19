@@ -26,6 +26,7 @@ int main(void)
     // 速度环 PID
     pid_init(&pidValue[pidObj_whlLt], 0.7, 0.07, 0.05);
     pid_init(&pidValue[pidObj_whlRt], 0.7, 0.07, 0.05);
+    pid_init(&pidValue[pidObj_pos], 5, 0, 0);
     pid_init(&pidValue[pidObj_dir], 10, 0, 0);
 
     // 定时器初始化
@@ -34,10 +35,10 @@ int main(void)
     timer_init(timObj_encoder, 5, 12, 0, 0, 2);     // 编码器模式 TIM5 通道1/2 10ms 响应优先级2
     timer_init(timObj_encoder, 4, 12, 0, 0, 2);     // 编码器模式 TIM4 通道1/2 10ms 响应优先级2
 
-    serial_printf(1, "System Init OK!\n");
+    // serial_printf(1, "System Init OK!\n");
 
     // wheel_pwm_set(1, 100);
-    // wheel_pwm_set(2, 100);+
+    // wheel_pwm_set(2, 100);
 
     // oled_printf(0, 0, OLED_8X16, "你好");
 

@@ -5,6 +5,12 @@
 
 /* Exported Types ---------------------------------------------------------- */
 
+typedef enum {
+    trkObj_NULL = 0,
+    trkObj_pos = 1,
+    trkObj_dir = 2
+} trkMode_t;
+
 /* User Includes ----------------------------------------------------------- */
 
 #include "main.h"
@@ -17,7 +23,8 @@ extern u8 whlTime;
 
 /* 巡线 */
 
-extern s16 lineSpd;
+extern u8 trkMode;
+extern s16 trkSpd;
 
 /* 方向环 */
 

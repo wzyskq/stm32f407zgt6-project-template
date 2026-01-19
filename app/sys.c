@@ -6,8 +6,9 @@ u32 sysTime    = 0;
 u8 whlTime     = 0;
 u8 oledViewIdx = 0; // OLED 界面索引
 
-// 巡线
-s16 lineSpd = 0; // 巡线速度
+// 循迹
+u8 trkMode = 0; // 循迹模式
+s16 trkSpd = 0; // 循迹速度
 
 // 方向环
 s16 carDeg = 0; // 目标偏航角
@@ -107,6 +108,17 @@ void position_loop(void)
     // 灰度传感器检测与滤波
     gray_scan();
     grayVal = gray_quant_core(graySrc, gray);
+
+    // 退出机制
+    if (trkMode != trkObj_pos) return;
+
+    // 位置环计算
+    pidIdx   = pidObj_pos;
+    s16 diff = (s16)pid_action(&pidValue[pidIdx], 0, grayVal);
+
+    // 设定目标速度
+    whlSpd[0] = trkSpd - diff;
+    whlSpd[1] = trkSpd + diff;
 }
 
 /******************************************************************
@@ -118,13 +130,16 @@ void direction_loop(void)
     mpu_read_data(&mpuData);
     mpu_yaw_core(&mpuData, &mpuYaw);
 
+    // 退出机制
+    if (trkMode != trkObj_dir) return;
+
     // 方向环计算
     pidIdx   = pidObj_dir;
     s16 diff = (s16)pid_action(&pidValue[pidIdx], (float)carDeg, (float)mpuYaw.yaw_z);
 
     // 设定目标速度
-    whlSpd[0] = lineSpd - diff;
-    whlSpd[1] = lineSpd + diff;
+    whlSpd[0] = trkSpd - diff;
+    whlSpd[1] = trkSpd + diff;
 }
 
 /******************************************************************
@@ -162,11 +177,17 @@ void oled_ui(void)
 
     } else if (oledViewIdx == 1) {
         // pidc
-        pidIdx = pidObj_dir;
-        oled_printf(0, 8 * 0, OLED_6X8, "P4 %g", pidValue[pidIdx].kp);
-        oled_printf(0, 8 * 1, OLED_6X8, "I4 %g", pidValue[pidIdx].ki);
-        oled_printf(0, 8 * 2, OLED_6X8, "D4 %g", pidValue[pidIdx].kd);
-        oled_printf(0, 8 * 3, OLED_8X16, "%+d", mpuYaw.yaw_z);
+        pidIdx = pidObj_pos;
+        oled_printf(0, 8 * 0, OLED_6X8, "P3 %g", pidValue[pidIdx].kp);
+        oled_printf(0, 8 * 1, OLED_6X8, "I3 %g", pidValue[pidIdx].ki);
+        oled_printf(0, 8 * 2, OLED_6X8, "D3 %g", pidValue[pidIdx].kd);
+        oled_printf(0, 8 * 3, OLED_8X16, "%+d", grayVal);
+
+        // pidIdx = pidObj_dir;
+        // oled_printf(0, 8 * 0, OLED_6X8, "P4 %g", pidValue[pidIdx].kp);
+        // oled_printf(0, 8 * 1, OLED_6X8, "I4 %g", pidValue[pidIdx].ki);
+        // oled_printf(0, 8 * 2, OLED_6X8, "D4 %g", pidValue[pidIdx].kd);
+        // oled_printf(0, 8 * 3, OLED_8X16, "%+d", mpuYaw.yaw_z);
 
         pidIdx = pidObj_whlLt;
         oled_printf(74, 8 * 0, OLED_6X8, "P1 %g", pidValue[pidIdx].kp);
@@ -195,19 +216,19 @@ void oled_ui(void)
 
     else if (oledViewIdx == 3) {
         // mpu6050
-        oled_printf(8 * 0, 8 * 0, OLED_6X8, "%+d", mpuData.accel_x);
-        oled_printf(8 * 0, 8 * 1, OLED_6X8, "%+d", mpuData.accel_y);
-        oled_printf(8 * 0, 8 * 2, OLED_6X8, "%+d", mpuData.accel_z);
+        oled_printf(8 * 0, 8 * 0, OLED_6X8, "A: %+d", mpuData.accel_x);
+        oled_printf(8 * 0, 8 * 1, OLED_6X8, "A: %+d", mpuData.accel_y);
+        oled_printf(8 * 0, 8 * 2, OLED_6X8, "A: %+d", mpuData.accel_z);
 
-        oled_printf(8 * 0, 8 * 3, OLED_6X8, "%+d", mpuData.gyro_x);
-        oled_printf(8 * 0, 8 * 4, OLED_6X8, "%+d", mpuData.gyro_y);
-        oled_printf(8 * 0, 8 * 5, OLED_6X8, "%+d", mpuData.gyro_z);
+        oled_printf(8 * 0, 8 * 3, OLED_6X8, "G: %+d", mpuData.gyro_x);
+        oled_printf(8 * 0, 8 * 4, OLED_6X8, "G: %+d", mpuData.gyro_y);
+        oled_printf(8 * 0, 8 * 5, OLED_6X8, "G: %+d", mpuData.gyro_z);
 
         // oled_printf(8 * 8, 16 * 3, OLED_8X16, "%+d", mpuData.temp);
         oled_printf(8 * 4, 16 * 3, OLED_8X16, "%9d.%02d", sysTime / 100, sysTime % 100);
 
-        oled_printf(8 * 8, 16 * 0, OLED_8X16, "%+d", mpuYaw.yaw_x);
-        oled_printf(8 * 8, 16 * 1, OLED_8X16, "%+d", mpuYaw.yaw_y);
-        oled_printf(8 * 8, 16 * 2, OLED_8X16, "%+d", mpuYaw.yaw_z);
+        oled_printf(8 * 8, 16 * 0, OLED_8X16, "Y: %+d", mpuYaw.yaw_x);
+        oled_printf(8 * 8, 16 * 1, OLED_8X16, "Y: %+d", mpuYaw.yaw_y);
+        oled_printf(8 * 8, 16 * 2, OLED_8X16, "Y: %+d", mpuYaw.yaw_z);
     }
 }
