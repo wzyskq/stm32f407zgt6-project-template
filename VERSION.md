@@ -133,6 +133,14 @@ Info:
 
 ---
 
+### 0.9
+- `优化` 开启 O2 优化选项 
+- `优化` 整理代码结构：
+  - 新建 `app` 文件夹存放应用逻辑代码
+  - 移动 `user` 文件夹至 `sdk` 目录下（`main.c/.h` 移至 `app`，中断代码移至 `app/irq.c/.h`）
+- `修复` `.clang-format` 应用语言设置错误
+- `修复` 英文 README 中的格式错误
+
 ### 0.8
 - `修复` 烧录失败问题
 
@@ -160,4 +168,4 @@ Info:
 
 ### 0.0
 - `修复` v0 更改晶振 25M -> 8M // 25.3.3
-> [doc](https://blog.csdn.net/weixin_57941207/article/details/133945394)
+  - > [参考文档](https://blog.csdn.net/weixin_57941207/article/details/133945394)

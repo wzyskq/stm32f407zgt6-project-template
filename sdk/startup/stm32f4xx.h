@@ -12032,6 +12032,7 @@ typedef struct
   * @{
   */
 
+// ??? GD32 ????????????
 #define BIT(x)                ((uint16_t)((uint16_t)0x01U << (x)))
 #define BITS(start, end)      ((0xFFFFUL << (start)) & (0xFFFFUL >> (15 - (uint16_t)(end))))
 

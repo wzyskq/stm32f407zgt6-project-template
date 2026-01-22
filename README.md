@@ -1,5 +1,5 @@
-[English](README.en.md) | 简体中文
+English | [简体中文](README.zh.md)
 
-# CH32V307VCT6 工程模板
+# STM32F407ZGT6 Project Template
 
-## 警告：当前分支为开发版，可能会出现未知问题，请勿使用！！！
+## Warning: The current branch is the development version and may encounter unknown issues. Do not use it!!

@@ -8,12 +8,12 @@
 
 /******************************************************************
  * \brief      微秒级延时
- * \param[in]  xus 延时时长，范围：0~233015
+ * \param[in]  us 延时时长，范围：0..25,565,281
  * \note       阻塞式延时，基于 SysTick 定时器实现
  */
-void delay_us(u32 xus)
+void delay_us(u32 us)
 {
-    SysTick->LOAD = 168 * xus;             // 设置定时器重装值
+    SysTick->LOAD = 168 * us;              // 设置定时器重装值
     SysTick->VAL  = 0x00;                  // 清空当前计数值
     SysTick->CTRL = 0x00000005;            // 设置时钟源为HCLK，启动定时器
     while (!(SysTick->CTRL & 0x00010000)); // 等待计数到0
@@ -22,23 +22,23 @@ void delay_us(u32 xus)
 
 /******************************************************************
  * \brief      毫秒级延时
- * \param[in]  xms 延时时长，范围：0~4294967295
+ * \param[in]  ms 延时时长，范围：0..4,294,967,295
  * \note       阻塞式延时，基于 SysTick 定时器实现
  */
-void delay_ms(u32 xms)
+void delay_ms(u32 ms)
 {
-    while (xms--)
+    while (ms--)
         delay_us(1000);
 }
 
 /******************************************************************
  * \brief      秒级延时
- * \param[in]  xs 延时时长，范围：0~4294967295
+ * \param[in]  s 延时时长，范围：0..4,294,967,295
  * \note       阻塞式延时，基于 SysTick 定时器实现
  */
-void delay_s(u32 xs)
+void delay_s(u32 s)
 {
-    while (xs--)
+    while (s--)
         delay_ms(1000);
 }
 
