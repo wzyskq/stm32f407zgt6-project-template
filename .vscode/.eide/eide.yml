@@ -7,7 +7,6 @@ srcDirs:
   - ../sdk
   - ../app
   - ../device
-  - ../user
 virtualFolder:
   name: <virtual_root>
   files: []
@@ -24,9 +23,12 @@ targets:
         - .
         - ../sdk/library
         - ../sdk/startup
+        - ../sdk/user
         - ../app
-        - ../device
-        - ../user
+        - ../device/gpio
+        - ../device/i2c
+        - ../device/tim
+        - ../device/usart
       libList: []
     excludeList: []
     toolchain: AC5

@@ -14,8 +14,6 @@ int main(void)
 
     serial_init(1, 115200, 0);
 
-    // gpio_init_pa2();
-
     mpu_init();
 
     oled_init();
@@ -23,7 +21,7 @@ int main(void)
     keys_init();
     wheels_init();
 
-    // 速度环 PID
+    // PID 初始化
     pid_init(&pidValue[pidObj_whlLt], 0.7, 0.07, 0.05);
     pid_init(&pidValue[pidObj_whlRt], 0.7, 0.07, 0.05);
     pid_init(&pidValue[pidObj_pos], 5, 0, 0);

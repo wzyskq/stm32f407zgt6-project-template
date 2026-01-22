@@ -13,7 +13,7 @@
  */
 void delay_us(u32 xus)
 {
-    SysTick->LOAD = 168 * xus;              // 设置定时器重装值
+    SysTick->LOAD = 168 * xus;             // 设置定时器重装值
     SysTick->VAL  = 0x00;                  // 清空当前计数值
     SysTick->CTRL = 0x00000005;            // 设置时钟源为HCLK，启动定时器
     while (!(SysTick->CTRL & 0x00010000)); // 等待计数到0

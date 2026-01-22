@@ -22,19 +22,19 @@ typedef enum {
 
 /* User Includes ------------------------------------------------------------ */
 
-#include "gpio.h"
+#include "funs.h"
+#include "irq.h"
+#include "pid.h"
+#include "sys.h"
+
 #include "grayscale.h"
-#include "i2c.h"
 #include "key.h"
+#include "wheel.h"
+#include "i2c.h"
 #include "mpu6050.h"
 #include "oled.h"
-#include "serial.h"
 #include "timer.h"
-#include "wheel.h"
-
-#include "sys.h"
-#include "funs.h"
-#include "pid.h"
+#include "serial.h"
 
 /* Global Variables -------------------------------------------------------- */
 
