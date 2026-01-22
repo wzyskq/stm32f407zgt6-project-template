@@ -284,6 +284,14 @@ void serial_decode_cmd(void)
             serial_printf(arg, "%s\r\n", cCmd + 1);
         }
 
+    } else if (rCmd = strmatch_s(cCmd, "trk")) {
+        if (cCmd = strmatch_s(rCmd, "--mode")) {
+            trkMode = (u8)strtof(cCmd, NULL);
+            whlSpd[0] = whlSpd[1] = 0;
+        } else if (cCmd = strmatch_s(rCmd, "--spd")) {
+            trkSpd = (s16)strtof(cCmd, NULL);
+        }
+
     } else if (rCmd = strmatch_s(cCmd, "dir")) {
         if (cCmd = strmatch_s(rCmd, "-s")) {
             s16 p = (s16)strtof(cCmd, &cCmd);

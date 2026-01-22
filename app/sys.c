@@ -47,14 +47,14 @@ void loop(void)
 
         if (taskNum == 1) {
             oledViewIdx++;
-            if (oledViewIdx > 3) oledViewIdx = 0;
+            if (oledViewIdx > 4) oledViewIdx = 0;
             taskNum = 0;
         } else if (taskNum == 2) {
         } else if (taskNum == 3) {
         } else if (taskNum == 4) {
         } else if (taskNum == 5) {
             if (!oledViewIdx)
-                oledViewIdx = 3;
+                oledViewIdx = 4;
             else
                 oledViewIdx--;
             taskNum = 0;
@@ -151,29 +151,14 @@ void oled_ui(void)
     oled_clear_area(8 * 4, 0, 8 * 12, 16 * 4);
 
     if (oledViewIdx == 0) {
-        // wheel
-        oled_draw_line(1, 1, 14, 1);
-        oled_draw_line(2, 2, 6, 2);
-        oled_draw_line(9, 2, 13, 2);
-
-        oled_draw_rectangle(2, 4, 5, (u8)abs16(whlPwm[0] * 40 / 1000), OLED_FILLED);
-        oled_draw_rectangle(9, 4, 5, (u8)abs16(whlPwm[1] * 40 / 1000), OLED_FILLED);
-
-        oled_draw_line(2, 45, 6, 45);
-        oled_draw_line(9, 45, 13, 45);
-        oled_draw_line(1, 46, 14, 46);
-
-        // oled_printf(0, 8 * 6, OLED_6X8, "pL %d %d", (u8)abs16(whlPwm[0]*40/1000), (whlPwm[0]*40/1000));
-        // oled_printf(0, 8 * 7, OLED_6X8, "pR %d %d", (u8)abs16(whlPwm[1]*40/1000), (whlPwm[1]*40/1000));
-
-        oled_printf(8 * 2, 8 * 0, OLED_6X8, "rL %d", whlCnt[0]);
-        oled_printf(8 * 2, 8 * 1, OLED_6X8, "rR %d", whlCnt[1]);
-        oled_printf(8 * 2, 16 * 1, OLED_8X16, "L %d", whlSpd[0]);
-        oled_printf(8 * 2, 16 * 2, OLED_8X16, "R %d", whlSpd[1]);
+        oled_printf(8 * 0, 8 * 0, OLED_6X8, "trkMode %d", trkMode);
+        oled_printf(8 * 0, 8 * 2, OLED_6X8, "trkSpd %d", trkSpd);
+        oled_printf(8 * 0, 8 * 4, OLED_6X8, "TarL %d", whlSpd[0]);
+        oled_printf(8 * 0, 8 * 5, OLED_6X8, "TarR %d", whlSpd[1]);
 
         oled_printf(8 * 9, 8 * 0, OLED_6X8, "Pos: %+d", grayVal);
         oled_printf(8 * 9, 8 * 2, OLED_6X8, "Dir: %+d", mpuYaw.yaw_z);
-        oled_printf(8 * 9, 8 * 4, OLED_6X8, "task: %d", taskNum);
+        oled_printf(8 * 9, 8 * 4, OLED_6X8, "Task: %d", taskNum);
         oled_printf(8 * 4, 8 * 6, OLED_8X16, "%9d.%02d", sysTime / 100, sysTime % 100);
 
     } else if (oledViewIdx == 1) {
