@@ -12,15 +12,15 @@
   *          is using in the C source code, usually in main.c. This file contains:
   *           - Configuration section that allows to select:
   *              - The device used in the target application
-  *              - To use or not the peripheral�s drivers in application code(i.e. 
-  *                code will be based on direct access to peripheral�s registers 
+  *              - To use or not the peripheral's drivers in application code(i.e. 
+  *                code will be based on direct access to peripheral's registers 
   *                rather than drivers API), this option is controlled by 
   *                "#define USE_STDPERIPH_DRIVER"
   *              - To change few application-specific parameters such as the HSE 
   *                crystal frequency
   *           - Data structures and the address mapping for all peripherals
   *           - Peripherals registers declarations and bits definition
-  *           - Macros to access peripheral�s registers hardware
+  *           - Macros to access peripheral's registers hardware
   *  
   ******************************************************************************
   * @attention
@@ -12032,7 +12032,7 @@ typedef struct
   * @{
   */
 
-// ??? GD32 ????????????
+// 移植自 GD32 标准外设库中的宏定义
 #define BIT(x)                ((uint16_t)((uint16_t)0x01U << (x)))
 #define BITS(start, end)      ((0xFFFFUL << (start)) & (0xFFFFUL >> (15 - (uint16_t)(end))))
 
