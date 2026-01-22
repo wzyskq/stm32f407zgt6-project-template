@@ -142,37 +142,3 @@ void PPP_IRQHandler(void)
 //         TimingDelay--;
 //     }
 // }
-
-/**
- * \brief  USART3 中断处理函数，只缓存包内容
- */
-void USART3_IRQHandler(void)
-{
-    if (USART_GetITStatus(USART3, USART_IT_RXNE) == SET) {
-        // ...
-
-        USART_ClearITPendingBit(USART3, USART_IT_RXNE);
-    }
-}
-
-/**
- * \brief  USART2中断处理函数
- */
-void USART2_IRQHandler(void)
-{
-    if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET) {
-        // ...
-        USART_ClearITPendingBit(USART2, USART_IT_RXNE);
-    }
-}
-
-/**
- * \brief  USART1中断处理函数
- */
-void USART1_IRQHandler(void)
-{
-    if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET) {
-        // ...
-        USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-    }
-}

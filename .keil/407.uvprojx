@@ -340,7 +340,7 @@
               <MiscControls>--no-multibyte-chars</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F40_41xxx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\sdk\library;..\sdk\startup;..\user;..\device</IncludePath>
+              <IncludePath>..\sdk\library;..\sdk\startup;..\sdk\user;..\app;..\device</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -827,62 +827,67 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>device</GroupName>
+          <GroupName>sdk/user</GroupName>
           <Files>
-            <File>
-              <FileName>code.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\device\code.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>user</GroupName>
-          <Files>
-            <File>
-              <FileName>delay.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\delay.c</FilePath>
-            </File>
-            <File>
-              <FileName>delay.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\user\delay.h</FilePath>
-            </File>
-            <File>
-              <FileName>funs.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\funs.c</FilePath>
-            </File>
-            <File>
-              <FileName>funs.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\user\funs.h</FilePath>
-            </File>
-            <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\main.c</FilePath>
-            </File>
-            <File>
-              <FileName>main.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\user\main.h</FilePath>
-            </File>
             <File>
               <FileName>stm32f4xx_conf.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\user\stm32f4xx_conf.h</FilePath>
+              <FilePath>..\sdk\user\stm32f4xx_conf.h</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_it.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\user\stm32f4xx_it.c</FilePath>
+              <FilePath>..\sdk\user\stm32f4xx_it.c</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_it.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\user\stm32f4xx_it.h</FilePath>
+              <FilePath>..\sdk\user\stm32f4xx_it.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>device</GroupName>
+          <Files>
+            <File>
+              <FileName>placeholder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\device\placeholder.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>app</GroupName>
+          <Files>
+            <File>
+              <FileName>funs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\funs.c</FilePath>
+            </File>
+            <File>
+              <FileName>funs.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\funs.h</FilePath>
+            </File>
+            <File>
+              <FileName>irq.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\irq.c</FilePath>
+            </File>
+            <File>
+              <FileName>irq.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\irq.h</FilePath>
+            </File>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\main.c</FilePath>
+            </File>
+            <File>
+              <FileName>main.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\main.h</FilePath>
             </File>
           </Files>
         </Group>

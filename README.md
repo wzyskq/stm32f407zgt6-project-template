@@ -1,58 +1,58 @@
-[English](README.en.md) | 简体中文
+English | [简体中文](README.zh.md)
 
-# CH32V307VCT6 工程模板
+# CH32V307VCT6 Project Template
 
-## 概述
+## Overview
+This repository is based on stm32f407zgt6 and has been heavily modified to be compatible with the VSCode [Embedded IDE](https://em-ide.com) extension.
 
-本仓库基于 stm32f407zgt6，经魔改后兼容 VSCode [Embedded IDE](https://em-ide.com) 插件
+## Usage
 
-## 使用方法
-
-### 前置条件
-1. 配置 VSCode EIDE 的工具链，按 EIDE 提示下载 OpenOCD
-2. 下载**仓库压缩包**或者通过**Git**获取本项目
+### Prerequisites
+1. Configure the toolchain for VSCode EIDE and download OpenOCD as prompted by EIDE.
+2. Download the **repository archive** or obtain this project via **Git**.
 ```git
 git clone https://github.com/wzyskq/stm32f407zgt6-project-template.git
 ```
 
 ### Keil
-用 keil 打开 `.keil/407.uvprojx` 文件，正常编译烧录即可
+Open the `.keil/407.uvprojx` file with Keil, then build and flash as usual.
 
 ### Embedded IDE
-VSCode 打开 `.vscode/stm32f407zgt6.code-workspace` 工作区文件，编译烧录即可
+Open the `.vscode/stm32f407zgt6.code-workspace` workspace file in VSCode, then build and flash directly.
 
-**补充说明**
-- 若用有线 DAP Link 烧录，建议将接口配置换为 `./tools/cmsis-dap-v1.cfg`
-- 若用无线 DAP Link 烧录，建议将接口配置换为 `./tools/cmsis-dap.cfg`
+**Additional Notes**
+- If flashing with a wired DAP Link, it is recommended to change the interface configuration to `./tools/cmsis-dap-v1.cfg`.
+- If flashing with a wireless DAP Link, it is recommended to change the interface configuration to `./tools/cmsis-dap.cfg`.
 
-## 项目结构
+## Project Structure
 
-**主项目树**
+**Main Project Tree**
 ```shell
 .
 ├─.keil
-│  ├─lst      （keil 编译列表文件夹）
-│  └─obj      （keil 编译程序文件夹）
+│  ├─lst      (Keil compilation list folder)
+│  └─obj      (Keil compiled program folder)
 ├─.vscode
 │  ├─.eide
 │  ├─.vscode     
-│  └─obj      （EIDE 编译程序文件夹）
-├─device      （驱动文件、其他代码）
-├─sdk         （软件开发工具包）
-│  ├─library
-│  └─startup
-└─user        （主函数/中断函数等文件）
+│  └─obj      (EIDE compiled program folder)
+├─app         (Main functions/IRQhandlers/logic files, etc.)
+├─device      (Driver files, other code)     
+└─sdk         (Software Development Kit)
+    ├─library
+    ├─startup
+    └─user 
 ```
 
-**补充说明**
-- 根目录下的 `.keil` 和 `.vscode` 是笔者自己创建的
-- 子目录中 `.vscode` 才是由 VSCode 生成的配置文件
+**Additional Notes**
+- The `.keil` and `.vscode` folders in the root directory were created manually.
+- The `.vscode` subdirectories are VSCode-generated configuration files.
 
-## 问题反馈
-如有任何问题或建议，欢迎通过 GitHub 提交 Issue 或 Pull Request。
+## Feedback
+If you have any questions or suggestions, feel free to submit an Issue or Pull Request on GitHub.
 
-## 版本历史
-本项目版本请参阅 [VERSION](VERSION.md) 文件。
+## Version History
+Please refer to the [VERSION](VERSION.md) file for project versions.
 
-## 许可证
-本项目基于 MIT 许可证进行分发。有关详细信息，请参阅 [LICENSE](LICENSE) 文件。
+## License
+This project is distributed under the MIT License. For details, see the [LICENSE](LICENSE) file.
