@@ -25,6 +25,8 @@ targets:
         - ../sdk/startup
         - ../sdk/user
         - ../app
+        - ../app/kit
+        - ../app/work
         - ../device/gpio
         - ../device/i2c
         - ../device/tim

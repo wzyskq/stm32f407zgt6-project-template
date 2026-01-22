@@ -314,7 +314,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>1</Optim>
+            <Optim>3</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -340,7 +340,7 @@
               <MiscControls>--no-multibyte-chars</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F40_41xxx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\sdk\library;..\sdk\startup;..\sdk\user;..\app;..\device</IncludePath>
+              <IncludePath>..\sdk\library;..\sdk\startup;..\sdk\user;..\app;..\app\kit;..\app\work;..\device\gpio;..\device\i2c;..\device\usart;..\device\tim</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -830,131 +830,6 @@
           <GroupName>sdk/user</GroupName>
           <Files>
             <File>
-              <FileName>gpio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\device\gpio.c</FilePath>
-            </File>
-            <File>
-              <FileName>gpio.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\device\gpio.h</FilePath>
-            </File>
-            <File>
-              <FileName>key.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\device\key.c</FilePath>
-            </File>
-            <File>
-              <FileName>key.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\device\key.h</FilePath>
-            </File>
-            <File>
-              <FileName>oled.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\device\oled.c</FilePath>
-            </File>
-            <File>
-              <FileName>oled.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\device\oled.h</FilePath>
-            </File>
-            <File>
-              <FileName>oled_data.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\device\oled_data.c</FilePath>
-            </File>
-            <File>
-              <FileName>oled_data.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\device\oled_data.h</FilePath>
-            </File>
-            <File>
-              <FileName>pid.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\device\pid.c</FilePath>
-            </File>
-            <File>
-              <FileName>pid.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\device\pid.h</FilePath>
-            </File>
-            <File>
-              <FileName>pwm.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\device\pwm.c</FilePath>
-            </File>
-            <File>
-              <FileName>pwm.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\device\pwm.h</FilePath>
-            </File>
-            <File>
-              <FileName>rotate.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\device\rotate.c</FilePath>
-            </File>
-            <File>
-              <FileName>rotate.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\device\rotate.h</FilePath>
-            </File>
-            <File>
-              <FileName>serial.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\device\serial.c</FilePath>
-            </File>
-            <File>
-              <FileName>serial.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\device\serial.h</FilePath>
-            </File>
-            <File>
-              <FileName>timer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\device\timer.c</FilePath>
-            </File>
-            <File>
-              <FileName>timer.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\device\timer.h</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>user</GroupName>
-          <Files>
-            <File>
-              <FileName>delay.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\delay.c</FilePath>
-            </File>
-            <File>
-              <FileName>delay.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\user\delay.h</FilePath>
-            </File>
-            <File>
-              <FileName>funs.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\funs.c</FilePath>
-            </File>
-            <File>
-              <FileName>funs.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\user\funs.h</FilePath>
-            </File>
-            <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\main.c</FilePath>
-            </File>
-            <File>
-              <FileName>main.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\user\main.h</FilePath>
-            </File>
-            <File>
               <FileName>stm32f4xx_conf.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\sdk\user\stm32f4xx_conf.h</FilePath>
@@ -972,38 +847,8 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>device</GroupName>
-          <Files>
-            <File>
-              <FileName>placeholder.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\device\placeholder.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
           <GroupName>app</GroupName>
           <Files>
-            <File>
-              <FileName>funs.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\app\funs.c</FilePath>
-            </File>
-            <File>
-              <FileName>funs.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\app\funs.h</FilePath>
-            </File>
-            <File>
-              <FileName>irq.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\app\irq.c</FilePath>
-            </File>
-            <File>
-              <FileName>irq.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\app\irq.h</FilePath>
-            </File>
             <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
@@ -1013,6 +858,181 @@
               <FileName>main.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\app\main.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>app/kit</GroupName>
+          <Files>
+            <File>
+              <FileName>funs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\kit\funs.c</FilePath>
+            </File>
+            <File>
+              <FileName>funs.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\kit\funs.h</FilePath>
+            </File>
+            <File>
+              <FileName>pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\kit\pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>pid.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\kit\pid.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>app/work</GroupName>
+          <Files>
+            <File>
+              <FileName>irq.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\work\irq.c</FilePath>
+            </File>
+            <File>
+              <FileName>irq.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\work\irq.h</FilePath>
+            </File>
+            <File>
+              <FileName>sys.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\work\sys.c</FilePath>
+            </File>
+            <File>
+              <FileName>sys.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\work\sys.h</FilePath>
+            </File>
+            <File>
+              <FileName>task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\work\task.c</FilePath>
+            </File>
+            <File>
+              <FileName>task.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\work\task.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>device/gpio</GroupName>
+          <Files>
+            <File>
+              <FileName>grayscale.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\device\gpio\grayscale.c</FilePath>
+            </File>
+            <File>
+              <FileName>grayscale.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\device\gpio\grayscale.h</FilePath>
+            </File>
+            <File>
+              <FileName>key.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\device\gpio\key.c</FilePath>
+            </File>
+            <File>
+              <FileName>key.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\device\gpio\key.h</FilePath>
+            </File>
+            <File>
+              <FileName>wheel.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\device\gpio\wheel.c</FilePath>
+            </File>
+            <File>
+              <FileName>wheel.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\device\gpio\wheel.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>device/i2c</GroupName>
+          <Files>
+            <File>
+              <FileName>i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\device\i2c\i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\device\i2c\i2c.h</FilePath>
+            </File>
+            <File>
+              <FileName>mpu6050.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\device\i2c\mpu6050.c</FilePath>
+            </File>
+            <File>
+              <FileName>mpu6050.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\device\i2c\mpu6050.h</FilePath>
+            </File>
+            <File>
+              <FileName>mpu6050_reg.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\device\i2c\mpu6050_reg.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\device\i2c\oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\device\i2c\oled.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled_data.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\device\i2c\oled_data.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled_data.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\device\i2c\oled_data.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>device/tim</GroupName>
+          <Files>
+            <File>
+              <FileName>timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\device\tim\timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>timer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\device\tim\timer.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>device/usart</GroupName>
+          <Files>
+            <File>
+              <FileName>serial.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\device\usart\serial.c</FilePath>
+            </File>
+            <File>
+              <FileName>serial.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\device\usart\serial.h</FilePath>
             </File>
           </Files>
         </Group>

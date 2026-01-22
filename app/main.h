@@ -23,8 +23,9 @@ typedef enum {
 /* User Includes ------------------------------------------------------------ */
 
 #include "funs.h"
-#include "irq.h"
 #include "pid.h"
+#include "irq.h"
+#include "task.h"
 #include "sys.h"
 
 #include "grayscale.h"
