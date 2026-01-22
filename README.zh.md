@@ -1,6 +1,6 @@
 [English](README.md) | 简体中文
 
-# CH32V307VCT6 工程模板
+# STM32F407ZGT6 工程模板
 
 ## 概述
 

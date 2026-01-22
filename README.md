@@ -1,6 +1,6 @@
 English | [简体中文](README.zh.md)
 
-# CH32V307VCT6 Project Template
+# STM32F407ZGT6 Project Template
 
 ## Overview
 This repository is based on stm32f407zgt6 and has been heavily modified to be compatible with the VSCode [Embedded IDE](https://em-ide.com) extension.
