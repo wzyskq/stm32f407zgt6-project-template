@@ -37,11 +37,16 @@ u8 i2c_r_SDA(void);
 
 void i2c_start(void);
 void i2c_stop(void);
+void i2c_pass(void);
 
 void i2c_send_byte(u8 byte);
 u8 i2c_recv_byte(void);
 
 void i2c_send_ack(u8 ack);
 u8 i2c_recv_ack(void);
+
+// 初始化函数
+
+void i2c_gpio_init(u8 idx);
 
 #endif

@@ -1,24 +1,31 @@
-#include "mpu6050.h"
+#include "i2c.h"
 
 /* Private Macros ---------------------------------------------------------- */
 
 /* Private Variables ------------------------------------------------------- */
 
-static GPIO_TypeDef *i2cGpioPort[][2] = {
-    // SCL, SDA
-    {0, 0},
-    {GPIOB, GPIOB}, // mpu6050
+static const u32 i2cRccGpio[] = {
+    0,
+    RCC_AHB1Periph_GPIOB, // mpu6050
+    RCC_AHB1Periph_GPIOF, // oled
+};
+
+static GPIO_TypeDef *i2cGpioPort[] = {
+    0,
+    GPIOB, // mpu6050
+    GPIOF, // oled
 };
 
 static const u16 i2cGpioPin[][2] = {
     // SCL, SDA
     {0, 0},
     {GPIO_Pin_15, GPIO_Pin_14}, // mpu6050
+    {GPIO_Pin_5, GPIO_Pin_6},   // oled
 };
 
 /* Global Variables -------------------------------------------------------- */
 
-volatile u8 i2cIdx = 0;  // I2C 对象索引
+volatile u8 i2cIdx = 0; // I2C 对象索引
 
 /*
 
@@ -49,7 +56,7 @@ void i2c_delay(u16 delay)
  */
 void i2c_w_SCL(u8 bit)
 {
-    GPIO_WriteBit(i2cGpioPort[i2cIdx][0], i2cGpioPin[i2cIdx][0], (BitAction)(bit));
+    GPIO_WriteBit(i2cGpioPort[i2cIdx], i2cGpioPin[i2cIdx][0], (BitAction)(bit));
     i2c_delay(1);
 }
 
@@ -59,7 +66,7 @@ void i2c_w_SCL(u8 bit)
  */
 void i2c_w_SDA(u8 bit)
 {
-    GPIO_WriteBit(i2cGpioPort[i2cIdx][1], i2cGpioPin[i2cIdx][1], (BitAction)(bit));
+    GPIO_WriteBit(i2cGpioPort[i2cIdx], i2cGpioPin[i2cIdx][1], (BitAction)(bit));
     i2c_delay(1);
 }
 
@@ -69,7 +76,7 @@ void i2c_w_SDA(u8 bit)
  */
 u8 i2c_r_SCL(void)
 {
-    u8 bit = GPIO_ReadInputDataBit(i2cGpioPort[i2cIdx][0], i2cGpioPin[i2cIdx][0]);
+    u8 bit = GPIO_ReadInputDataBit(i2cGpioPort[i2cIdx], i2cGpioPin[i2cIdx][0]);
     i2c_delay(1);
     return bit;
 }
@@ -80,7 +87,7 @@ u8 i2c_r_SCL(void)
  */
 u8 i2c_r_SDA(void)
 {
-    u8 bit = GPIO_ReadInputDataBit(i2cGpioPort[i2cIdx][1], i2cGpioPin[i2cIdx][1]);
+    u8 bit = GPIO_ReadInputDataBit(i2cGpioPort[i2cIdx], i2cGpioPin[i2cIdx][1]);
     i2c_delay(1);
     return bit;
 }
@@ -116,6 +123,15 @@ void i2c_stop(void)
     i2c_w_SDA(0);
     i2c_w_SCL(1);
     i2c_w_SDA(1);
+}
+
+/******************************************************************
+ * \brief      I2C 时钟跳变
+ */
+void i2c_pass(void)
+{
+    i2c_w_SCL(1);
+    i2c_w_SCL(0);
 }
 
 /******************************************************************
@@ -173,3 +189,38 @@ u8 i2c_recv_ack(void)
 }
 
 /* ******************** 通信协议 */
+
+/*
+
+
+
+
+
+*/
+
+/* 初始化函数 ******************** */
+
+/******************************************************************
+ * \brief      I2C GPIO 初始化
+ * \param[in]  idx I2C 对象索引
+ */
+void i2c_gpio_init(u8 idx)
+{
+    /* 使能 GPIO 时钟 */
+    RCC_AHB1PeriphClockCmd(i2cRccGpio[idx], ENABLE);
+
+    /* I2C 引脚配置 */
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_OUT;
+    GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;
+    GPIO_InitStruct.GPIO_PuPd  = GPIO_PuPd_NOPULL;
+    GPIO_InitStruct.GPIO_Pin   = i2cGpioPin[idx][0] | i2cGpioPin[idx][1];
+    GPIO_Init(i2cGpioPort[idx], &GPIO_InitStruct);
+
+    /* 设置引脚初始状态 */
+    i2c_w_SCL(1);
+    i2c_w_SDA(1);
+}
+
+/* ******************** 初始化函数 */

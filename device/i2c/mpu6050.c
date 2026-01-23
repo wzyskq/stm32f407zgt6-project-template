@@ -4,21 +4,6 @@
 
 /* Private Variables ------------------------------------------------------- */
 
-static const u32 mpuRccGpio[] = {
-    0,
-    RCC_AHB1Periph_GPIOB,
-};
-
-static GPIO_TypeDef *mpuGpioPort[] = {
-    0,
-    GPIOB,
-};
-
-static const u16 mpuGpioPin[] = {
-    0,
-    GPIO_Pin_15 | GPIO_Pin_14,
-};
-
 /* Global Variables -------------------------------------------------------- */
 
 mpuData_t mpuData;
@@ -37,29 +22,6 @@ mpuYaw_t mpuYaw;
 /* 初始化函数 ******************** */
 
 /******************************************************************
- * \brief      MPU6050 GPIO 初始化
- * \param[in]  mpuNum
- */
-void mpu_gpio_init(u8 mpuNum)
-{
-    /* 使能 GPIO 时钟 */
-    RCC_AHB1PeriphClockCmd(mpuRccGpio[mpuNum], ENABLE);
-
-    /* I2C 引脚配置 */
-    GPIO_InitTypeDef GPIO_InitStruct;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_OUT;
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;
-    GPIO_InitStruct.GPIO_PuPd  = GPIO_PuPd_NOPULL;
-    GPIO_InitStruct.GPIO_Pin   = mpuGpioPin[mpuNum];
-    GPIO_Init(mpuGpioPort[mpuNum], &GPIO_InitStruct);
-
-    /* 设置引脚初始状态 */
-    i2c_w_SCL(1);
-    i2c_w_SDA(1);
-}
-
-/******************************************************************
  * \brief  MPU6050 初始化函数
  * \note    - 采用软件模拟I2C
  *          - 若上电后数字过大，增加延时即可
@@ -67,7 +29,7 @@ void mpu_gpio_init(u8 mpuNum)
 void mpu_init(void)
 {
     i2cIdx = i2cObj_MPU6050;
-    mpu_gpio_init(1);
+    i2c_gpio_init(i2cIdx);
     delay_ms(8); // 等待器件稳定
 
     mpu_write_reg(MPU6050_PWR_MGMT_1, 0x01);   // 解除睡眠 选择陀螺仪X轴为时钟源
@@ -77,6 +39,7 @@ void mpu_init(void)
     mpu_write_reg(MPU6050_GYRO_CONFIG, 0x18);  // 陀螺仪最大量程 ±2000°/s
     mpu_write_reg(MPU6050_ACCEL_CONFIG, 0x18); // 加速度计最大量程 ±16g
 }
+
 /* ******************** 初始化函数 */
 
 /*
@@ -147,8 +110,9 @@ u8 mpu_read_id(void)
  */
 void mpu_read_data(mpuData_t *mpuData)
 {
-    i2cIdx     = i2cObj_MPU6050;
+    u8 lastIdx = i2cIdx;
     u8 buf[14] = {0};
+    i2cIdx     = i2cObj_MPU6050;
 
     i2c_start();
     i2c_send_byte(0xD0); // 写地址
@@ -178,6 +142,8 @@ void mpu_read_data(mpuData_t *mpuData)
     mpuData->gyro_x  = (buf[8] << 8) | buf[9];
     mpuData->gyro_y  = (buf[10] << 8) | buf[11];
     mpuData->gyro_z  = (buf[12] << 8) | buf[13];
+
+    i2cIdx = lastIdx; // 防止中断影响其他设备
 }
 
 /* ******************** 功能函数 */

@@ -2,9 +2,9 @@
 
 /* Private Macros ---------------------------------------------------------- */
 
-/* 引脚配置 */
-#define OLED_W_SCL(x) GPIO_WriteBit(GPIOF, GPIO_Pin_5, (BitAction)(x))
-#define OLED_W_SDA(x) GPIO_WriteBit(GPIOF, GPIO_Pin_6, (BitAction)(x))
+/* Private Variables ------------------------------------------------------- */
+
+/* Global Variables -------------------------------------------------------- */
 
 /**
  * OLED显存数组
@@ -12,14 +12,7 @@
  * 随后调用OLED_Update函数或OLED_UpdateArea函数
  * 才会将显存数组的数据发送到OLED硬件，进行显示
  */
-uint8_t OLED_DisplayBuf[8][128];
-
-void oled_delay(u16 Delay)
-{
-    Delay = Delay * 240 / 12;
-    while (Delay--)
-        __NOP(); // 空操作，延时
-}
+static u8 OLED_DisplayBuf[8][128];
 
 /*
 
@@ -31,25 +24,6 @@ void oled_delay(u16 Delay)
 
 /* Global Functions -------------------------------------------------------- */
 
-/******************************************************************
- * \brief  OLED GPIO 初始化
- */
-void OLED_GPIO_Init(void)
-{
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);
-
-    GPIO_InitTypeDef GPIO_InitStructure;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
-    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_5 | GPIO_Pin_6;
-    GPIO_Init(GPIOF, &GPIO_InitStructure);
-
-    OLED_W_SCL(SET);
-    OLED_W_SDA(SET);
-}
-
 /* 通信协议 ******************** */
 
 /******************************************************************
@@ -57,13 +31,7 @@ void OLED_GPIO_Init(void)
  */
 void OLED_I2C_Start(void)
 {
-    OLED_W_SDA(SET);
-    oled_delay(1);
-    OLED_W_SCL(SET);
-    oled_delay(1);
-    OLED_W_SDA(RESET);
-    oled_delay(1);
-    OLED_W_SCL(RESET);
+    i2c_start();
 }
 
 /******************************************************************
@@ -71,11 +39,7 @@ void OLED_I2C_Start(void)
  */
 void OLED_I2C_Stop(void)
 {
-    OLED_W_SDA(RESET);
-    oled_delay(1);
-    OLED_W_SCL(SET);
-    oled_delay(1);
-    OLED_W_SDA(RESET);
+    i2c_stop();
 }
 
 /******************************************************************
@@ -84,22 +48,8 @@ void OLED_I2C_Stop(void)
  */
 void OLED_I2C_SendByte(uint8_t Byte)
 {
-    uint8_t i;
-    for (i = 0; i < 8; i++) {
-        if ((Byte & (0x80 >> i)) == 0)
-            OLED_W_SDA(RESET);
-        else
-            OLED_W_SDA(SET);
-        oled_delay(1);
-        OLED_W_SCL(SET);
-        oled_delay(1);
-        OLED_W_SCL(RESET);
-    }
-    oled_delay(1);
-    OLED_W_SCL(SET); // 额外的一个时钟，不处理应答信号
-    oled_delay(1);
-    OLED_W_SCL(RESET);
-    oled_delay(1);
+    i2c_send_byte(Byte);
+    i2c_pass(); // 额外的一个时钟，不处理应答信号
 }
 
 /******************************************************************
@@ -151,8 +101,9 @@ void OLED_WriteData(uint8_t *Data, uint8_t Count)
  */
 void oled_init(void)
 {
-    OLED_GPIO_Init(); // 先调用底层的端口初始化
-    delay_ms(5);      // 上电延时，等待OLED稳定
+    i2cIdx = i2cObj_OLED;  // 设置当前I2C设备为OLED设备
+    i2c_gpio_init(i2cIdx); // 先调用底层的端口初始化
+    delay_ms(5);           // 上电延时，等待OLED稳定
 
     /*写入一系列的命令，对OLED进行初始化配置*/
     OLED_WriteCommand(0xAE); // 设置显示开启/关闭，0xAE关闭，0xAF开启
@@ -307,9 +258,9 @@ uint8_t OLED_IsInAngle(int16_t X, int16_t Y, int16_t StartAngle, int16_t EndAngl
  */
 void oled_update(void) // 四页
 {
-    uint8_t j;
-    /*遍历每一页*/
-    for (j = 0; j < 8; j++) // ************************************ ************************************ 高度更改
+    i2cIdx = i2cObj_OLED; // 设置当前I2C设备为OLED设备
+    /* 遍历每一页 */
+    for (u8 j = 0; j < 8; j++) // ************************************ ************************************ 高度更改
     {
         OLED_SetCursor(j, 0);                    // 设置光标位置为每一页的第一列
         OLED_WriteData(OLED_DisplayBuf[j], 128); // 连续写入128个数据，将显存数组的数据写入到OLED硬件
@@ -327,7 +278,7 @@ void oled_update(void) // 四页
  */
 void oled_update_area(int16_t X, int16_t Y, uint8_t Width, uint8_t Height)
 {
-    int16_t j;
+    i2cIdx = i2cObj_OLED; // 设置当前I2C设备为OLED设备
     int16_t Page, Page1;
     /* 负数坐标在计算页地址时需要加一个偏移 */
     /* (Y + Height - 1) / 8 + 1的目的是(Y + Height) / 8并向上取整 */
@@ -339,7 +290,7 @@ void oled_update_area(int16_t X, int16_t Y, uint8_t Width, uint8_t Height)
     }
 
     /* 遍历指定区域涉及的相关页 */
-    for (j = Page; j < Page1; j++) {
+    for (s16 j = Page; j < Page1; j++) {
         if (X >= 0 && X <= 127 && j >= 0 && j <= 7) // 超出屏幕的内容不显示
         {
             OLED_SetCursor(j, X);                          // 设置光标位置为相关页的指定列
