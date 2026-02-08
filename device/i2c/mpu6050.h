@@ -37,7 +37,6 @@ extern mpuYaw_t mpuYaw;
 
 // 初始化函数
 
-void mpu_gpio_init(u8 mpuNum);
 void mpu_init(void);
 
 // 功能函数
@@ -51,5 +50,7 @@ void mpu_read_data(mpuData_t* mpuData);
 // 算法函数
 
 void mpu_yaw_core(const mpuData_t* src, mpuYaw_t* yaw);
+float mpu_yaw_adjust(float deg);
+s16 mpu_yaw_error(s16 tarDeg, s16 curDeg);
 
 #endif

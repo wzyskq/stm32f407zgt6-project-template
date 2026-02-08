@@ -50,8 +50,7 @@ float pid_action(pid_t *pid, float set_value, float actual_value)
 {
     pid->err = set_value - actual_value; // 计算当前偏差
     if (pidIdx == pidObj_dir) {          // 方向环特殊处理，计算最短偏差
-        if (pid->err <= -180.0f) pid->err += 360.0f;
-        if (pid->err > 180.0f) pid->err -= 360.0f;
+        pid->err = mpu_yaw_adjust(pid->err); // 确保偏差在 (-180, 180] 范围
     }
     pid->integral += pid->err;                                                                           // 计算积分值
     pid->output   = pid->kp * pid->err + pid->ki * pid->integral + pid->kd * (pid->err - pid->err_last); // 计算输出值

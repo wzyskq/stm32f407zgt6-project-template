@@ -225,12 +225,9 @@ void mpu_yaw_core(const mpuData_t *src, mpuYaw_t *yaw)
     yaw_deg += gz_dps * dt; // 无磁力计，仅积分得到相对航向
 
     /* 将角度限定在 (-180, 180]，避免数值不断累积 */
-    if (roll_deg <= -180.0f) { roll_deg += 360.0f; }
-    if (roll_deg > 180.0f) { roll_deg -= 360.0f; }
-    if (pitch_deg <= -180.0f) { pitch_deg += 360.0f; }
-    if (pitch_deg > 180.0f) { pitch_deg -= 360.0f; }
-    if (yaw_deg <= -180.0f) { yaw_deg += 360.0f; }
-    if (yaw_deg > 180.0f) { yaw_deg -= 360.0f; }
+    roll_deg = mpu_yaw_adjust(roll_deg);
+    pitch_deg = mpu_yaw_adjust(pitch_deg);
+    yaw_deg = mpu_yaw_adjust(yaw_deg);
 
     yaw->yaw_x = (s16)roll_deg;
     yaw->yaw_y = (s16)pitch_deg;
@@ -238,20 +235,28 @@ void mpu_yaw_core(const mpuData_t *src, mpuYaw_t *yaw)
 }
 
 /******************************************************************
- * \brief       计算航向角误差
- * \param[in]   target_deg 目标航向角，单位：度
- * \param[in]   meas_deg   实际航向角，单位：度
- * \return      航向角误差，单位：度
+ * \brief       矫正航向角
+ * \param[in]   deg 原始航向角，单位：度
+ * \return      调整后航向角，单位：度
+ * \note         - 将航向角调整到 (-180, 180] 范围，避免跨界长转
  */
-/* 计算航向设定与测量的最短角度误差，避免跨界长转 */
-s16 mpu_yaw_error(s16 target_deg, s16 meas_deg)
+float mpu_yaw_adjust(float deg)
 {
-    s16 err = target_deg - meas_deg;
+    if (deg <= -180.0f) { deg += 360.0f; }
+    if (deg > 180.0f) { deg -= 360.0f; }
+    return deg;
+}
 
-    // 归一化误差到 (-180, 180]
-    if (err <= -180) { err += 360; }
-    if (err > 180) { err -= 360; }
-    return err;
+/******************************************************************
+ * \brief       计算航向角偏差
+ * \param[in]   tarDeg 目标航向角，单位：度
+ * \param[in]   curDeg   实际航向角，单位：度
+ * \return      航向角偏差，单位：度
+ * \note         - 计算航向设定与测量的最短角度偏差，避免跨界长转
+ */
+s16 mpu_yaw_error(s16 tarDeg, s16 curDeg)
+{
+    return (s16)mpu_yaw_adjust((float)(tarDeg - curDeg));
 }
 
 /* ******************** 算法函数 */
