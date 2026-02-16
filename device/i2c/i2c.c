@@ -19,8 +19,8 @@ static GPIO_TypeDef *i2cGpioPort[] = {
 static const u16 i2cGpioPin[][2] = {
     // SCL, SDA
     {0, 0},
-    {GPIO_Pin_15, GPIO_Pin_14}, // mpu6050
-    {GPIO_Pin_5, GPIO_Pin_6},   // oled
+    {GPIO_Pin_12, GPIO_Pin_13}, // mpu6050
+    {GPIO_Pin_9, GPIO_Pin_10},   // oled
 };
 
 /* Global Variables -------------------------------------------------------- */

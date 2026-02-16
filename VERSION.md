@@ -7,16 +7,15 @@
 
 ### 版本映射
 
+- [x] 2.0 PCB Y2 系列移植
+
 - [ ] 1.9 细节处理与性能优化
 - [x] 1.8 逻辑与文件整理
 - [x] 1.7 mpu6050
 - [x] 1.6 grayscale
 - [x] 1.5 pid 
 - [x] 1.4 wheel
-- [x] Tim (timer, pwm, encoder)
-- [x] key
-- [x] oled 
-- [x] serial 
+- [x] Tim (timer, pwm, encoder)、key、oled、serial
 
 ## 样例
 - `*`：未测试版本
@@ -26,6 +25,14 @@
 ~~- `u`：无法编译或烧录版本~~
 
 ## 版本
+
+### 2.0.0
+Features:
+- `Imp` 移植至 PCB Y2 版本，适配新电路设计
+
+Info:
+- 由于 PCB Y2 设计缺陷，编码器无法使用，已暂停相关代码
+- 若要使用编码器功能，请将接口焊至该 PCB 的上部（要舍弃按键 5、6）
 
 ### 1.9.1
 Features:

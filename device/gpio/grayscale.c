@@ -8,38 +8,38 @@
 
 static const u32 grayRccGpio[] = {
     0,
-    RCC_AHB1Periph_GPIOA,
-    RCC_AHB1Periph_GPIOA,
-    RCC_AHB1Periph_GPIOA,
-    RCC_AHB1Periph_GPIOA,
-    RCC_AHB1Periph_GPIOA,
-    RCC_AHB1Periph_GPIOA,
-    RCC_AHB1Periph_GPIOA,
-    RCC_AHB1Periph_GPIOA,
+    RCC_AHB1Periph_GPIOD,
+    RCC_AHB1Periph_GPIOD,
+    RCC_AHB1Periph_GPIOG,
+    RCC_AHB1Periph_GPIOG,
+    RCC_AHB1Periph_GPIOG,
+    RCC_AHB1Periph_GPIOG,
+    RCC_AHB1Periph_GPIOG,
+    RCC_AHB1Periph_GPIOG,
 };
 
 static GPIO_TypeDef *grayGpioPort[] = {
     0,
-    GPIOA,
-    GPIOA,
-    GPIOA,
-    GPIOA,
-    GPIOA,
-    GPIOA,
-    GPIOA,
-    GPIOA,
+    GPIOD,
+    GPIOD,
+    GPIOG,
+    GPIOG,
+    GPIOG,
+    GPIOG,
+    GPIOG,
+    GPIOG,
 };
 
 static const u16 grayGpioPin[] = {
     0,
-    GPIO_Pin_12,
-    GPIO_Pin_11,
-    GPIO_Pin_8,
-    GPIO_Pin_7,
-    GPIO_Pin_6,
-    GPIO_Pin_5,
-    GPIO_Pin_4,
+    GPIO_Pin_15,
+    GPIO_Pin_14,
+    GPIO_Pin_3,
     GPIO_Pin_2,
+    GPIO_Pin_5,
+    GPIO_Pin_6,
+    GPIO_Pin_7,
+    GPIO_Pin_8,
 };
 
 // 灰度传感器权重数组

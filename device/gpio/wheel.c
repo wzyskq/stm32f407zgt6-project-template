@@ -30,7 +30,7 @@ static const u8 timMapping[][2] = {
  */
 static const u32 whlRccGpio[] = {
     0,
-    RCC_AHB1Periph_GPIOG,
+    RCC_AHB1Periph_GPIOD,
     RCC_AHB1Periph_GPIOG,
 };
 
@@ -42,7 +42,7 @@ static const u32 whlRccGpio[] = {
  */
 static GPIO_TypeDef *whlGpioPort[] = {
     0,
-    GPIOG,
+    GPIOD,
     GPIOG,
 };
 
@@ -54,8 +54,8 @@ static GPIO_TypeDef *whlGpioPort[] = {
  */
 static const u16 whlGpioPin[][2] = {
     {0, 0},
-    {GPIO_Pin_15, GPIO_Pin_14}, // 左轮
-    {GPIO_Pin_10, GPIO_Pin_11}, // 右轮
+    {GPIO_Pin_3, GPIO_Pin_4}, // 左轮
+    {GPIO_Pin_11, GPIO_Pin_10}, // 右轮
 };
 
 /*

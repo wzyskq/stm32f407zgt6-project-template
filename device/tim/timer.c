@@ -11,7 +11,7 @@
  * \example  依次使用了 TIM14、TIM1，则 timMapping 应定义为 {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0}
  * \warning  timMapping[0] = 0，有效值从 timMapping[1] 开始
  */
-static const u8 timMapping[15] = {0, 2, 0, 0, 4, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+static const u8 timMapping[15] = {0, 2, 0, 3, 4, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
 // 位序参照                       {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4}
 
 /******************************************************************
@@ -25,10 +25,10 @@ static const u8 timMapping[15] = {0, 2, 0, 0, 4, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0};
  */
 static const u32 timRccTim[] = {
     0,
-    RCC_APB1Periph_TIM7,
-    RCC_APB2Periph_TIM1,
-    RCC_APB1Periph_TIM5,
-    RCC_APB1Periph_TIM4,
+    RCC_APB1Periph_TIM7, // 系统时基
+    RCC_APB2Periph_TIM1, // 转速控制
+    RCC_APB1Periph_TIM3, // 左轮编码器
+    RCC_APB1Periph_TIM4, // 右轮编码器
 };
 
 /******************************************************************
@@ -43,7 +43,7 @@ static const u32 timRccGpio[] = {
     0,
     0,
     RCC_AHB1Periph_GPIOE,
-    RCC_AHB1Periph_GPIOA,
+    RCC_AHB1Periph_GPIOC,
     RCC_AHB1Periph_GPIOB,
 };
 
@@ -61,7 +61,7 @@ static GPIO_TypeDef *timGpioPort[][4] = {
     {0, 0, 0, 0},
     {0, 0, 0, 0},
     {0, 0, GPIOE, GPIOE},
-    {GPIOA, GPIOA, 0, 0},
+    {GPIOC, GPIOC, 0, 0},
     {GPIOB, GPIOB, 0, 0},
 };
 
@@ -77,7 +77,7 @@ static TIM_TypeDef *timTimePort[] = {
     0,
     TIM7,
     TIM1,
-    TIM5,
+    TIM3,
     TIM4,
 };
 
@@ -108,7 +108,7 @@ static const u8 timTimeIRQn[] = {
     0,
     TIM7_IRQn,
     0, // TIM1_CC_IRQn,
-    0, // TIM5_IRQn,
+    0, // TIM3_IRQn,
     0, // TIM4_IRQn,
 };
 
@@ -154,7 +154,7 @@ static const u16 timGpioPin[][4] = {
     {0, 0, 0, 0},
     {0, 0, 0, 0},
     {0, 0, GPIO_Pin_13, GPIO_Pin_14},
-    {GPIO_Pin_0, GPIO_Pin_1, 0, 0},
+    {GPIO_Pin_6, GPIO_Pin_7, 0, 0},
     {GPIO_Pin_6, GPIO_Pin_7, 0, 0},
 };
 
@@ -170,7 +170,7 @@ static const u8 timGpioAF[][4] = {
     {0, 0, 0, 0},
     {0, 0, 0, 0},
     {0, 0, GPIO_AF_TIM1, GPIO_AF_TIM1},
-    {GPIO_AF_TIM5, GPIO_AF_TIM5, 0, 0},
+    {GPIO_AF_TIM3, GPIO_AF_TIM3, 0, 0},
     {GPIO_AF_TIM4, GPIO_AF_TIM4, 0, 0},
 };
 
@@ -187,7 +187,7 @@ static const u8 timGpioSrc[][4] = {
     {0, 0, 0, 0},
     {0, 0, 0, 0},
     {0, 0, GPIO_PinSource13, GPIO_PinSource14},
-    {GPIO_PinSource0, GPIO_PinSource1, 0, 0},
+    {GPIO_PinSource6, GPIO_PinSource7, 0, 0},
     {GPIO_PinSource6, GPIO_PinSource7, 0, 0},
 };
 

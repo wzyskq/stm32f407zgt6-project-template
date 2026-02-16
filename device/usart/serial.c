@@ -8,18 +8,18 @@
 
 // 私有常量数组（可自定义）
 
-static const u32 srlRccUart[] = {0, RCC_APB2Periph_USART1, RCC_APB1Periph_USART2, RCC_APB1Periph_USART3};
-static const u32 srlRccGpio[] = {0, RCC_AHB1Periph_GPIOA, RCC_AHB1Periph_GPIOD, RCC_AHB1Periph_GPIOD};
+static const u32 srlRccUart[] = {0, RCC_APB2Periph_USART1, RCC_APB1Periph_USART2, RCC_APB1Periph_USART3, RCC_APB1Periph_UART4};
+static const u32 srlRccGpio[] = {0, RCC_AHB1Periph_GPIOA, RCC_AHB1Periph_GPIOD, RCC_AHB1Periph_GPIOD, RCC_AHB1Periph_GPIOA};
 
-static GPIO_TypeDef *srlGpioPort[]  = {0, GPIOA, GPIOD, GPIOD};
-static USART_TypeDef *srlUartPort[] = {0, USART1, USART2, USART3};
-static const u8 srlUartIRQn[]       = {0, USART1_IRQn, USART2_IRQn, USART3_IRQn};
+static GPIO_TypeDef *srlGpioPort[]  = {0, GPIOA, GPIOD, GPIOD, GPIOA};
+static USART_TypeDef *srlUartPort[] = {0, USART1, USART2, USART3, UART4};
+static const u8 srlUartIRQn[]       = {0, USART1_IRQn, USART2_IRQn, USART3_IRQn, UART4_IRQn};
 
-static const u16 srlGpioPinTx[] = {0, GPIO_Pin_9, GPIO_Pin_5, GPIO_Pin_8};
-static const u16 srlGpioPinRx[] = {0, GPIO_Pin_10, GPIO_Pin_6, GPIO_Pin_9};
-static const u8 srlGpioAF[]     = {0, GPIO_AF_USART1, GPIO_AF_USART2, GPIO_AF_USART3};
-static const u8 srlGpioSrcTx[]  = {0, GPIO_PinSource9, GPIO_PinSource5, GPIO_PinSource8};
-static const u8 srlGpioSrcRx[]  = {0, GPIO_PinSource10, GPIO_PinSource6, GPIO_PinSource9};
+static const u16 srlGpioPinTx[] = {0, GPIO_Pin_9, GPIO_Pin_5, GPIO_Pin_8, GPIO_Pin_0};
+static const u16 srlGpioPinRx[] = {0, GPIO_Pin_10, GPIO_Pin_6, GPIO_Pin_9, GPIO_Pin_1};
+static const u8 srlGpioAF[]     = {0, GPIO_AF_USART1, GPIO_AF_USART2, GPIO_AF_USART3, GPIO_AF_UART4};
+static const u8 srlGpioSrcTx[]  = {0, GPIO_PinSource9, GPIO_PinSource5, GPIO_PinSource8, GPIO_PinSource0};
+static const u8 srlGpioSrcRx[]  = {0, GPIO_PinSource10, GPIO_PinSource6, GPIO_PinSource9, GPIO_PinSource1};
 
 /* Global Variables -------------------------------------------------------- */
 

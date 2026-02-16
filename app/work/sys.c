@@ -46,19 +46,19 @@ void loop(void)
         key_judge(); // 按键检测
 
         if (taskNum == 1) {
-            oledViewIdx++;
-            if (oledViewIdx > 4) oledViewIdx = 0;
-            taskNum = 0;
         } else if (taskNum == 2) {
         } else if (taskNum == 3) {
         } else if (taskNum == 4) {
         } else if (taskNum == 5) {
+            oledViewIdx++;
+            if (oledViewIdx > 4) oledViewIdx = 0;
+            taskNum = 0;
+        } else if (taskNum == 6) {
             if (!oledViewIdx)
                 oledViewIdx = 4;
             else
                 oledViewIdx--;
             taskNum = 0;
-        } else if (taskNum == 6) {
         }
 
         // oled_printf(0, 16 * 0, OLED_8X16, "%4d |%5d", whlSpd[0], whlCnt[0]);
@@ -76,8 +76,8 @@ void loop(void)
 void speed_loop(void)
 {
     // 获取编码器速度
-    whlCnt[0] = timer_encoder_read(5, normal);
-    whlCnt[1] = timer_encoder_read(4, inverse);
+    whlCnt[0] = timer_encoder_read(4, normal);
+    whlCnt[1] = timer_encoder_read(3, inverse);
 
     // 指数步进实现
     static s16 Vn[2] = {0}; // 下一步目标速度

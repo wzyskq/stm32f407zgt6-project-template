@@ -27,13 +27,13 @@ void TIM7_IRQHandler(void)
         // whlTime++;
 
         // 方向环
-        direction_loop();
+        // direction_loop();
 
         // 位置环
-        position_loop();
+        // position_loop();
 
         // 速度环
-        speed_loop();
+        // speed_loop();
 
         if (spdLogFlag)
             // serial_printf(1, "spd:%d, %d, %d\n", whlSpd[0], whlCnt[0], whlCnt[1]);

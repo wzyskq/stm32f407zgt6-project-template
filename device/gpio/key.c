@@ -2,13 +2,37 @@
 
 /* Private Macros ---------------------------------------------------------- */
 
-#define KEY_NUM 4 // 按键数量
+#define KEY_NUM 6 // 按键数量
 
 /* Private Variables ------------------------------------------------------- */
 
-static const u32 keyRccGpio[]      = {0, RCC_AHB1Periph_GPIOF, RCC_AHB1Periph_GPIOF, RCC_AHB1Periph_GPIOF, RCC_AHB1Periph_GPIOF};
-static GPIO_TypeDef *keyGpioPort[] = {0, GPIOF, GPIOF, GPIOF, GPIOF};
-static const u16 keyGpioPin[]      = {0, GPIO_Pin_1, GPIO_Pin_2, GPIO_Pin_3, GPIO_Pin_4};
+static const u32 keyRccGpio[] = {
+    0,
+    RCC_AHB1Periph_GPIOC,
+    RCC_AHB1Periph_GPIOC,
+    RCC_AHB1Periph_GPIOC,
+    RCC_AHB1Periph_GPIOC,
+    RCC_AHB1Periph_GPIOF,
+    RCC_AHB1Periph_GPIOF,
+};
+static GPIO_TypeDef *keyGpioPort[] = {
+    0,
+    GPIOC,
+    GPIOC,
+    GPIOC,
+    GPIOC,
+    GPIOF,
+    GPIOF,
+};
+static const u16 keyGpioPin[] = {
+    0,
+    GPIO_Pin_0,
+    GPIO_Pin_1,
+    GPIO_Pin_2,
+    GPIO_Pin_3,
+    GPIO_Pin_5,
+    GPIO_Pin_6,
+};
 
 /* Global Variables -------------------------------------------------------- */
 
@@ -30,7 +54,7 @@ u8 taskNum   = 0;         // 当前按键
 
 /******************************************************************
  * \brief      初始化指定按键
- * \param[in]  keyNum 按键编号，x=1..4
+ * \param[in]  keyNum 按键编号，x=1..6
  * \note       强烈建议使用 keys_init() 初始化所有按键
  */
 void key_init(u8 keyNum)
@@ -121,23 +145,33 @@ void key_action(void)
     if (keyBox[0] == 1) {
         if (keyBox[1] == 1)
             taskNum = 1;
-        else if (keyBox[1] == 2)
-            taskNum = 5;
+        // else if (keyBox[1] == 2)
+        //     taskNum = 5;
     } else if (keyBox[0] == 2) {
         if (keyBox[1] == 1)
             taskNum = 2;
-        else if (keyBox[1] == 2)
-            taskNum = 6;
+        // else if (keyBox[1] == 2)
+        //     taskNum = 6;
     } else if (keyBox[0] == 3) {
         if (keyBox[1] == 1)
             taskNum = 3;
-        else if (keyBox[1] == 2)
-            taskNum = 7;
+        // else if (keyBox[1] == 2)
+        //     taskNum = 7;
     } else if (keyBox[0] == 4) {
         if (keyBox[1] == 1)
             taskNum = 4;
-        else if (keyBox[1] == 2)
-            taskNum = 8;
+        // else if (keyBox[1] == 2)
+        //     taskNum = 8;
+    } else if (keyBox[0] == 5) {
+        if (keyBox[1] == 1)
+            taskNum = 5;
+        // else if (keyBox[1] == 2)
+            // taskNum = 10;
+    } else if (keyBox[0] == 6) {
+        if (keyBox[1] == 1)
+            taskNum = 6;
+        // else if (keyBox[1] == 2)
+            // taskNum = 12;
     }
 
     oled_printf(0, 48, OLED_8X16, "%d-%d", keyBox[0], keyBox[1]);

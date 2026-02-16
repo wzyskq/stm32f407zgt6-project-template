@@ -30,7 +30,7 @@ int main(void)
     // 定时器初始化
     timer_init(timObj_timer, 7, 0, 1000, 840, 0);   // 定时器模式 TIM7 无通道 10ms 响应优先级0
     timer_init(timObj_pwmOut, 1, 34, 1000, 840, 1); // PWM 输出模式 TIM1 通道3/4 10ms 响应优先级1
-    timer_init(timObj_encoder, 5, 12, 0, 0, 2);     // 编码器模式 TIM5 通道1/2 10ms 响应优先级2
+    timer_init(timObj_encoder, 3, 12, 0, 0, 2);     // 编码器模式 TIM3 通道1/2 10ms 响应优先级2
     timer_init(timObj_encoder, 4, 12, 0, 0, 2);     // 编码器模式 TIM4 通道1/2 10ms 响应优先级2
 
     // serial_printf(1, "System Init OK!\n");
