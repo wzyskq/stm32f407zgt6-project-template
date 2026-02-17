@@ -21,16 +21,19 @@ targets:
       defineList: []
       incList:
         - .
+        - ../sdk
         - ../sdk/library
         - ../sdk/startup
         - ../sdk/user
         - ../app
-        - ../app/kit
-        - ../app/work
+        - ../app/core
+        - ../app/util
+        - ../device
         - ../device/gpio
         - ../device/i2c
         - ../device/tim
         - ../device/usart
+        - ../module
       libList: []
     excludeList: []
     toolchain: AC5
