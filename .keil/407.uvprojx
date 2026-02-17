@@ -340,7 +340,7 @@
               <MiscControls>--no-multibyte-chars</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F40_41xxx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\sdk\library;..\sdk\startup;..\sdk\user;..\app;..\app\kit;..\app\work;..\device\gpio;..\device\i2c;..\device\usart;..\device\tim</IncludePath>
+              <IncludePath>..\sdk;..\sdk\library;..\sdk\startup;..\sdk\user;..\app;..\app\core;..\app\util;..\device;..\device\gpio;..\device\i2c;..\device\tim;..\device\usart;..\module</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -862,62 +862,62 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>app/kit</GroupName>
-          <Files>
-            <File>
-              <FileName>funs.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\app\kit\funs.c</FilePath>
-            </File>
-            <File>
-              <FileName>funs.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\app\kit\funs.h</FilePath>
-            </File>
-            <File>
-              <FileName>pid.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\app\kit\pid.c</FilePath>
-            </File>
-            <File>
-              <FileName>pid.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\app\kit\pid.h</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>app/work</GroupName>
+          <GroupName>app/core</GroupName>
           <Files>
             <File>
               <FileName>irq.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\app\work\irq.c</FilePath>
+              <FilePath>..\app\core\irq.c</FilePath>
             </File>
             <File>
               <FileName>irq.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\app\work\irq.h</FilePath>
+              <FilePath>..\app\core\irq.h</FilePath>
             </File>
             <File>
               <FileName>sys.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\app\work\sys.c</FilePath>
+              <FilePath>..\app\core\sys.c</FilePath>
             </File>
             <File>
               <FileName>sys.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\app\work\sys.h</FilePath>
+              <FilePath>..\app\core\sys.h</FilePath>
             </File>
             <File>
               <FileName>task.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\app\work\task.c</FilePath>
+              <FilePath>..\app\core\task.c</FilePath>
             </File>
             <File>
               <FileName>task.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\app\work\task.h</FilePath>
+              <FilePath>..\app\core\task.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>app/util</GroupName>
+          <Files>
+            <File>
+              <FileName>funs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\util\funs.c</FilePath>
+            </File>
+            <File>
+              <FileName>funs.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\util\funs.h</FilePath>
+            </File>
+            <File>
+              <FileName>pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\util\pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>pid.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\util\pid.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1033,6 +1033,16 @@
               <FileName>serial.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\device\usart\serial.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>module</GroupName>
+          <Files>
+            <File>
+              <FileName>placeholder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\module\placeholder.c</FilePath>
             </File>
           </Files>
         </Group>

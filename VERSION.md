@@ -27,6 +27,13 @@
 
 ## 版本
 
+### 1.9.2
+Features:
+- `Upd` 更新工程路径：
+  - `app/kit` -> `app/core`
+  - `app/work` -> `app/util`
+  - 新增 `../module` 目录存放三方组件代码
+
 ### 1.9.1
 Features:
 - `Imp` 优化 mpu6050 工具函数及相关调用

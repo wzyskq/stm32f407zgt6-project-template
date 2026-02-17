@@ -1311,7 +1311,7 @@
   </Group>
 
   <Group>
-    <GroupName>app/kit</GroupName>
+    <GroupName>app/core</GroupName>
     <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
@@ -1323,8 +1323,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\kit\funs.c</PathWithFileName>
-      <FilenameWithoutPath>funs.c</FilenameWithoutPath>
+      <PathWithFileName>..\app\core\irq.c</PathWithFileName>
+      <FilenameWithoutPath>irq.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -1335,8 +1335,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\kit\funs.h</PathWithFileName>
-      <FilenameWithoutPath>funs.h</FilenameWithoutPath>
+      <PathWithFileName>..\app\core\irq.h</PathWithFileName>
+      <FilenameWithoutPath>irq.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -1347,8 +1347,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\kit\pid.c</PathWithFileName>
-      <FilenameWithoutPath>pid.c</FilenameWithoutPath>
+      <PathWithFileName>..\app\core\sys.c</PathWithFileName>
+      <FilenameWithoutPath>sys.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -1359,43 +1359,43 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\kit\pid.h</PathWithFileName>
-      <FilenameWithoutPath>pid.h</FilenameWithoutPath>
+      <PathWithFileName>..\app\core\sys.h</PathWithFileName>
+      <FilenameWithoutPath>sys.h</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>5</GroupNumber>
+      <FileNumber>97</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>..\app\core\task.c</PathWithFileName>
+      <FilenameWithoutPath>task.c</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>5</GroupNumber>
+      <FileNumber>98</FileNumber>
+      <FileType>5</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>..\app\core\task.h</PathWithFileName>
+      <FilenameWithoutPath>task.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
   </Group>
 
   <Group>
-    <GroupName>app/work</GroupName>
+    <GroupName>app/util</GroupName>
     <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
-    <File>
-      <GroupNumber>6</GroupNumber>
-      <FileNumber>97</FileNumber>
-      <FileType>1</FileType>
-      <tvExp>0</tvExp>
-      <tvExpOptDlg>0</tvExpOptDlg>
-      <bDave2>0</bDave2>
-      <PathWithFileName>..\app\work\irq.c</PathWithFileName>
-      <FilenameWithoutPath>irq.c</FilenameWithoutPath>
-      <RteFlg>0</RteFlg>
-      <bShared>0</bShared>
-    </File>
-    <File>
-      <GroupNumber>6</GroupNumber>
-      <FileNumber>98</FileNumber>
-      <FileType>5</FileType>
-      <tvExp>0</tvExp>
-      <tvExpOptDlg>0</tvExpOptDlg>
-      <bDave2>0</bDave2>
-      <PathWithFileName>..\app\work\irq.h</PathWithFileName>
-      <FilenameWithoutPath>irq.h</FilenameWithoutPath>
-      <RteFlg>0</RteFlg>
-      <bShared>0</bShared>
-    </File>
     <File>
       <GroupNumber>6</GroupNumber>
       <FileNumber>99</FileNumber>
@@ -1403,8 +1403,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\work\sys.c</PathWithFileName>
-      <FilenameWithoutPath>sys.c</FilenameWithoutPath>
+      <PathWithFileName>..\app\util\funs.c</PathWithFileName>
+      <FilenameWithoutPath>funs.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -1415,8 +1415,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\work\sys.h</PathWithFileName>
-      <FilenameWithoutPath>sys.h</FilenameWithoutPath>
+      <PathWithFileName>..\app\util\funs.h</PathWithFileName>
+      <FilenameWithoutPath>funs.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -1427,8 +1427,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\work\task.c</PathWithFileName>
-      <FilenameWithoutPath>task.c</FilenameWithoutPath>
+      <PathWithFileName>..\app\util\pid.c</PathWithFileName>
+      <FilenameWithoutPath>pid.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -1439,8 +1439,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\work\task.h</PathWithFileName>
-      <FilenameWithoutPath>task.h</FilenameWithoutPath>
+      <PathWithFileName>..\app\util\pid.h</PathWithFileName>
+      <FilenameWithoutPath>pid.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -1701,6 +1701,26 @@
       <bDave2>0</bDave2>
       <PathWithFileName>..\device\usart\serial.h</PathWithFileName>
       <FilenameWithoutPath>serial.h</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+  </Group>
+
+  <Group>
+    <GroupName>module</GroupName>
+    <tvExp>0</tvExp>
+    <tvExpOptDlg>0</tvExpOptDlg>
+    <cbSel>0</cbSel>
+    <RteFlg>0</RteFlg>
+    <File>
+      <GroupNumber>11</GroupNumber>
+      <FileNumber>122</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>..\module\placeholder.c</PathWithFileName>
+      <FilenameWithoutPath>placeholder.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
