@@ -6,7 +6,10 @@
 
 /* TIM 中断请求 ******************** */
 
-// 定时中断触发 运行时间 10ms
+/******************************************************************
+ * \brief  TIM7 中断请求处理函数
+ * \note   系统任务调度时基（中断周期 10ms）
+ */
 void TIM7_IRQHandler(void)
 {
     if (TIM_GetITStatus(TIM7, TIM_IT_Update) == SET) {
@@ -35,9 +38,9 @@ void TIM7_IRQHandler(void)
         // 速度环
         // speed_loop();
 
-        if (spdLogFlag)
-            // serial_printf(1, "spd:%d, %d, %d\n", whlSpd[0], whlCnt[0], whlCnt[1]);
-            serial_printf(1, "spd:%d, %d, %d, %d\n", tWhlVn, whlCnt[0], whlCnt[1], whlSpd[0]); // 速度调试
+        // if (spdLogFlag)
+        // serial_printf(1, "spd:%d, %d, %d\n", whlSpd[0], whlCnt[0], whlCnt[1]);
+        // serial_printf(1, "spd:%d, %d, %d, %d\n", tWhlVn, whlCnt[0], whlCnt[1], whlSpd[0]); // 速度调试
         // serial_printf(1, "dir:%d, %d\n", carDeg, mpuYaw.yaw_z); // 方向调试
 
         // pass
@@ -72,7 +75,7 @@ void TIM7_IRQHandler(void)
 // }
 
 /******************************************************************
- * @brief  USART1 中断请求处理函数
+ * \brief  USART1 中断请求处理函数
  */
 void USART1_IRQHandler(void)
 {
@@ -103,13 +106,15 @@ void USART1_IRQHandler(void)
             } else if (srlPidBuf[0] < SRL_PIDBUF_LEN - 1) {
                 srlPidBuf[++srlPidBuf[0]] = rxData;
             }
-        }
+        } else
+            serial_printf(4, "%c", rxData); // 转发命令
+
         USART_ClearITPendingBit(USART1, USART_IT_RXNE);
     }
 }
 
 /******************************************************************
- * @brief  USART3 中断请求处理函数
+ * \brief  USART3 中断请求处理函数
  */
 void USART3_IRQHandler(void)
 {
@@ -146,4 +151,16 @@ void USART3_IRQHandler(void)
     }
 }
 
+/******************************************************************
+ * \brief  UART4 中断请求处理函数
+ */
+void UART4_IRQHandler(void)
+{
+    volatile static u8 rxIdx = 0;
+    if (USART_GetITStatus(UART4, USART_IT_RXNE) == SET) {
+        u8 rxData = USART_ReceiveData(UART4);
+        serial_printf(1, "%c", rxData); // 调试输出
+        USART_ClearITPendingBit(UART4, USART_IT_RXNE);
+    }
+}
 /* ******************** USART 中断请求 */

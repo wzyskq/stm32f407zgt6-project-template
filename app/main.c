@@ -13,6 +13,8 @@ int main(void)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); // 抢占0~3, 响应0~3
 
     serial_init(1, 115200, 0);
+    // serial_init(2, 115200, 1);
+    serial_init(4, 115200, 2);
 
     mpu_init();
 
@@ -33,7 +35,9 @@ int main(void)
     timer_init(timObj_encoder, 3, 12, 0, 0, 2);     // 编码器模式 TIM3 通道1/2 10ms 响应优先级2
     timer_init(timObj_encoder, 4, 12, 0, 0, 2);     // 编码器模式 TIM4 通道1/2 10ms 响应优先级2
 
-    // serial_printf(1, "System Init OK!\n");
+    serial_printf(1, "1> System Init OK!\n");
+    // serial_printf(2, "2> System Init OK!\n");
+    serial_printf(4, "4> System Init OK!\n");
 
     // wheel_pwm_set(1, 100);
     // wheel_pwm_set(2, 100);

@@ -47,17 +47,17 @@ volatile u8 srlCmdFlg                 = 0;   // 命令接收完成标志
 
 /******************************************************************
  * \brief      串口初始化
- * \param[in]  srlNum 串口号 x=1,2,3
+ * \param[in]  srlNum 串口号 x=1,2,3,4
  * \param[in]  baudRate 波特率
- * \param[in]  subPriority 响应优先级 x=0~3
+ * \param[in]  subPriority 响应优先级 x=0..3
  *
- * \note       - 暂时仅支持 USART1~3
+ * \note       - 暂时仅支持 USART1..4
  *             - 中断优先级：NVIC 分组1 (抢占1, 响应0~7)
  */
 void serial_init(u8 srlNum, u32 baudRate, u8 subPriority)
 {
     /* 参数检查 */
-    if (srlNum < 1 || srlNum > 3) return;
+    if (srlNum < 1 || srlNum > 4) return;
 
     /* 开启时钟 */
     if (srlNum == 1 || srlNum == 6)
@@ -286,7 +286,7 @@ void serial_decode_cmd(void)
 
     } else if (rCmd = strmatch_s(cCmd, "trk")) {
         if (cCmd = strmatch_s(rCmd, "--mode")) {
-            trkMode = (u8)strtof(cCmd, NULL);
+            trkMode   = (u8)strtof(cCmd, NULL);
             whlSpd[0] = whlSpd[1] = 0;
         } else if (cCmd = strmatch_s(rCmd, "--spd")) {
             trkSpd = (s16)strtof(cCmd, NULL);
