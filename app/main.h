@@ -37,6 +37,8 @@ typedef enum {
 #include "timer.h"
 #include "serial.h"
 
+#include "Emm_V5.h"
+
 /* Global Variables -------------------------------------------------------- */
 
 /* Global Functions -------------------------------------------------------- */
