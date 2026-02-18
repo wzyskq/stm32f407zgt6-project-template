@@ -37,7 +37,7 @@ int main(void)
 
     serial_printf(1, "1> System Init OK!\n");
     // serial_printf(2, "2> System Init OK!\n");
-    serial_printf(4, "4> System Init OK!\n");
+    // serial_printf(4, "4> System Init OK!\n");
 
     // wheel_pwm_set(1, 100);
     // wheel_pwm_set(2, 100);
