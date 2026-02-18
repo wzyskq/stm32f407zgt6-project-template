@@ -1,1840 +1,1854 @@
 #include "Emm_V5.h"
 
 /**********************************************************
-***	Emm_V5.0步进闭环控制例程
-***	编写作者：ZHANGDATOU
-***	技术支持：张大头闭环伺服
-***	淘宝店铺：https://zhangdatou.taobao.com
-***	CSDN博客：http s://blog.csdn.net/zhangdatou666
-***	qq交流群：262438510
+*** Emm_V5.0步进闭环控制例程
+*** 编写作者：ZHANGDATOU
+*** 技术支持：张大头闭环伺服
+*** 淘宝店铺：https://zhangdatou.taobao.com
+*** CSDN博客：https://blog.csdn.net/zhangdatou666
+*** qq交流群：262438510
 **********************************************************/
 
-__IO uint16_t MMCL_count = 0, MMCL_cmd[MMCL_LEN] = {0};
+/* Global Variables -------------------------------------------------------- */
+
+__IO u16 MMCL_count = 0, MMCL_cmd[MMCL_LEN] = {0};
+
+/* Global Variables -------------------------------------------------------- */
+
+/******************************************************************
+ * \brief      发送 Emm_V5.0 命令
+ * \param[in]  srlNum 串口号
+ * \param[in]  cmd     命令字符串
+ *
+ * \note       一开始想用 serial_send_string 函数直接发送字符串，所以在每个字符串末尾补上了 \0
+ *             但是忘记了 \0 其实就是 0x00，会被串口发送函数当作字符串结束标志，导致发送不完整
+ *             目前暂时用用 0x6B 替代 \0 作为字符串结束标志
+ */
+void serial_send_emm_v5_cmd(u8 srlNum, u8 *cmd)
+{
+    u8 i;
+    for (i = 0; cmd[i - 1] != 0x6B; i++) {
+        serial_send_byte(srlNum, cmd[i]);
+        // serial_send_byte(1, cmd[i]);
+    }
+}
+
+/*
+
+
+
+
+
+*/
 
 /**********************************************************
 *** 触发动作命令
 **********************************************************/
-/**
- * @brief    触发编码器校准
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
- */
-void Emm_V5_Trig_Encoder_Cal(uint8_t addr)
-{
-    __IO static uint8_t cmd[16] = {0};
 
-    // 装载命令
+/* 触发动作命令 ******************** */
+
+/******************************************************************
+ * \brief      触发编码器校准
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
+ */
+void Emm_V5_Trig_Encoder_Cal(u8 srlNum, u8 addr)
+{
+    static u8 cmd[5] = {0};
+
     cmd[0] = addr; // 地址
     cmd[1] = 0x06; // 功能码
     cmd[2] = 0x45; // 辅助码
     cmd[3] = 0x6B; // 校验字节
+    cmd[4] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 4);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    重启电机（Y42）
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      重启电机（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Reset_Motor(uint8_t addr)
+void Emm_V5_Reset_Motor(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[5] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x08; // 功能码
     cmd[2] = 0x97; // 辅助码
     cmd[3] = 0x6B; // 校验字节
+    cmd[4] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 4);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    将当前位置清零
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      将当前位置清零
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Reset_CurPos_To_Zero(uint8_t addr)
+void Emm_V5_Reset_CurPos_To_Zero(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[5] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x0A; // 功能码
     cmd[2] = 0x6D; // 辅助码
     cmd[3] = 0x6B; // 校验字节
+    cmd[4] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 4);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    解除堵转保护
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      解除堵转保护
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Reset_Clog_Pro(uint8_t addr)
+void Emm_V5_Reset_Clog_Pro(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[5] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x0E; // 功能码
     cmd[2] = 0x52; // 辅助码
     cmd[3] = 0x6B; // 校验字节
+    cmd[4] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 4);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    恢复出厂设置
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      恢复出厂设置
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Restore_Motor(uint8_t addr)
+void Emm_V5_Restore_Motor(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[5] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x0F; // 功能码
     cmd[2] = 0x5F; // 辅助码
     cmd[3] = 0x6B; // 校验字节
+    cmd[4] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 4);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
+
+/* ******************** 触发动作命令 */
+
+/*
+
+
+
+
+
+*/
 
 /**********************************************************
 *** 运动控制命令
 **********************************************************/
-/**
- * @brief    多电机命令（Y42）
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+
+/* 运动控制命令 ******************** */
+
+/******************************************************************
+ * \brief      多电机命令（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Multi_Motor_Cmd(uint8_t addr)
+void Emm_V5_Multi_Motor_Cmd(u8 srlNum, u8 addr)
 {
-    uint16_t i = 0, j = 0, len = 0;
-    __IO static uint8_t cmd[MMCL_LEN] = {0};
+    u8 i                        = 0;
+    static u8 cmd[MMCL_LEN + 4] = {0};
 
-    // 多电机命令长度大于0
-    if (MMCL_count > 0) {
-        // 多电机命令的总字节数
-        len = MMCL_count + 5;
+    cmd[i] = addr;
+    ++i; // 地址
+    cmd[i] = 0xEF;
+    ++i; // 功能码
+    cmd[i] = 0xCF;
+    ++i; // 辅助码
 
-        // 装载命令
-        cmd[0] = addr;                // 地址
-        cmd[1] = 0xAA;                // 功能码
-        cmd[2] = (uint8_t)(len >> 8); // 总字节数高8位
-        cmd[3] = (uint8_t)(len);      // 总字节数低8位
-        for (i = 0, j = 4; i < MMCL_count; i++, j++) { cmd[j] = MMCL_cmd[i]; }
-        cmd[j] = 0x6B;
-        ++j; // 校验字节
-
-        // 发送命令
-        usart_SendCmd(cmd, j);
-        MMCL_count = 0;
-    } else {
-        MMCL_count = 0;
+    for (u8 j = 0; j < MMCL_count; ++j) {
+        cmd[i] = MMCL_cmd[j];
+        ++i; // 逐字节加载多机指令内容
     }
+
+    cmd[i] = 0x6B;
+    ++i; // 校验字节
+    cmd[i] = '\0';
+
+    serial_send_emm_v5_cmd(srlNum, cmd);
+
+    MMCL_count = 0; // 发送后清空缓冲计数
 }
 
-/**
- * @brief    使能信号控制
- * @param    addr  ：电机地址
- * @param    state ：使能状态     ，true为使能电机，false为关闭电机
- * @param    snF   ：多机同步标志 ，false为不启用，true为启用
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      电机使能控制
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  state  使能状态，true 为使能电机，false 为关闭电机
+ * \param[in]  snF    多机同步标志，false 为不启用，true 为启用
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_En_Control(uint8_t addr, bool state, bool snF)
+void Emm_V5_En_Control(u8 srlNum, u8 addr, bool state, bool snF)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[7] = {0};
 
-    // 装载命令
+    cmd[0] = addr;      // 地址
+    cmd[1] = 0xF3;      // 功能码
+    cmd[2] = 0xAB;      // 辅助码
+    cmd[3] = (u8)state; // 使能状态
+    cmd[4] = snF;       // 多机同步运动标志
+    cmd[5] = 0x6B;      // 校验字节
+    cmd[6] = '\0';
+
+    serial_send_emm_v5_cmd(srlNum, cmd);
+}
+
+/******************************************************************
+ * \brief      速度模式控制
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  dir    方向，0 为 CW，其余值为 CCW
+ * \param[in]  vel    速度，范围 0-5000 RPM
+ * \param[in]  acc    加速度，范围 0-255，0 为直接启动
+ * \param[in]  snF    多机同步标志，false 为不启用，true 为启用
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
+ */
+void Emm_V5_Vel_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, bool snF)
+{
+    static u8 cmd[9] = {0};
+
     cmd[0] = addr;           // 地址
-    cmd[1] = 0xF3;           // 功能码
-    cmd[2] = 0xAB;           // 辅助码
-    cmd[3] = (uint8_t)state; // 使能状态
-    cmd[4] = snF;            // 多机同步运动标志
-    cmd[5] = 0x6B;           // 校验字节
+    cmd[1] = 0xF6;           // 功能码
+    cmd[2] = dir;            // 方向
+    cmd[3] = (u8)(vel >> 8); // 速度高字节
+    cmd[4] = (u8)(vel >> 0); // 速度低字节
+    cmd[5] = acc;            // 加速度，0 为直接启动
+    cmd[6] = snF;            // 多机同步标志
+    cmd[7] = 0x6B;           // 校验字节
+    cmd[8] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 6);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    速度模式
- * @param    addr：电机地址
- * @param    dir ：方向       ，0为CW，其余值为CCW
- * @param    vel ：速度       ，范围0 - 5000RPM
- * @param    acc ：加速度     ，范围0 - 255，注意：0是直接启动
- * @param    snF ：多机同步标志，false为不启用，true为启用
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      位置模式控制
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  dir    方向，0 为 CW，其余值为 CCW
+ * \param[in]  vel    速度，范围 0-5000 RPM
+ * \param[in]  acc    加速度，范围 0-255，0 为直接启动
+ * \param[in]  clk    脉冲数，范围 0-(2^32-1)
+ * \param[in]  raF    相位/绝对标志，false 为相对，true 为绝对
+ * \param[in]  snF    多机同步标志，false 为不启用，true 为启用
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
+ * 
+ * \note       每个脉冲转 1.8° / 16 = 0.1125°，
+ *             发送 3200 个脉冲电机转一圈 360°；
  */
-void Emm_V5_Vel_Control(uint8_t addr, uint8_t dir, uint16_t vel, uint8_t acc, bool snF)
+void Emm_V5_Pos_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, uint32_t clk, bool raF, bool snF)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[14] = {0};
 
-    // 装载命令
-    cmd[0] = addr;                // 地址
-    cmd[1] = 0xF6;                // 功能码
-    cmd[2] = dir;                 // 方向
-    cmd[3] = (uint8_t)(vel >> 8); // 速度(RPM)高8位字节
-    cmd[4] = (uint8_t)(vel >> 0); // 速度(RPM)低8位字节
-    cmd[5] = acc;                 // 加速度，注意：0是直接启动
-    cmd[6] = snF;                 // 多机同步运动标志
-    cmd[7] = 0x6B;                // 校验字节
+    cmd[0]  = addr;            // 地址
+    cmd[1]  = 0xFD;            // 功能码
+    cmd[2]  = dir;             // 方向
+    cmd[3]  = (u8)(vel >> 8);  // 速度高字节
+    cmd[4]  = (u8)(vel >> 0);  // 速度低字节
+    cmd[5]  = acc;             // 加速度
+    cmd[6]  = (u8)(clk >> 24); // 脉冲数 bit24-31
+    cmd[7]  = (u8)(clk >> 16); // 脉冲数 bit16-23
+    cmd[8]  = (u8)(clk >> 8);  // 脉冲数 bit8-15
+    cmd[9]  = (u8)(clk >> 0);  // 脉冲数 bit0-7
+    cmd[10] = raF;             // 相对/绝对标志
+    cmd[11] = snF;             // 多机同步标志
+    cmd[12] = 0x6B;            // 校验字节
+    cmd[13] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 8);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    位置模式
- * @param    addr：电机地址
- * @param    dir ：方向        ，0为CW，其余值为CCW
- * @param    vel ：速度(RPM)   ，范围0 - 5000RPM
- * @param    acc ：加速度      ，范围0 - 255，注意：0是直接启动
- * @param    clk ：脉冲数      ，范围0- (2^32 - 1)个
- * @param    raF ：相位/绝对标志，false为相对运动，true为绝对值运动
- * @param    snF ：多机同步标志 ，false为不启用，true为启用
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      立即停止
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  snF    多机同步标志，false 为不启用，true 为启用
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Pos_Control(uint8_t addr, uint8_t dir, uint16_t vel, uint8_t acc, uint32_t clk, bool raF, bool snF)
+void Emm_V5_Stop_Now(u8 srlNum, u8 addr, bool snF)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[6] = {0};
 
-    // 装载命令
-    cmd[0]  = addr;                 // 地址
-    cmd[1]  = 0xFD;                 // 功能码
-    cmd[2]  = dir;                  // 方向
-    cmd[3]  = (uint8_t)(vel >> 8);  // 速度(RPM)高8位字节
-    cmd[4]  = (uint8_t)(vel >> 0);  // 速度(RPM)低8位字节
-    cmd[5]  = acc;                  // 加速度，注意：0是直接启动
-    cmd[6]  = (uint8_t)(clk >> 24); // 脉冲数(bit24 - bit31)
-    cmd[7]  = (uint8_t)(clk >> 16); // 脉冲数(bit16 - bit23)
-    cmd[8]  = (uint8_t)(clk >> 8);  // 脉冲数(bit8  - bit15)
-    cmd[9]  = (uint8_t)(clk >> 0);  // 脉冲数(bit0  - bit7 )
-    cmd[10] = raF;                  // 相位/绝对标志，false为相对运动，true为绝对值运动
-    cmd[11] = snF;                  // 多机同步运动标志，false为不启用，true为启用
-    cmd[12] = 0x6B;                 // 校验字节
-
-    // 发送命令
-    usart_SendCmd(cmd, 13);
-}
-
-/**
- * @brief    立即停止
- * @param    addr  ：电机地址
- * @param    snF   ：多机同步标志，false为不启用，true为启用
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
- */
-void Emm_V5_Stop_Now(uint8_t addr, bool snF)
-{
-    __IO static uint8_t cmd[16] = {0};
-
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0xFE; // 功能码
     cmd[2] = 0x98; // 辅助码
-    cmd[3] = snF;  // 多机同步运动标志
+    cmd[3] = snF;  // 多机同步标志
     cmd[4] = 0x6B; // 校验字节
+    cmd[5] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 5);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    多机同步运动
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      多机同步运动
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Synchronous_motion(uint8_t addr)
+void Emm_V5_Synchronous_motion(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[5] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0xFF; // 功能码
     cmd[2] = 0x66; // 辅助码
     cmd[3] = 0x6B; // 校验字节
+    cmd[4] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 4);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
+
+/* ******************** 运动控制命令 */
+
+/*
+
+
+
+
+
+*/
 
 /**********************************************************
 *** 原点回零命令
 **********************************************************/
-/**
- * @brief    设置单圈回零的零点位置
- * @param    addr  ：电机地址
- * @param    svF   ：是否存储标志，false为不存储，true为存储
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
- */
-void Emm_V5_Origin_Set_O(uint8_t addr, bool svF)
-{
-    __IO static uint8_t cmd[16] = {0};
 
-    // 装载命令
+/* 原点回零命令 ******************** */
+
+/******************************************************************
+ * \brief      设置单圈回零的零点位置
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志，false 为不存储，true 为存储
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
+ */
+void Emm_V5_Origin_Set_O(u8 srlNum, u8 addr, bool svF)
+{
+    static u8 cmd[6] = {0};
+
     cmd[0] = addr; // 地址
     cmd[1] = 0x93; // 功能码
     cmd[2] = 0x88; // 辅助码
-    cmd[3] = svF;  // 是否存储标志，false为不存储，true为存储
+    cmd[3] = svF;  // 是否存储标志
     cmd[4] = 0x6B; // 校验字节
+    cmd[5] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 5);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    触发回零
- * @param    addr   ：电机地址
- * @param    o_mode ：回零模式，0为单圈就近回零，1为单圈方向回零，2为多圈无限位碰撞回零，3为多圈有限位开关回零
- * @param    snF   ：多机同步标志，false为不启用，true为启用
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      触发回零
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  o_mode 回零模式
+ * \param[in]  snF    多机同步标志，false 为不启用，true 为启用
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Origin_Trigger_Return(uint8_t addr, uint8_t o_mode, bool snF)
+void Emm_V5_Origin_Trigger_Return(u8 srlNum, u8 addr, u8 o_mode, bool snF)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[6] = {0};
 
-    // 装载命令
     cmd[0] = addr;   // 地址
     cmd[1] = 0x9A;   // 功能码
-    cmd[2] = o_mode; // 回零模式，0为单圈就近回零，1为单圈方向回零，2为多圈无限位碰撞回零，3为多圈有限位开关回零
-    cmd[3] = snF;    // 多机同步运动标志，false为不启用，true为启用
+    cmd[2] = o_mode; // 回零模式
+    cmd[3] = snF;    // 多机同步标志
     cmd[4] = 0x6B;   // 校验字节
+    cmd[5] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 5);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    强制中断并退出回零
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      强制中断并退出回零
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Origin_Interrupt(uint8_t addr)
+void Emm_V5_Origin_Interrupt(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[5] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x9C; // 功能码
     cmd[2] = 0x48; // 辅助码
     cmd[3] = 0x6B; // 校验字节
+    cmd[4] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 4);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    读取回零参数
- * @param    addr     ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      读取回零参数
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Origin_Read_Params(uint8_t addr)
+void Emm_V5_Origin_Read_Params(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[5] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
-    cmd[1] = 0x22; // 功能码
-    cmd[2] = 0x6B; // 校验字节
+    cmd[1] = 0x48; // 功能码
+    cmd[2] = 0x8E; // 辅助码
+    cmd[3] = 0x6B; // 校验字节
+    cmd[4] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 3);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改回零参数
- * @param    addr  ：电机地址
- * @param    svF   ：是否存储标志，false为不存储，true为存储
- * @param    o_mode ：回零模式，0为单圈就近回零，1为单圈方向回零，2为多圈无限位碰撞回零，3为多圈有限位开关回零
- * @param    o_dir  ：回零方向，0为CW，其余值为CCW
- * @param    o_vel  ：回零速度，单位：RPM（转/分钟）
- * @param    o_tm   ：回零超时时间，单位：毫秒
- * @param    sl_vel ：无限位碰撞回零检测转速，单位：RPM（转/分钟）
- * @param    sl_ma  ：无限位碰撞回零检测电流，单位：Ma（毫安）
- * @param    sl_ms  ：无限位碰撞回零检测时间，单位：Ms（毫秒）
- * @param    potF   ：上电自动触发回零，false为不使能，true为使能
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改回零参数
+ * \param[in]  srlNum  串口号
+ * \param[in]  addr    电机地址
+ * \param[in]  svF     是否存储标志，false 为不存储，true 为存储
+ * \param[in]  o_mode  回零模式
+ * \param[in]  o_dir   回零方向，0 为 CW，其余值为 CCW
+ * \param[in]  o_vel   回零速度，单位 RPM
+ * \param[in]  o_tm    回零超时时间，单位 ms
+ * \param[in]  sl_vel  无限位碰撞回零检测转速，单位 RPM
+ * \param[in]  sl_ma   无限位碰撞回零检测电流，单位 mA
+ * \param[in]  sl_ms   无限位碰撞回零检测时间，单位 ms
+ * \param[in]  potF    上电自动触发回零标志
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Origin_Modify_Params(uint8_t addr, bool svF, uint8_t o_mode, uint8_t o_dir, uint16_t o_vel, uint32_t o_tm, uint16_t sl_vel, uint16_t sl_ma, uint16_t sl_ms, bool potF)
+void Emm_V5_Origin_Modify_Params(u8 srlNum, u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, uint32_t o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF)
 {
-    __IO static uint8_t cmd[32] = {0};
+    static u8 cmd[21] = {0};
 
-    // 装载命令
-    cmd[0]  = addr;                   // 地址
-    cmd[1]  = 0x4C;                   // 功能码
-    cmd[2]  = 0xAE;                   // 辅助码
-    cmd[3]  = svF;                    // 是否存储标志，false为不存储，true为存储
-    cmd[4]  = o_mode;                 // 回零模式，0为单圈就近回零，1为单圈方向回零，2为多圈无限位碰撞回零，3为多圈有限位开关回零
-    cmd[5]  = o_dir;                  // 回零方向
-    cmd[6]  = (uint8_t)(o_vel >> 8);  // 回零速度(RPM)高8位字节
-    cmd[7]  = (uint8_t)(o_vel >> 0);  // 回零速度(RPM)低8位字节
-    cmd[8]  = (uint8_t)(o_tm >> 24);  // 回零超时时间(bit24 - bit31)
-    cmd[9]  = (uint8_t)(o_tm >> 16);  // 回零超时时间(bit16 - bit23)
-    cmd[10] = (uint8_t)(o_tm >> 8);   // 回零超时时间(bit8  - bit15)
-    cmd[11] = (uint8_t)(o_tm >> 0);   // 回零超时时间(bit0  - bit7 )
-    cmd[12] = (uint8_t)(sl_vel >> 8); // 无限位碰撞回零检测转速(RPM)高8位字节
-    cmd[13] = (uint8_t)(sl_vel >> 0); // 无限位碰撞回零检测转速(RPM)低8位字节
-    cmd[14] = (uint8_t)(sl_ma >> 8);  // 无限位碰撞回零检测电流(Ma)高8位字节
-    cmd[15] = (uint8_t)(sl_ma >> 0);  // 无限位碰撞回零检测电流(Ma)低8位字节
-    cmd[16] = (uint8_t)(sl_ms >> 8);  // 无限位碰撞回零检测时间(Ms)高8位字节
-    cmd[17] = (uint8_t)(sl_ms >> 0);  // 无限位碰撞回零检测时间(Ms)低8位字节
-    cmd[18] = potF;                   // 上电自动触发回零，false为不使能，true为使能
-    cmd[19] = 0x6B;                   // 校验字节
+    cmd[0]  = addr;              // 地址
+    cmd[1]  = 0x4C;              // 功能码
+    cmd[2]  = 0xAE;              // 辅助码
+    cmd[3]  = svF;               // 是否存储标志
+    cmd[4]  = o_mode;            // 回零模式
+    cmd[5]  = o_dir;             // 回零方向
+    cmd[6]  = (u8)(o_vel >> 8);  // 回零速度高字节
+    cmd[7]  = (u8)(o_vel >> 0);  // 回零速度低字节
+    cmd[8]  = (u8)(o_tm >> 24);  // 回零超时 bit24-31
+    cmd[9]  = (u8)(o_tm >> 16);  // 回零超时 bit16-23
+    cmd[10] = (u8)(o_tm >> 8);   // 回零超时 bit8-15
+    cmd[11] = (u8)(o_tm >> 0);   // 回零超时 bit0-7
+    cmd[12] = (u8)(sl_vel >> 8); // 碰撞检测转速高字节
+    cmd[13] = (u8)(sl_vel >> 0); // 碰撞检测转速低字节
+    cmd[14] = (u8)(sl_ma >> 8);  // 碰撞检测电流高字节
+    cmd[15] = (u8)(sl_ma >> 0);  // 碰撞检测电流低字节
+    cmd[16] = (u8)(sl_ms >> 8);  // 碰撞检测时间高字节
+    cmd[17] = (u8)(sl_ms >> 0);  // 碰撞检测时间低字节
+    cmd[18] = potF;              // 上电自动回零标志
+    cmd[19] = 0x6B;              // 校验字节
+    cmd[20] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 20);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
+
+/* ********************** 原点回零命令 */
+
+/*
+
+
+
+
+
+*/
 
 /**********************************************************
 *** 读取系统参数命令
 **********************************************************/
-/**
- * @brief    定时返回信息命令（Y42）
- * @param    addr  	：电机地址
- * @param    s     	：系统参数类型
- * @param    time_ms ：定时时间
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+
+/* 读取系统参数命令 ******************** */
+
+/******************************************************************
+ * \brief      定时返回信息命令（Y42）
+ * \param[in]  srlNum  串口号
+ * \param[in]  addr    电机地址
+ * \param[in]  s       系统参数类型
+ * \param[in]  time_ms 定时时间
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Auto_Return_Sys_Params_Timed(uint8_t addr, SysParams_t s, uint16_t time_ms)
+void Emm_V5_Auto_Return_Sys_Params_Timed(u8 srlNum, u8 addr, SysParams_t s, u16 time_ms)
 {
-    uint8_t i                   = 0;
-    __IO static uint8_t cmd[16] = {0};
+    u8 i              = 0;
+    static u8 cmd[16] = {0};
 
-    // 装载命令
-    cmd[i] = addr;
-    ++i; // 地址
+    cmd[i++] = addr; // 地址
+    cmd[i++] = 0x11; // 功能码
+    cmd[i++] = 0x18; // 辅助码
 
-    cmd[i] = 0x11;
-    ++i; // 功能码
-
-    cmd[i] = 0x18;
-    ++i; // 辅助码
-
-    switch (s) // 信息功能码
-    {
+    switch (s) {
         case S_VBUS:
-            cmd[i] = 0x24;
-            ++i;
-            break; // 读取总线电压
+            cmd[i++] = 0x24; // 读取总线电压
+            break;
         case S_CBUS:
-            cmd[i] = 0x26;
-            ++i;
-            break; // 读取总线电流
+            cmd[i++] = 0x26; // 读取总线电流
+            break;
         case S_CPHA:
-            cmd[i] = 0x27;
-            ++i;
-            break; // 读取相电流
+            cmd[i++] = 0x27; // 读取相电流
+            break;
         case S_ENCO:
-            cmd[i] = 0x29;
-            ++i;
-            break; // 读取编码器原始值
+            cmd[i++] = 0x29; // 读取编码器原始值
+            break;
         case S_CLKC:
-            cmd[i] = 0x30;
-            ++i;
-            break; // 读取实时脉冲数
+            cmd[i++] = 0x30; // 读取实时脉冲数
+            break;
         case S_ENCL:
-            cmd[i] = 0x31;
-            ++i;
-            break; // 读取经过线性化校准后的编码器值
+            cmd[i++] = 0x31; // 读取线性化后编码器值
+            break;
         case S_CLKI:
-            cmd[i] = 0x32;
-            ++i;
-            break; // 读取输入脉冲数
+            cmd[i++] = 0x32; // 读取输入脉冲数
+            break;
         case S_TPOS:
-            cmd[i] = 0x33;
-            ++i;
-            break; // 读取电机目标位置
+            cmd[i++] = 0x33; // 读取目标位置
+            break;
         case S_SPOS:
-            cmd[i] = 0x34;
-            ++i;
-            break; // 读取电机实时设定的目标位置
+            cmd[i++] = 0x34; // 读取实时设定目标位置
+            break;
         case S_VEL:
-            cmd[i] = 0x35;
-            ++i;
-            break; // 读取电机实时转速
+            cmd[i++] = 0x35; // 读取实时转速
+            break;
         case S_CPOS:
-            cmd[i] = 0x36;
-            ++i;
-            break; // 读取电机实时位置
+            cmd[i++] = 0x36; // 读取实时位置
+            break;
         case S_PERR:
-            cmd[i] = 0x37;
-            ++i;
-            break; // 读取电机位置误差
+            cmd[i++] = 0x37; // 读取位置误差
+            break;
         case S_VBAT:
-            cmd[i] = 0x38;
-            ++i;
-            break; // 读取多圈编码器电池电压（Y42）
+            cmd[i++] = 0x38; // 读取多圈编码器电池电压（Y42）
+            break;
         case S_TEMP:
-            cmd[i] = 0x39;
-            ++i;
-            break; // 读取电机实时温度（Y42）
+            cmd[i++] = 0x39; // 读取实时温度（Y42）
+            break;
         case S_FLAG:
-            cmd[i] = 0x3A;
-            ++i;
-            break; // 读取电机状态标志位
+            cmd[i++] = 0x3A; // 读取状态标志位
+            break;
         case S_OFLAG:
-            cmd[i] = 0x3B;
-            ++i;
-            break; // 读取回零状态标志位
+            cmd[i++] = 0x3B; // 读取回零状态标志位
+            break;
         case S_OAF:
-            cmd[i] = 0x3C;
-            ++i;
-            break; // 读取电机状态标志位 + 回零状态标志位（Y42）
+            cmd[i++] = 0x3C; // 读取状态+回零标志位（Y42）
+            break;
         case S_PIN:
-            cmd[i] = 0x3D;
-            ++i;
-            break; // 读取引脚状态（Y42）
+            cmd[i++] = 0x3D; // 读取引脚状态（Y42）
+            break;
         default:
             break;
     }
 
-    cmd[i] = (uint8_t)(time_ms >> 8);
-    ++i; // 定时时间
-    cmd[i] = (uint8_t)(time_ms >> 0);
-    ++i;
+    cmd[i++] = (u8)(time_ms >> 8); // 定时时间高字节
+    cmd[i++] = (u8)(time_ms >> 0); // 定时时间低字节
+    cmd[i++] = 0x6B;               // 校验字节
+    cmd[i]   = '\0';
 
-    cmd[i] = 0x6B;
-    ++i; // 校验字节
-
-    // 发送命令
-    usart_SendCmd(cmd, i);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    读取系统参数
- * @param    addr  ：电机地址
- * @param    s     ：系统参数类型
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      读取系统参数
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  s      系统参数类型
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Read_Sys_Params(uint8_t addr, SysParams_t s)
+void Emm_V5_Read_Sys_Params(u8 srlNum, u8 addr, SysParams_t s)
 {
-    uint8_t i                   = 0;
-    __IO static uint8_t cmd[16] = {0};
+    u8 i              = 0;
+    static u8 cmd[16] = {0};
 
-    // 装载命令
-    cmd[i] = addr;
-    ++i; // 地址
+    cmd[i++] = addr; // 地址
 
-    switch (s) // 功能码
-    {
+    switch (s) {
         case S_VBUS:
-            cmd[i] = 0x24;
-            ++i;
-            break; // 读取总线电压
+            cmd[i++] = 0x24; // 读取总线电压
+            break;
         case S_CBUS:
-            cmd[i] = 0x26;
-            ++i;
-            break; // 读取总线电流
+            cmd[i++] = 0x26; // 读取总线电流
+            break;
         case S_CPHA:
-            cmd[i] = 0x27;
-            ++i;
-            break; // 读取相电流
+            cmd[i++] = 0x27; // 读取相电流
+            break;
         case S_ENCO:
-            cmd[i] = 0x29;
-            ++i;
-            break; // 读取编码器原始值
+            cmd[i++] = 0x29; // 读取编码器原始值
+            break;
         case S_CLKC:
-            cmd[i] = 0x30;
-            ++i;
-            break; // 读取实时脉冲数
+            cmd[i++] = 0x30; // 读取实时脉冲数
+            break;
         case S_ENCL:
-            cmd[i] = 0x31;
-            ++i;
-            break; // 读取经过线性化校准后的编码器值
+            cmd[i++] = 0x31; // 读取线性化后编码器值
+            break;
         case S_CLKI:
-            cmd[i] = 0x32;
-            ++i;
-            break; // 读取输入脉冲数
+            cmd[i++] = 0x32; // 读取输入脉冲数
+            break;
         case S_TPOS:
-            cmd[i] = 0x33;
-            ++i;
-            break; // 读取电机目标位置
+            cmd[i++] = 0x33; // 读取目标位置
+            break;
         case S_SPOS:
-            cmd[i] = 0x34;
-            ++i;
-            break; // 读取电机实时设定的目标位置
+            cmd[i++] = 0x34; // 读取实时设定目标位置
+            break;
         case S_VEL:
-            cmd[i] = 0x35;
-            ++i;
-            break; // 读取电机实时转速
+            cmd[i++] = 0x35; // 读取实时转速
+            break;
         case S_CPOS:
-            cmd[i] = 0x36;
-            ++i;
-            break; // 读取电机实时位置
+            cmd[i++] = 0x36; // 读取实时位置
+            break;
         case S_PERR:
-            cmd[i] = 0x37;
-            ++i;
-            break; // 读取电机位置误差
+            cmd[i++] = 0x37; // 读取位置误差
+            break;
         case S_VBAT:
-            cmd[i] = 0x38;
-            ++i;
-            break; // 读取多圈编码器电池电压（Y42）
+            cmd[i++] = 0x38; // 读取多圈编码器电池电压（Y42）
+            break;
         case S_TEMP:
-            cmd[i] = 0x39;
-            ++i;
-            break; // 读取电机实时温度（Y42）
+            cmd[i++] = 0x39; // 读取实时温度（Y42）
+            break;
         case S_FLAG:
-            cmd[i] = 0x3A;
-            ++i;
-            break; // 读取电机状态标志位
+            cmd[i++] = 0x3A; // 读取状态标志位
+            break;
         case S_OFLAG:
-            cmd[i] = 0x3B;
-            ++i;
-            break; // 读取回零状态标志位
+            cmd[i++] = 0x3B; // 读取回零状态标志位
+            break;
         case S_OAF:
-            cmd[i] = 0x3C;
-            ++i;
-            break; // 读取电机状态标志位 + 回零状态标志位（Y42）
+            cmd[i++] = 0x3C; // 读取状态+回零标志位（Y42）
+            break;
         case S_PIN:
-            cmd[i] = 0x3D;
-            ++i;
-            break; // 读取引脚状态（Y42）
+            cmd[i++] = 0x3D; // 读取引脚状态（Y42）
+            break;
         default:
             break;
     }
 
-    cmd[i] = 0x6B;
-    ++i; // 校验字节
+    cmd[i++] = 0x6B; // 校验字节
+    cmd[i]   = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, i);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
+
+/* ******************** 读取系统参数命令 */
+
+/*
+
+
+
+
+
+*/
 
 /**********************************************************
 *** 读写驱动参数命令
 **********************************************************/
-/**
- * @brief    修改电机ID地址
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    id			 ：默认电机ID为1，可修改为1-255，0为广播地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
- */
-void Emm_V5_Modify_Motor_ID(uint8_t addr, bool svF, uint8_t id)
-{
-    __IO static uint8_t cmd[16] = {0};
 
-    // 装载命令
+/* 读写驱动参数命令 ******************** */
+
+/******************************************************************
+ * \brief      修改电机 ID 地址
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志，false 为不存储，true 为存储
+ * \param[in]  id     默认电机 ID 为 1，可修改为 1-255，0 为广播地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
+ */
+void Emm_V5_Modify_Motor_ID(u8 srlNum, u8 addr, bool svF, u8 id)
+{
+    static u8 cmd[7] = {0};
+
     cmd[0] = addr; // 地址
     cmd[1] = 0xAE; // 功能码
     cmd[2] = 0x4B; // 辅助码
-    cmd[3] = svF;  // 是否存储标志，false为不存储，true为存储
-    cmd[4] = id;   // 默认电机ID为1，可修改为1-255，0为广播地址
+    cmd[3] = svF;  // 是否存储标志
+    cmd[4] = id;   // 新 ID
     cmd[5] = 0x6B; // 校验字节
+    cmd[6] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 6);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改细分值
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    mstep		 ：默认细分为16，可修改为1-2556，0为256细分
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改细分值
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志，false 为不存储，true 为存储
+ * \param[in]  mstep  默认细分为 16，可修改为 1-255，0 为 256 细分
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_MicroStep(uint8_t addr, bool svF, uint8_t mstep)
+void Emm_V5_Modify_MicroStep(u8 srlNum, u8 addr, bool svF, u8 mstep)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[7] = {0};
 
-    // 装载命令
     cmd[0] = addr;  // 地址
     cmd[1] = 0x84;  // 功能码
     cmd[2] = 0x8A;  // 辅助码
-    cmd[3] = svF;   // 是否存储标志，false为不存储，true为存储
-    cmd[4] = mstep; // 默认细分为16，可修改为1-2556，0为256细分
+    cmd[3] = svF;   // 是否存储标志
+    cmd[4] = mstep; // 细分值
     cmd[5] = 0x6B;  // 校验字节
+    cmd[6] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 6);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改掉电标志
- * @param    addr     ：电机地址
- * @param    pdf		 	 ：掉电标志
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改掉电标志
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  pdf    掉电标志
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_PDFlag(uint8_t addr, bool pdf)
+void Emm_V5_Modify_PDFlag(u8 srlNum, u8 addr, bool pdf)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[5] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x50; // 功能码
     cmd[2] = pdf;  // 掉电标志
     cmd[3] = 0x6B; // 校验字节
+    cmd[4] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 4);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    读取选项参数状态（Y42）
- * @param    addr     ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      读取选项参数状态（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Read_Opt_Param_Sta(uint8_t addr)
+void Emm_V5_Read_Opt_Param_Sta(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[4] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x1A; // 功能码
     cmd[2] = 0x6B; // 校验字节
+    cmd[3] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 3);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改电机类型（Y42）
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    mottype	 ：电机类型，默认为0，0表示1.8°步进电机，1表示0.9°步进电机
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改电机类型（Y42）
+ * \param[in]  srlNum  串口号
+ * \param[in]  addr    电机地址
+ * \param[in]  svF     是否存储标志，false 为不存储，true 为存储
+ * \param[in]  mottype 电机类型，0 为 1.8°，1 为 0.9°
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_Motor_Type(uint8_t addr, bool svF, bool mottype)
+void Emm_V5_Modify_Motor_Type(u8 srlNum, u8 addr, bool svF, bool mottype)
 {
-    __IO static uint8_t cmd[16] = {0};
-    uint8_t MotType             = 0;
+    static u8 cmd[7] = {0};
+    u8 MotType       = mottype ? 25 : 50; // 25 对应 0.9°，50 对应 1.8°
 
-    if (mottype) {
-        MotType = 25;
-    } else {
-        MotType = 50;
-    }
-
-    // 装载命令
     cmd[0] = addr;    // 地址
     cmd[1] = 0xD7;    // 功能码
     cmd[2] = 0x35;    // 辅助码
-    cmd[3] = svF;     // 是否存储标志，false为不存储，true为存储
-    cmd[4] = MotType; // 电机类型，0表示0.9°步进电机，1表示1.8°步进电机
+    cmd[3] = svF;     // 是否存储标志
+    cmd[4] = MotType; // 电机类型
     cmd[5] = 0x6B;    // 校验字节
+    cmd[6] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 6);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改固件类型（Y42）
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    fwtype	 ：固件类型，默认为0，0为X固件，1为Emm固件
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改固件类型（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志，false 为不存储，true 为存储
+ * \param[in]  fwtype 固件类型，0 为 X 固件，1 为 Emm 固件
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_Firmware_Type(uint8_t addr, bool svF, bool fwtype)
+void Emm_V5_Modify_Firmware_Type(u8 srlNum, u8 addr, bool svF, bool fwtype)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[7] = {0};
 
-    // 装载命令
     cmd[0] = addr;   // 地址
     cmd[1] = 0xD5;   // 功能码
     cmd[2] = 0x69;   // 辅助码
-    cmd[3] = svF;    // 是否存储标志，false为不存储，true为存储
-    cmd[4] = fwtype; // 电机类型，25表示0.9°步进电机，50表示1.8°步进电机
+    cmd[3] = svF;    // 是否存储标志
+    cmd[4] = fwtype; // 固件类型
     cmd[5] = 0x6B;   // 校验字节
+    cmd[6] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 6);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改开环/闭环控制模式（Y42）
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    ctrl_mode：控制模式，默认为1,0为开环模式，1为闭环FOC模式
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改开环/闭环控制模式（Y42）
+ * \param[in]  srlNum    串口号
+ * \param[in]  addr      电机地址
+ * \param[in]  svF       是否存储标志，false 为不存储，true 为存储
+ * \param[in]  ctrl_mode 控制模式，0 为开环，1 为闭环 FOC
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_Ctrl_Mode(uint8_t addr, bool svF, bool ctrl_mode)
+void Emm_V5_Modify_Ctrl_Mode(u8 srlNum, u8 addr, bool svF, bool ctrl_mode)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[7] = {0};
 
-    // 装载命令
     cmd[0] = addr;      // 地址
     cmd[1] = 0x46;      // 功能码
     cmd[2] = 0x69;      // 辅助码
-    cmd[3] = svF;       // 是否存储标志，false为不存储，true为存储
-    cmd[4] = ctrl_mode; // 控制模式，默认为1,0为开环模式，1为闭环FOC模式
+    cmd[3] = svF;       // 是否存储标志
+    cmd[4] = ctrl_mode; // 控制模式
     cmd[5] = 0x6B;      // 校验字节
+    cmd[6] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 6);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改电机运动正方向（Y42）
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    dir			 ：电机运动正方向，默认为CW，0为CW（顺时针方向），1为CCW
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改电机运动正方向（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志，false 为不存储，true 为存储
+ * \param[in]  dir    电机运动正方向，0 为 CW，1 为 CCW
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_Motor_Dir(uint8_t addr, bool svF, bool dir)
+void Emm_V5_Modify_Motor_Dir(u8 srlNum, u8 addr, bool svF, bool dir)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[7] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0xD4; // 功能码
     cmd[2] = 0x60; // 辅助码
-    cmd[3] = svF;  // 是否存储标志，false为不存储，true为存储
-    cmd[4] = dir;  // 电机运动正方向，默认为CW，0为CW（顺时针方向），1为CCW
+    cmd[3] = svF;  // 是否存储标志
+    cmd[4] = dir;  // 方向
     cmd[5] = 0x6B; // 校验字节
+    cmd[6] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 6);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改锁定按键功能（Y42）
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    lock		 ：锁定按键功能，默认为Disable，0为Disable，1为Enable
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改锁定按键功能（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志，false 为不存储，true 为存储
+ * \param[in]  lock   锁定按键功能，0 为 Disable，1 为 Enable
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_Lock_Btn(uint8_t addr, bool svF, bool lock)
+void Emm_V5_Modify_Lock_Btn(u8 srlNum, u8 addr, bool svF, bool lock)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[7] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0xD0; // 功能码
     cmd[2] = 0xB3; // 辅助码
-    cmd[3] = svF;  // 是否存储标志，false为不存储，true为存储
-    cmd[4] = lock; // 锁定按键功能，默认为Disable，0为Disable），1为Enable
+    cmd[3] = svF;  // 是否存储标志
+    cmd[4] = lock; // 锁定按键功能
     cmd[5] = 0x6B; // 校验字节
+    cmd[6] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 6);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改命令速度值是否缩小10倍输入（Y42）
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    s_vel		 ：命令速度值是否缩小10倍输入，默认为Disable，0为Disable，1为Enable
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改命令速度值是否缩小 10 倍输入（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志，false 为不存储，true 为存储
+ * \param[in]  s_vel  命令速度值是否缩小 10 倍输入
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_S_Vel(uint8_t addr, bool svF, bool s_vel)
+void Emm_V5_Modify_S_Vel(u8 srlNum, u8 addr, bool svF, bool s_vel)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[7] = {0};
 
-    // 装载命令
     cmd[0] = addr;  // 地址
     cmd[1] = 0x4F;  // 功能码
     cmd[2] = 0x71;  // 辅助码
-    cmd[3] = svF;   // 是否存储标志，false为不存储，true为存储
-    cmd[4] = s_vel; // 命令速度值是否缩小10倍输入，默认为Disable，0为Disable，1为Enable
+    cmd[3] = svF;   // 是否存储标志
+    cmd[4] = s_vel; // 缩小 10 倍标志
     cmd[5] = 0x6B;  // 校验字节
+    cmd[6] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 6);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改开环模式工作电流
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    om_ma 	 ：开环模式工作电流，单位mA
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改开环模式工作电流
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志，false 为不存储，true 为存储
+ * \param[in]  om_ma  开环模式工作电流，单位 mA
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_OM_mA(uint8_t addr, bool svF, uint16_t om_ma)
+void Emm_V5_Modify_OM_mA(u8 srlNum, u8 addr, bool svF, u16 om_ma)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[8] = {0};
 
-    // 装载命令
-    cmd[0] = addr;                  // 地址
-    cmd[1] = 0x44;                  // 功能码
-    cmd[2] = 0x33;                  // 辅助码
-    cmd[3] = svF;                   // 是否存储标志，false为不存储，true为存储
-    cmd[4] = (uint8_t)(om_ma >> 8); // 开环模式工作电流，单位mA
-    cmd[5] = (uint8_t)(om_ma >> 0);
-    cmd[6] = 0x6B; // 校验字节
+    cmd[0] = addr;             // 地址
+    cmd[1] = 0x44;             // 功能码
+    cmd[2] = 0x33;             // 辅助码
+    cmd[3] = svF;              // 是否存储标志
+    cmd[4] = (u8)(om_ma >> 8); // 工作电流高字节
+    cmd[5] = (u8)(om_ma >> 0); // 工作电流低字节
+    cmd[6] = 0x6B;             // 校验字节
+    cmd[7] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 7);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改闭环模式最大电流
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    foc_mA 	 ：闭环模式最大电流，单位mA
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改闭环模式最大电流
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志，false 为不存储，true 为存储
+ * \param[in]  foc_mA 闭环模式最大电流，单位 mA
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_FOC_mA(uint8_t addr, bool svF, uint16_t foc_mA)
+void Emm_V5_Modify_FOC_mA(u8 srlNum, u8 addr, bool svF, u16 foc_mA)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[8] = {0};
 
-    // 装载命令
-    cmd[0] = addr;                   // 地址
-    cmd[1] = 0x45;                   // 功能码
-    cmd[2] = 0x66;                   // 辅助码
-    cmd[3] = svF;                    // 是否存储标志，false为不存储，true为存储
-    cmd[4] = (uint8_t)(foc_mA >> 8); // 闭环模式最大电流，单位mA
-    cmd[5] = (uint8_t)(foc_mA >> 0);
-    cmd[6] = 0x6B; // 校验字节
+    cmd[0] = addr;              // 地址
+    cmd[1] = 0x45;              // 功能码
+    cmd[2] = 0x66;              // 辅助码
+    cmd[3] = svF;               // 是否存储标志
+    cmd[4] = (u8)(foc_mA >> 8); // 最大电流高字节
+    cmd[5] = (u8)(foc_mA >> 0); // 最大电流低字节
+    cmd[6] = 0x6B;              // 校验字节
+    cmd[7] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 7);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    读取PID参数
- * @param    addr     ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      读取 PID 参数
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Read_PID_Params(uint8_t addr)
+void Emm_V5_Read_PID_Params(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[4] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x21; // 功能码
     cmd[2] = 0x6B; // 校验字节
+    cmd[3] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 3);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改PID参数
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    kp 	 		 ：比例系数，默认为Y42/18000
- * @param    ki 	 		 ：积分系数，默认为Y42/10
- * @param    kd 	 		 ：微分系数，默认为Y42/18000
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改 PID 参数
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志，false 为不存储，true 为存储
+ * \param[in]  kp     比例系数
+ * \param[in]  ki     积分系数
+ * \param[in]  kd     微分系数
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_PID_Params(uint8_t addr, bool svF, uint32_t kp, uint32_t ki, uint32_t kd)
+void Emm_V5_Modify_PID_Params(u8 srlNum, u8 addr, bool svF, uint32_t kp, uint32_t ki, uint32_t kd)
 {
-    __IO static uint8_t cmd[20] = {0};
+    static u8 cmd[18] = {0};
 
-    // 装载命令
-    cmd[0]  = addr;                // 地址
-    cmd[1]  = 0x4A;                // 功能码
-    cmd[2]  = 0xC3;                // 辅助码
-    cmd[3]  = svF;                 // 是否存储标志，false为不存储，true为存储
-    cmd[4]  = (uint8_t)(kp >> 24); // kp
-    cmd[5]  = (uint8_t)(kp >> 16);
-    cmd[6]  = (uint8_t)(kp >> 8);
-    cmd[7]  = (uint8_t)(kp >> 0);
-    cmd[8]  = (uint8_t)(ki >> 24); // ki
-    cmd[9]  = (uint8_t)(ki >> 16);
-    cmd[10] = (uint8_t)(ki >> 8);
-    cmd[11] = (uint8_t)(ki >> 0);
-    cmd[12] = (uint8_t)(kd >> 24); // kd
-    cmd[13] = (uint8_t)(kd >> 16);
-    cmd[14] = (uint8_t)(kd >> 8);
-    cmd[15] = (uint8_t)(kd >> 0);
+    cmd[0]  = addr;           // 地址
+    cmd[1]  = 0x4A;           // 功能码
+    cmd[2]  = 0xC3;           // 辅助码
+    cmd[3]  = svF;            // 是否存储标志
+    cmd[4]  = (u8)(kp >> 24); // kp 高字节
+    cmd[5]  = (u8)(kp >> 16);
+    cmd[6]  = (u8)(kp >> 8);
+    cmd[7]  = (u8)(kp >> 0);
+    cmd[8]  = (u8)(ki >> 24); // ki 高字节
+    cmd[9]  = (u8)(ki >> 16);
+    cmd[10] = (u8)(ki >> 8);
+    cmd[11] = (u8)(ki >> 0);
+    cmd[12] = (u8)(kd >> 24); // kd 高字节
+    cmd[13] = (u8)(kd >> 16);
+    cmd[14] = (u8)(kd >> 8);
+    cmd[15] = (u8)(kd >> 0);
     cmd[16] = 0x6B; // 校验字节
+    cmd[17] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 17);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    读取DMX512协议参数（Y42）
- * @param    addr     ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      读取 DMX512 协议参数（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Read_DMX512_Params(uint8_t addr)
+void Emm_V5_Read_DMX512_Params(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[5] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x49; // 功能码
     cmd[2] = 0x78; // 辅助码
     cmd[3] = 0x6B; // 校验字节
+    cmd[4] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 4);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    读取DMX512协议参数（Y42）
- * @param    addr  		：电机地址
- * @param    svF   		：是否存储标志，false为不存储，true为存储
- * @param    tch				：总通道数，默认为192，该值要与自身 DMX512 控制器的总通道数一样
- * @param    nch				：每个电机占用的通道数，默认为1，1为单通道模式,2为双通道模式
- * @param    mode			：运动模式，默认为1，0表示相对位置模式运动，1表示绝对坐标式位置运动
- * @param    vel				：单通道模式的运动速度，默认值为1000， 单位RPM， 即1000RPM；
- * @param    acc				：加速度，acc=加速数值/8=125，加速时间见说明书“5.3.12 位置模式控制（Emm）”
- * @param    vel_step	：双通道模式速度步长，默认值为 10， 即电机运动速度为(通道值 * 10)RPM
- * @param    pos_step	：双通道模式运动步长，默认值为 100， 即电机转动角度为(通道值 * 10.0)°
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改 DMX512 协议参数（Y42）
+ * \param[in]  srlNum   串口号
+ * \param[in]  addr     电机地址
+ * \param[in]  svF      是否存储标志，false 为不存储，true 为存储
+ * \param[in]  tch      总通道数
+ * \param[in]  nch      每个电机占用的通道数
+ * \param[in]  mode     运动模式，0 为相对位置模式，1 为绝对坐标式
+ * \param[in]  vel      单通道模式速度，单位 RPM
+ * \param[in]  acc      加速度
+ * \param[in]  vel_step 双通道模式速度步长
+ * \param[in]  pos_step 双通道模式运动步长
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_DMX512_Params(uint8_t addr, bool svF, uint16_t tch, uint8_t nch, uint8_t mode, uint16_t vel, uint16_t acc, uint16_t vel_step, uint32_t pos_step)
+void Emm_V5_Modify_DMX512_Params(u8 srlNum, u8 addr, bool svF, u16 tch, u8 nch, u8 mode, u16 vel, u16 acc, u16 vel_step, uint32_t pos_step)
 {
-    __IO static uint8_t cmd[32] = {0};
+    static u8 cmd[20] = {0};
 
-    // 装载命令
-    cmd[0]  = addr;                // 地址
-    cmd[1]  = 0xD9;                // 功能码
-    cmd[2]  = 0x90;                // 辅助码
-    cmd[3]  = svF;                 // 是否存储标志，false为不存储，true为存储
-    cmd[4]  = (uint8_t)(tch >> 8); // 总通道数
-    cmd[5]  = (uint8_t)(tch >> 0);
-    cmd[6]  = nch;                 // 每个电机占用的通道数
-    cmd[7]  = mode;                // 运动模式
-    cmd[8]  = (uint8_t)(vel >> 8); // 单通道模式的运动速度
-    cmd[9]  = (uint8_t)(vel >> 0);
-    cmd[10] = (uint8_t)(acc >> 8); // 双通道模式速度步长
-    cmd[11] = (uint8_t)(acc >> 0);
-    cmd[12] = (uint8_t)(vel_step >> 8); // 双通道模式速度步长
-    cmd[13] = (uint8_t)(vel_step >> 0);
-    cmd[14] = (uint8_t)(pos_step >> 24); // 双通道模式运动步长
-    cmd[15] = (uint8_t)(pos_step >> 16);
-    cmd[16] = (uint8_t)(pos_step >> 8);
-    cmd[17] = (uint8_t)(pos_step >> 0);
-    cmd[18] = 0x6B; // 校验字节
+    cmd[0]  = addr;                 // 地址
+    cmd[1]  = 0xD9;                 // 功能码
+    cmd[2]  = 0x90;                 // 辅助码
+    cmd[3]  = svF;                  // 是否存储标志
+    cmd[4]  = (u8)(tch >> 8);       // 总通道数高字节
+    cmd[5]  = (u8)(tch >> 0);       // 总通道数低字节
+    cmd[6]  = nch;                  // 每个电机占用的通道数
+    cmd[7]  = mode;                 // 运动模式
+    cmd[8]  = (u8)(vel >> 8);       // 单通道速度高字节
+    cmd[9]  = (u8)(vel >> 0);       // 单通道速度低字节
+    cmd[10] = (u8)(acc >> 8);       // 加速度高字节
+    cmd[11] = (u8)(acc >> 0);       // 加速度低字节
+    cmd[12] = (u8)(vel_step >> 8);  // 双通道速度步长高字节
+    cmd[13] = (u8)(vel_step >> 0);  // 双通道速度步长低字节
+    cmd[14] = (u8)(pos_step >> 24); // 运动步长 bit24-31
+    cmd[15] = (u8)(pos_step >> 16); // 运动步长 bit16-23
+    cmd[16] = (u8)(pos_step >> 8);  // 运动步长 bit8-15
+    cmd[17] = (u8)(pos_step >> 0);  // 运动步长 bit0-7
+    cmd[18] = 0x6B;                 // 校验字节
+    cmd[19] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 19);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    读取位置到达窗口（Y42）
- * @param    addr     ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      读取位置到达窗口（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Read_Pos_Window(uint8_t addr)
+void Emm_V5_Read_Pos_Window(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[4] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x41; // 功能码
     cmd[2] = 0x6B; // 校验字节
+    cmd[3] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 3);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改位置到达窗口（Y42）
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    prw 	 	 ：位置到达窗口，默认值为8，即0.8°
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改位置到达窗口（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志，false 为不存储，true 为存储
+ * \param[in]  prw    位置到达窗口，默认 8（0.8°）
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_Pos_Window(uint8_t addr, bool svF, uint16_t prw)
+void Emm_V5_Modify_Pos_Window(u8 srlNum, u8 addr, bool svF, u16 prw)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[8] = {0};
 
-    // 装载命令
-    cmd[0] = addr;                // 地址
-    cmd[1] = 0xD1;                // 功能码
-    cmd[2] = 0x07;                // 辅助码
-    cmd[3] = svF;                 // 是否存储标志，false为不存储，true为存储
-    cmd[4] = (uint8_t)(prw >> 8); // 位置到达窗口，默认值为8，即0.8°
-    cmd[5] = (uint8_t)(prw >> 0);
-    cmd[6] = 0x6B; // 校验字节
+    cmd[0] = addr;           // 地址
+    cmd[1] = 0xD1;           // 功能码
+    cmd[2] = 0x07;           // 辅助码
+    cmd[3] = svF;            // 是否存储标志
+    cmd[4] = (u8)(prw >> 8); // 窗口高字节
+    cmd[5] = (u8)(prw >> 0); // 窗口低字节
+    cmd[6] = 0x6B;           // 校验字节
+    cmd[7] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 7);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    读取过热过流保护检测阈值（Y42）
- * @param    addr     ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      读取过热过流保护检测阈值（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Read_Otocp(uint8_t addr)
+void Emm_V5_Read_Otocp(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[4] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x13; // 功能码
     cmd[2] = 0x6B; // 校验字节
+    cmd[3] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 3);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改过热过流保护检测阈值（Y42）
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    otp 	 	 ：过热保护检测阈值，默认100℃
- * @param    ocp 	 	 ：过流保护检测阈值，默认6600mA
- * @param    time_ms  ：过热过流检测时间，默认1000ms
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改过热过流保护检测阈值（Y42）
+ * \param[in]  srlNum  串口号
+ * \param[in]  addr    电机地址
+ * \param[in]  svF     是否存储标志，false 为不存储，true 为存储
+ * \param[in]  otp     过热保护检测阈值
+ * \param[in]  ocp     过流保护检测阈值
+ * \param[in]  time_ms 过热过流检测时间
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_Otocp(uint8_t addr, bool svF, uint16_t otp, uint16_t ocp, uint16_t time_ms)
+void Emm_V5_Modify_Otocp(u8 srlNum, u8 addr, bool svF, u16 otp, u16 ocp, u16 time_ms)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[12] = {0};
 
-    // 装载命令
-    cmd[0]  = addr;                // 地址
-    cmd[1]  = 0xD3;                // 功能码
-    cmd[2]  = 0x56;                // 辅助码
-    cmd[3]  = svF;                 // 是否存储标志，false为不存储，true为存储
-    cmd[4]  = (uint8_t)(otp >> 8); // 过热保护检测阈值
-    cmd[5]  = (uint8_t)(otp >> 0);
-    cmd[6]  = (uint8_t)(ocp >> 8); // 过流保护检测阈值
-    cmd[7]  = (uint8_t)(ocp >> 0);
-    cmd[8]  = (uint8_t)(time_ms >> 8); // 过热过流检测时间
-    cmd[9]  = (uint8_t)(time_ms >> 0);
-    cmd[10] = 0x6B; // 校验字节
+    cmd[0]  = addr;               // 地址
+    cmd[1]  = 0xD3;               // 功能码
+    cmd[2]  = 0x56;               // 辅助码
+    cmd[3]  = svF;                // 是否存储标志
+    cmd[4]  = (u8)(otp >> 8);     // 过热阈值高字节
+    cmd[5]  = (u8)(otp >> 0);     // 过热阈值低字节
+    cmd[6]  = (u8)(ocp >> 8);     // 过流阈值高字节
+    cmd[7]  = (u8)(ocp >> 0);     // 过流阈值低字节
+    cmd[8]  = (u8)(time_ms >> 8); // 检测时间高字节
+    cmd[9]  = (u8)(time_ms >> 0); // 检测时间低字节
+    cmd[10] = 0x6B;               // 校验字节
+    cmd[11] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 11);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    读取心跳保护功能时间（Y42）
- * @param    addr     ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      读取心跳保护功能时间（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Read_Heart_Protect(uint8_t addr)
+void Emm_V5_Read_Heart_Protect(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[4] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x16; // 功能码
     cmd[2] = 0x6B; // 校验字节
+    cmd[3] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 3);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改心跳保护功能时间（Y42）
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    hp 	 	 	 ：心跳保护时间，单位：ms
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改心跳保护功能时间（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志，false 为不存储，true 为存储
+ * \param[in]  hp     心跳保护时间，单位 ms
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_Heart_Protect(uint8_t addr, bool svF, uint32_t hp)
+void Emm_V5_Modify_Heart_Protect(u8 srlNum, u8 addr, bool svF, uint32_t hp)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[10] = {0};
 
-    // 装载命令
-    cmd[0] = addr;                // 地址
-    cmd[1] = 0x68;                // 功能码
-    cmd[2] = 0x38;                // 辅助码
-    cmd[3] = svF;                 // 是否存储标志，false为不存储，true为存储
-    cmd[4] = (uint8_t)(hp >> 24); // 心跳保护时间，单位：ms
-    cmd[5] = (uint8_t)(hp >> 16);
-    cmd[6] = (uint8_t)(hp >> 8);
-    cmd[7] = (uint8_t)(hp >> 0);
-    cmd[8] = 0x6B; // 校验字节
+    cmd[0] = addr;           // 地址
+    cmd[1] = 0x68;           // 功能码
+    cmd[2] = 0x38;           // 辅助码
+    cmd[3] = svF;            // 是否存储标志
+    cmd[4] = (u8)(hp >> 24); // 时间 bit24-31
+    cmd[5] = (u8)(hp >> 16); // 时间 bit16-23
+    cmd[6] = (u8)(hp >> 8);  // 时间 bit8-15
+    cmd[7] = (u8)(hp >> 0);  // 时间 bit0-7
+    cmd[8] = 0x6B;           // 校验字节
+    cmd[9] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 9);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    读取积分限幅/刚性系数（Y42）
- * @param    addr     ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      读取积分限幅/刚性系数（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Read_Integral_Limit(uint8_t addr)
+void Emm_V5_Read_Integral_Limit(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[4] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x23; // 功能码
     cmd[2] = 0x6B; // 校验字节
+    cmd[3] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 3);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    修改积分限幅/刚性系数（Y42）
- * @param    addr     ：电机地址
- * @param    svF      ：是否存储标志，false为不存储，true为存储
- * @param    il 	 	 	 ：积分限幅，默认值为65535
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改积分限幅/刚性系数（Y42）
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志，false 为不存储，true 为存储
+ * \param[in]  il     积分限幅
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_Integral_Limit(uint8_t addr, bool svF, uint32_t il)
+void Emm_V5_Modify_Integral_Limit(u8 srlNum, u8 addr, bool svF, uint32_t il)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[10] = {0};
 
-    // 装载命令
-    cmd[0] = addr;                // 地址
-    cmd[1] = 0x4B;                // 功能码
-    cmd[2] = 0x57;                // 辅助码
-    cmd[3] = svF;                 // 是否存储标志，false为不存储，true为存储
-    cmd[4] = (uint8_t)(il >> 24); // 心跳保护时间，单位：ms
-    cmd[5] = (uint8_t)(il >> 16);
-    cmd[6] = (uint8_t)(il >> 8);
-    cmd[7] = (uint8_t)(il >> 0);
-    cmd[8] = 0x6B; // 校验字节
+    cmd[0] = addr;           // 地址
+    cmd[1] = 0x4B;           // 功能码
+    cmd[2] = 0x57;           // 辅助码
+    cmd[3] = svF;            // 是否存储标志
+    cmd[4] = (u8)(il >> 24); // 积分限幅 bit24-31
+    cmd[5] = (u8)(il >> 16); // 积分限幅 bit16-23
+    cmd[6] = (u8)(il >> 8);  // 积分限幅 bit8-15
+    cmd[7] = (u8)(il >> 0);  // 积分限幅 bit0-7
+    cmd[8] = 0x6B;           // 校验字节
+    cmd[9] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 9);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
+
+/* ******************** 读写驱动参数命令 */
+
+/*
+
+
+
+
+
+*/
 
 /**********************************************************
 *** 读取所有驱动参数命令
 **********************************************************/
-/**
- * @brief    读取系统状态参数
- * @param    addr     ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
- */
-void Emm_V5_Read_System_State_Params(uint8_t addr)
-{
-    __IO static uint8_t cmd[16] = {0};
 
-    // 装载命令
+/* 读取所有驱动参数命令 ******************** */
+
+/******************************************************************
+ * \brief      读取系统状态参数
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
+ */
+void Emm_V5_Read_System_State_Params(u8 srlNum, u8 addr)
+{
+    static u8 cmd[5] = {0};
+
     cmd[0] = addr; // 地址
     cmd[1] = 0x43; // 功能码
     cmd[2] = 0x7A; // 辅助码
     cmd[3] = 0x6B; // 校验字节
+    cmd[4] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 4);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
- * @brief    读取驱动配置参数
- * @param    addr     ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      读取驱动配置参数
+ * \param[in]  srlNum 串口号
+ * \param[in]  addr   电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Read_Motor_Conf_Params(uint8_t addr)
+void Emm_V5_Read_Motor_Conf_Params(u8 srlNum, u8 addr)
 {
-    __IO static uint8_t cmd[16] = {0};
+    static u8 cmd[5] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x42; // 功能码
     cmd[2] = 0x6C; // 辅助码
     cmd[3] = 0x6B; // 校验字节
+    cmd[4] = '\0';
 
-    // 发送命令
-    usart_SendCmd(cmd, 4);
+    serial_send_emm_v5_cmd(srlNum, cmd);
 }
 
-/**
-***********************************************************
-***********************************************************
-***
-***
-*** @brief	以下是把相应命令加载到Y42多电机命令上的函数（Y42）
-***
-***
-***********************************************************
-***********************************************************
-***/
+/* ******************** 读写驱动参数命令 */
+
+/*
+
+
+
+
+
+*/
+
+/**********************************************************
+*** 以下是把相应命令加载到 Y42 多电机命令上的函数（Y42）
+**********************************************************/
+
+/*
+
+
+
+
+
+*/
+
 /**********************************************************
 *** 触发动作命令
 **********************************************************/
-/**
- * @brief    触发编码器校准 - 加载到多电机指令上
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
- */
-void Emm_V5_MMCL_Trig_Encoder_Cal(uint8_t addr)
-{
-    uint8_t j = 0, cmd[16] = {0};
 
-    // 装载命令
+/* 触发动作命令 ******************** */
+
+/******************************************************************
+ * \brief      触发编码器校准 - 加载到多电机指令上
+ * \param[in]  addr  电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
+ */
+void Emm_V5_MMCL_Trig_Encoder_Cal(u8 addr)
+{
+    u8 j = 0, cmd[16] = {0};
+
     cmd[0] = addr; // 地址
     cmd[1] = 0x06; // 功能码
     cmd[2] = 0x45; // 辅助码
     cmd[3] = 0x6B; // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 4; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**
- * @brief    重启电机（Y42） - 加载到多电机指令上
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      重启电机（Y42） - 加载到多电机指令上
+ * \param[in]  addr  电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Reset_Motor(uint8_t addr)
+void Emm_V5_MMCL_Reset_Motor(u8 addr)
 {
-    uint8_t j = 0, cmd[16] = {0};
+    u8 j = 0, cmd[16] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x08; // 功能码
     cmd[2] = 0x97; // 辅助码
     cmd[3] = 0x6B; // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 4; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**
- * @brief    将当前位置清零 - 加载到多电机指令上
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      将当前位置清零 - 加载到多电机指令上
+ * \param[in]  addr  电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Reset_CurPos_To_Zero(uint8_t addr)
+void Emm_V5_MMCL_Reset_CurPos_To_Zero(u8 addr)
 {
-    uint8_t j = 0, cmd[16] = {0};
+    u8 j = 0, cmd[16] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x0A; // 功能码
     cmd[2] = 0x6D; // 辅助码
     cmd[3] = 0x6B; // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 4; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**
- * @brief    解除堵转保护 - 加载到多电机指令上
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      解除堵转保护 - 加载到多电机指令上
+ * \param[in]  addr  电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Reset_Clog_Pro(uint8_t addr)
+void Emm_V5_MMCL_Reset_Clog_Pro(u8 addr)
 {
-    uint8_t j = 0, cmd[16] = {0};
+    u8 j = 0, cmd[16] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x0E; // 功能码
     cmd[2] = 0x52; // 辅助码
     cmd[3] = 0x6B; // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 4; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**
- * @brief    恢复出厂设置 - 加载到多电机指令上
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      恢复出厂设置 - 加载到多电机指令上
+ * \param[in]  addr  电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Restore_Motor(uint8_t addr)
+void Emm_V5_MMCL_Restore_Motor(u8 addr)
 {
-    uint8_t j = 0, cmd[16] = {0};
+    u8 j = 0, cmd[16] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x0F; // 功能码
     cmd[2] = 0x5F; // 辅助码
     cmd[3] = 0x6B; // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 4; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
+/* ******************** 触发动作命令 */
+
+/*
+
+
+
+
+
+*/
+
 /**********************************************************
-*** 运动控制命令
+*** 运动控制命令（多机）
 **********************************************************/
-/**
- * @brief    使能信号控制 - 加载到多电机指令上
- * @param    addr  ：电机地址
- * @param    state ：使能状态     ，true为使能电机，false为关闭电机
- * @param    snF   ：多机同步标志 ，false为不启用，true为启用
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+
+/* 运动控制命令（多机） ******************** */
+
+/******************************************************************
+ * \brief      使能信号控制 - 加载到多电机指令上
+ * \param[in]  addr  电机地址
+ * \param[in]  state 使能状态，true 为使能，false 为关闭
+ * \param[in]  snF   多机同步标志，false 为不启用，true 为启用
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_En_Control(uint8_t addr, bool state, bool snF)
+void Emm_V5_MMCL_En_Control(u8 addr, bool state, bool snF)
 {
-    uint8_t j = 0, cmd[16] = {0};
+    u8 j = 0, cmd[16] = {0};
 
-    // 装载命令
-    cmd[0] = addr;           // 地址
-    cmd[1] = 0xF3;           // 功能码
-    cmd[2] = 0xAB;           // 辅助码
-    cmd[3] = (uint8_t)state; // 使能状态
-    cmd[4] = snF;            // 多机同步运动标志
-    cmd[5] = 0x6B;           // 校验字节
+    cmd[0] = addr;      // 地址
+    cmd[1] = 0xF3;      // 功能码
+    cmd[2] = 0xAB;      // 辅助码
+    cmd[3] = (u8)state; // 使能状态
+    cmd[4] = snF;       // 多机同步标志
+    cmd[5] = 0x6B;      // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 6; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**
- * @brief    速度模式 - 加载到多电机指令上
- * @param    addr：电机地址
- * @param    dir ：方向       ，0为CW，其余值为CCW
- * @param    vel ：速度       ，范围0 - 5000RPM
- * @param    acc ：加速度     ，范围0 - 255，注意：0是直接启动
- * @param    snF ：多机同步标志，false为不启用，true为启用
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      速度模式 - 加载到多电机指令上
+ * \param[in]  addr 电机地址
+ * \param[in]  dir  方向，0 为 CW，其余为 CCW
+ * \param[in]  vel  速度 0-5000RPM
+ * \param[in]  acc  加速度 0-255，0 为直接启动
+ * \param[in]  snF  多机同步标志，false 为不启用，true 为启用
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Vel_Control(uint8_t addr, uint8_t dir, uint16_t vel, uint8_t acc, bool snF)
+void Emm_V5_MMCL_Vel_Control(u8 addr, u8 dir, u16 vel, u8 acc, bool snF)
 {
-    uint8_t j = 0, cmd[16] = {0};
+    u8 j = 0, cmd[16] = {0};
 
-    // 装载命令
-    cmd[0] = addr;                // 地址
-    cmd[1] = 0xF6;                // 功能码
-    cmd[2] = dir;                 // 方向
-    cmd[3] = (uint8_t)(vel >> 8); // 速度(RPM)高8位字节
-    cmd[4] = (uint8_t)(vel >> 0); // 速度(RPM)低8位字节
-    cmd[5] = acc;                 // 加速度，注意：0是直接启动
-    cmd[6] = snF;                 // 多机同步运动标志
-    cmd[7] = 0x6B;                // 校验字节
+    cmd[0] = addr;           // 地址
+    cmd[1] = 0xF6;           // 功能码
+    cmd[2] = dir;            // 方向
+    cmd[3] = (u8)(vel >> 8); // 速度高字节
+    cmd[4] = (u8)(vel >> 0); // 速度低字节
+    cmd[5] = acc;            // 加速度
+    cmd[6] = snF;            // 多机同步标志
+    cmd[7] = 0x6B;           // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 8; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**
- * @brief    位置模式 - 加载到多电机指令上
- * @param    addr：电机地址
- * @param    dir ：方向        ，0为CW，其余值为CCW
- * @param    vel ：速度(RPM)   ，范围0 - 5000RPM
- * @param    acc ：加速度      ，范围0 - 255，注意：0是直接启动
- * @param    clk ：脉冲数      ，范围0- (2^32 - 1)个
- * @param    raF ：相位/绝对标志，false为相对运动，true为绝对值运动
- * @param    snF ：多机同步标志 ，false为不启用，true为启用
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      位置模式 - 加载到多电机指令上
+ * \param[in]  addr 电机地址
+ * \param[in]  dir  方向，0 为 CW，其余为 CCW
+ * \param[in]  vel  速度 0-5000RPM
+ * \param[in]  acc  加速度 0-255，0 为直接启动
+ * \param[in]  clk  脉冲数 0-(2^32-1)
+ * \param[in]  raF  相对/绝对标志，false 为相对，true 为绝对
+ * \param[in]  snF  多机同步标志，false 为不启用，true 为启用
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Pos_Control(uint8_t addr, uint8_t dir, uint16_t vel, uint8_t acc, uint32_t clk, bool raF, bool snF)
+void Emm_V5_MMCL_Pos_Control(u8 addr, u8 dir, u16 vel, u8 acc, uint32_t clk, bool raF, bool snF)
 {
-    uint8_t j = 0, cmd[16] = {0};
+    u8 j = 0, cmd[16] = {0};
 
-    // 装载命令
-    cmd[0]  = addr;                 // 地址
-    cmd[1]  = 0xFD;                 // 功能码
-    cmd[2]  = dir;                  // 方向
-    cmd[3]  = (uint8_t)(vel >> 8);  // 速度(RPM)高8位字节
-    cmd[4]  = (uint8_t)(vel >> 0);  // 速度(RPM)低8位字节
-    cmd[5]  = acc;                  // 加速度，注意：0是直接启动
-    cmd[6]  = (uint8_t)(clk >> 24); // 脉冲数(bit24 - bit31)
-    cmd[7]  = (uint8_t)(clk >> 16); // 脉冲数(bit16 - bit23)
-    cmd[8]  = (uint8_t)(clk >> 8);  // 脉冲数(bit8  - bit15)
-    cmd[9]  = (uint8_t)(clk >> 0);  // 脉冲数(bit0  - bit7 )
-    cmd[10] = raF;                  // 相位/绝对标志，false为相对运动，true为绝对值运动
-    cmd[11] = snF;                  // 多机同步运动标志，false为不启用，true为启用
-    cmd[12] = 0x6B;                 // 校验字节
+    cmd[0]  = addr;            // 地址
+    cmd[1]  = 0xFD;            // 功能码
+    cmd[2]  = dir;             // 方向
+    cmd[3]  = (u8)(vel >> 8);  // 速度高字节
+    cmd[4]  = (u8)(vel >> 0);  // 速度低字节
+    cmd[5]  = acc;             // 加速度
+    cmd[6]  = (u8)(clk >> 24); // 脉冲数 bit24-31
+    cmd[7]  = (u8)(clk >> 16); // 脉冲数 bit16-23
+    cmd[8]  = (u8)(clk >> 8);  // 脉冲数 bit8-15
+    cmd[9]  = (u8)(clk >> 0);  // 脉冲数 bit0-7
+    cmd[10] = raF;             // 相对/绝对标志
+    cmd[11] = snF;             // 多机同步标志
+    cmd[12] = 0x6B;            // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 13; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**
- * @brief    立即停止 - 加载到多电机指令上
- * @param    addr  ：电机地址
- * @param    snF   ：多机同步标志，false为不启用，true为启用
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      立即停止 - 加载到多电机指令上
+ * \param[in]  addr 电机地址
+ * \param[in]  snF  多机同步标志，false 为不启用，true 为启用
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Stop_Now(uint8_t addr, bool snF)
+void Emm_V5_MMCL_Stop_Now(u8 addr, bool snF)
 {
-    uint8_t j = 0, cmd[16] = {0};
+    u8 j = 0, cmd[16] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0xFE; // 功能码
     cmd[2] = 0x98; // 辅助码
-    cmd[3] = snF;  // 多机同步运动标志
+    cmd[3] = snF;  // 多机同步标志
     cmd[4] = 0x6B; // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 5; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**
- * @brief    多机同步运动 - 加载到多电机指令上
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      多机同步运动 - 加载到多电机指令上
+ * \param[in]  addr 电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Synchronous_motion(uint8_t addr)
+void Emm_V5_MMCL_Synchronous_motion(u8 addr)
 {
-    uint8_t j = 0, cmd[16] = {0};
+    u8 j = 0, cmd[16] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0xFF; // 功能码
     cmd[2] = 0x66; // 辅助码
     cmd[3] = 0x6B; // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 4; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**********************************************************
-*** 原点回零命令
-**********************************************************/
-/**
- * @brief    设置单圈回零的零点位置 - 加载到多电机指令上
- * @param    addr  ：电机地址
- * @param    svF   ：是否存储标志，false为不存储，true为存储
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
- */
-void Emm_V5_MMCL_Origin_Set_O(uint8_t addr, bool svF)
-{
-    uint8_t j = 0, cmd[16] = {0};
+/* ******************** 运动控制命令（多机） */
 
-    // 装载命令
+/*
+
+
+
+
+
+*/
+
+/**********************************************************
+*** 原点回零命令（多机）
+**********************************************************/
+
+/* 原点回零命令（多机） ******************** */
+
+/******************************************************************
+ * \brief      设置单圈回零零点 - 加载到多电机指令上
+ * \param[in]  addr 电机地址
+ * \param[in]  svF  是否存储标志
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
+ */
+void Emm_V5_MMCL_Origin_Set_O(u8 addr, bool svF)
+{
+    u8 j = 0, cmd[16] = {0};
+
     cmd[0] = addr; // 地址
     cmd[1] = 0x93; // 功能码
     cmd[2] = 0x88; // 辅助码
-    cmd[3] = svF;  // 是否存储标志，false为不存储，true为存储
+    cmd[3] = svF;  // 是否存储标志
     cmd[4] = 0x6B; // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 5; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**
- * @brief    触发回零 - 加载到多电机指令上
- * @param    addr   ：电机地址
- * @param    o_mode ：回零模式，0为单圈就近回零，1为单圈方向回零，2为多圈无限位碰撞回零，3为多圈有限位开关回零
- * @param    snF   ：多机同步标志，false为不启用，true为启用
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      触发回零 - 加载到多电机指令上
+ * \param[in]  addr  电机地址
+ * \param[in]  o_mode 回零模式
+ * \param[in]  snF   多机同步标志
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Origin_Trigger_Return(uint8_t addr, uint8_t o_mode, bool snF)
+void Emm_V5_MMCL_Origin_Trigger_Return(u8 addr, u8 o_mode, bool snF)
 {
-    uint8_t j = 0, cmd[16] = {0};
+    u8 j = 0, cmd[16] = {0};
 
-    // 装载命令
     cmd[0] = addr;   // 地址
     cmd[1] = 0x9A;   // 功能码
-    cmd[2] = o_mode; // 回零模式，0为单圈就近回零，1为单圈方向回零，2为多圈无限位碰撞回零，3为多圈有限位开关回零
-    cmd[3] = snF;    // 多机同步运动标志，false为不启用，true为启用
+    cmd[2] = o_mode; // 回零模式
+    cmd[3] = snF;    // 多机同步标志
     cmd[4] = 0x6B;   // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 5; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**
- * @brief    强制中断并退出回零 - 加载到多电机指令上
- * @param    addr  ：电机地址
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      强制中断并退出回零 - 加载到多电机指令上
+ * \param[in]  addr 电机地址
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Origin_Interrupt(uint8_t addr)
+void Emm_V5_MMCL_Origin_Interrupt(u8 addr)
 {
-    uint8_t j = 0, cmd[16] = {0};
+    u8 j = 0, cmd[16] = {0};
 
-    // 装载命令
     cmd[0] = addr; // 地址
     cmd[1] = 0x9C; // 功能码
     cmd[2] = 0x48; // 辅助码
     cmd[3] = 0x6B; // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 4; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**
- * @brief    修改回零参数 - 加载到多电机指令上
- * @param    addr  ：电机地址
- * @param    svF   ：是否存储标志，false为不存储，true为存储
- * @param    o_mode ：回零模式，0为单圈就近回零，1为单圈方向回零，2为多圈无限位碰撞回零，3为多圈有限位开关回零
- * @param    o_dir  ：回零方向，0为CW，其余值为CCW
- * @param    o_vel  ：回零速度，单位：RPM（转/分钟）
- * @param    o_tm   ：回零超时时间，单位：毫秒
- * @param    sl_vel ：无限位碰撞回零检测转速，单位：RPM（转/分钟）
- * @param    sl_ma  ：无限位碰撞回零检测电流，单位：Ma（毫安）
- * @param    sl_ms  ：无限位碰撞回零检测时间，单位：Ms（毫秒）
- * @param    potF   ：上电自动触发回零，false为不使能，true为使能
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      修改回零参数 - 加载到多电机指令上
+ * \param[in]  addr   电机地址
+ * \param[in]  svF    是否存储标志
+ * \param[in]  o_mode 回零模式
+ * \param[in]  o_dir  回零方向
+ * \param[in]  o_vel  回零速度
+ * \param[in]  o_tm   回零超时时间
+ * \param[in]  sl_vel 碰撞回零检测转速
+ * \param[in]  sl_ma  碰撞回零检测电流
+ * \param[in]  sl_ms  碰撞回零检测时间
+ * \param[in]  potF   上电自动回零标志
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Origin_Modify_Params(uint8_t addr, bool svF, uint8_t o_mode, uint8_t o_dir, uint16_t o_vel, uint32_t o_tm, uint16_t sl_vel, uint16_t sl_ma, uint16_t sl_ms, bool potF)
+void Emm_V5_MMCL_Origin_Modify_Params(u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, uint32_t o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF)
 {
-    uint8_t j = 0, cmd[32] = {0};
+    u8 j = 0, cmd[32] = {0};
 
-    // 装载命令
-    cmd[0]  = addr;                   // 地址
-    cmd[1]  = 0x4C;                   // 功能码
-    cmd[2]  = 0xAE;                   // 辅助码
-    cmd[3]  = svF;                    // 是否存储标志，false为不存储，true为存储
-    cmd[4]  = o_mode;                 // 回零模式，0为单圈就近回零，1为单圈方向回零，2为多圈无限位碰撞回零，3为多圈有限位开关回零
-    cmd[5]  = o_dir;                  // 回零方向
-    cmd[6]  = (uint8_t)(o_vel >> 8);  // 回零速度(RPM)高8位字节
-    cmd[7]  = (uint8_t)(o_vel >> 0);  // 回零速度(RPM)低8位字节
-    cmd[8]  = (uint8_t)(o_tm >> 24);  // 回零超时时间(bit24 - bit31)
-    cmd[9]  = (uint8_t)(o_tm >> 16);  // 回零超时时间(bit16 - bit23)
-    cmd[10] = (uint8_t)(o_tm >> 8);   // 回零超时时间(bit8  - bit15)
-    cmd[11] = (uint8_t)(o_tm >> 0);   // 回零超时时间(bit0  - bit7 )
-    cmd[12] = (uint8_t)(sl_vel >> 8); // 无限位碰撞回零检测转速(RPM)高8位字节
-    cmd[13] = (uint8_t)(sl_vel >> 0); // 无限位碰撞回零检测转速(RPM)低8位字节
-    cmd[14] = (uint8_t)(sl_ma >> 8);  // 无限位碰撞回零检测电流(Ma)高8位字节
-    cmd[15] = (uint8_t)(sl_ma >> 0);  // 无限位碰撞回零检测电流(Ma)低8位字节
-    cmd[16] = (uint8_t)(sl_ms >> 8);  // 无限位碰撞回零检测时间(Ms)高8位字节
-    cmd[17] = (uint8_t)(sl_ms >> 0);  // 无限位碰撞回零检测时间(Ms)低8位字节
-    cmd[18] = potF;                   // 上电自动触发回零，false为不使能，true为使能
-    cmd[19] = 0x6B;                   // 校验字节
+    cmd[0]  = addr;              // 地址
+    cmd[1]  = 0x4C;              // 功能码
+    cmd[2]  = 0xAE;              // 辅助码
+    cmd[3]  = svF;               // 是否存储标志
+    cmd[4]  = o_mode;            // 回零模式
+    cmd[5]  = o_dir;             // 回零方向
+    cmd[6]  = (u8)(o_vel >> 8);  // 回零速度高字节
+    cmd[7]  = (u8)(o_vel >> 0);  // 回零速度低字节
+    cmd[8]  = (u8)(o_tm >> 24);  // 回零超时 bit24-31
+    cmd[9]  = (u8)(o_tm >> 16);  // 回零超时 bit16-23
+    cmd[10] = (u8)(o_tm >> 8);   // 回零超时 bit8-15
+    cmd[11] = (u8)(o_tm >> 0);   // 回零超时 bit0-7
+    cmd[12] = (u8)(sl_vel >> 8); // 碰撞检测转速高字节
+    cmd[13] = (u8)(sl_vel >> 0); // 碰撞检测转速低字节
+    cmd[14] = (u8)(sl_ma >> 8);  // 碰撞检测电流高字节
+    cmd[15] = (u8)(sl_ma >> 0);  // 碰撞检测电流低字节
+    cmd[16] = (u8)(sl_ms >> 8);  // 碰撞检测时间高字节
+    cmd[17] = (u8)(sl_ms >> 0);  // 碰撞检测时间低字节
+    cmd[18] = potF;              // 上电自动回零标志
+    cmd[19] = 0x6B;              // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < 20; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
+/* ******************** 原点回零命令（多机） */
+
+/*
+
+
+
+
+
+*/
+
 /**********************************************************
-*** 读取系统参数命令
+*** 读取系统参数命令（多机）
 **********************************************************/
-/**********************************************************
-*** 读取系统参数命令
-**********************************************************/
-/**
- * @brief    定时返回信息命令（Y42）
- * @param    addr  	：电机地址
- * @param    s     	：系统参数类型
- * @param    time_ms ：定时时间
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+
+/* 读取系统参数命令（多机） ******************** */
+
+/******************************************************************
+ * \brief      定时返回信息命令（Y42）- 加载到多电机指令上
+ * \param[in]  addr    电机地址
+ * \param[in]  s       系统参数类型
+ * \param[in]  time_ms 定时时间
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(uint8_t addr, SysParams_t s, uint16_t time_ms)
+void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(u8 addr, SysParams_t s, u16 time_ms)
 {
-    uint8_t i = 0, j = 0;
-    uint8_t cmd[16] = {0};
+    u8 i = 0, j = 0;
+    u8 cmd[16] = {0};
 
-    // 装载命令
-    cmd[i] = addr;
-    ++i; // 地址
+    cmd[i++] = addr; // 地址
+    cmd[i++] = 0x11; // 功能码
+    cmd[i++] = 0x18; // 辅助码
 
-    cmd[i] = 0x11;
-    ++i; // 功能码
-
-    cmd[i] = 0x18;
-    ++i; // 辅助码
-
-    switch (s) // 信息功能码
-    {
+    switch (s) {
         case S_VBUS:
-            cmd[i] = 0x24;
-            ++i;
-            break; // 读取总线电压
+            cmd[i++] = 0x24; // 读取总线电压
+            break;
         case S_CBUS:
-            cmd[i] = 0x26;
-            ++i;
-            break; // 读取总线电流
+            cmd[i++] = 0x26; // 读取总线电流
+            break;
         case S_CPHA:
-            cmd[i] = 0x27;
-            ++i;
-            break; // 读取相电流
+            cmd[i++] = 0x27; // 读取相电流
+            break;
         case S_ENCO:
-            cmd[i] = 0x29;
-            ++i;
-            break; // 读取编码器原始值
+            cmd[i++] = 0x29; // 读取编码器原始值
+            break;
         case S_CLKC:
-            cmd[i] = 0x30;
-            ++i;
-            break; // 读取实时脉冲数
+            cmd[i++] = 0x30; // 读取实时脉冲数
+            break;
         case S_ENCL:
-            cmd[i] = 0x31;
-            ++i;
-            break; // 读取经过线性化校准后的编码器值
+            cmd[i++] = 0x31; // 读取线性化后编码器值
+            break;
         case S_CLKI:
-            cmd[i] = 0x32;
-            ++i;
-            break; // 读取输入脉冲数
+            cmd[i++] = 0x32; // 读取输入脉冲数
+            break;
         case S_TPOS:
-            cmd[i] = 0x33;
-            ++i;
-            break; // 读取电机目标位置
+            cmd[i++] = 0x33; // 读取目标位置
+            break;
         case S_SPOS:
-            cmd[i] = 0x34;
-            ++i;
-            break; // 读取电机实时设定的目标位置
+            cmd[i++] = 0x34; // 读取实时设定目标位置
+            break;
         case S_VEL:
-            cmd[i] = 0x35;
-            ++i;
-            break; // 读取电机实时转速
+            cmd[i++] = 0x35; // 读取实时转速
+            break;
         case S_CPOS:
-            cmd[i] = 0x36;
-            ++i;
-            break; // 读取电机实时位置
+            cmd[i++] = 0x36; // 读取实时位置
+            break;
         case S_PERR:
-            cmd[i] = 0x37;
-            ++i;
-            break; // 读取电机位置误差
+            cmd[i++] = 0x37; // 读取位置误差
+            break;
         case S_VBAT:
-            cmd[i] = 0x38;
-            ++i;
-            break; // 读取多圈编码器电池电压（Y42）
+            cmd[i++] = 0x38; // 读取多圈编码器电池电压（Y42）
+            break;
         case S_TEMP:
-            cmd[i] = 0x39;
-            ++i;
-            break; // 读取电机实时温度（Y42）
+            cmd[i++] = 0x39; // 读取实时温度（Y42）
+            break;
         case S_FLAG:
-            cmd[i] = 0x3A;
-            ++i;
-            break; // 读取电机状态标志位
+            cmd[i++] = 0x3A; // 读取状态标志位
+            break;
         case S_OFLAG:
-            cmd[i] = 0x3B;
-            ++i;
-            break; // 读取回零状态标志位
+            cmd[i++] = 0x3B; // 读取回零状态标志位
+            break;
         case S_OAF:
-            cmd[i] = 0x3C;
-            ++i;
-            break; // 读取电机状态标志位 + 回零状态标志位（Y42）
+            cmd[i++] = 0x3C; // 读取状态+回零标志位（Y42）
+            break;
         case S_PIN:
-            cmd[i] = 0x3D;
-            ++i;
-            break; // 读取引脚状态（Y42）
+            cmd[i++] = 0x3D; // 读取引脚状态（Y42）
+            break;
         default:
             break;
     }
 
-    cmd[i] = (uint8_t)(time_ms >> 8);
-    ++i; // 定时时间
-    cmd[i] = (uint8_t)(time_ms >> 0);
-    ++i;
+    cmd[i++] = (u8)(time_ms >> 8); // 定时时间高字节
+    cmd[i++] = (u8)(time_ms >> 0); // 定时时间低字节
+    cmd[i++] = 0x6B;               // 校验字节
 
-    cmd[i] = 0x6B;
-    ++i; // 校验字节
-
-    // 加载当前命令到多电机命令中
     for (j = 0; j < i; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**
- * @brief    读取系统参数 - 加载到多电机指令上
- * @param    addr  ：电机地址
- * @param    s     ：系统参数类型
- * @retval   地址 + 功能码 + 命令状态 + 校验字节
+/******************************************************************
+ * \brief      读取系统参数 - 加载到多电机指令上
+ * \param[in]  addr 电机地址
+ * \param[in]  s    系统参数类型
+ * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Read_Sys_Params(uint8_t addr, SysParams_t s)
+void Emm_V5_MMCL_Read_Sys_Params(u8 addr, SysParams_t s)
 {
-    uint8_t i = 0, j = 0;
-    uint8_t cmd[16] = {0};
+    u8 i = 0, j = 0;
+    u8 cmd[16] = {0};
 
-    // 装载命令
-    cmd[i] = addr;
-    ++i; // 地址
+    cmd[i++] = addr; // 地址
 
-    switch (s) // 功能码
-    {
+    switch (s) {
         case S_VBUS:
-            cmd[i] = 0x24;
-            ++i;
-            break; // 读取总线电压
+            cmd[i++] = 0x24; // 读取总线电压
+            break;
         case S_CBUS:
-            cmd[i] = 0x26;
-            ++i;
-            break; // 读取总线电流
+            cmd[i++] = 0x26; // 读取总线电流
+            break;
         case S_CPHA:
-            cmd[i] = 0x27;
-            ++i;
-            break; // 读取相电流
+            cmd[i++] = 0x27; // 读取相电流
+            break;
         case S_ENCO:
-            cmd[i] = 0x29;
-            ++i;
-            break; // 读取编码器原始值
+            cmd[i++] = 0x29; // 读取编码器原始值
+            break;
         case S_CLKC:
-            cmd[i] = 0x30;
-            ++i;
-            break; // 读取实时脉冲数
+            cmd[i++] = 0x30; // 读取实时脉冲数
+            break;
         case S_ENCL:
-            cmd[i] = 0x31;
-            ++i;
-            break; // 读取经过线性化校准后的编码器值
+            cmd[i++] = 0x31; // 读取线性化后编码器值
+            break;
         case S_CLKI:
-            cmd[i] = 0x32;
-            ++i;
-            break; // 读取输入脉冲数
+            cmd[i++] = 0x32; // 读取输入脉冲数
+            break;
         case S_TPOS:
-            cmd[i] = 0x33;
-            ++i;
-            break; // 读取电机目标位置
+            cmd[i++] = 0x33; // 读取目标位置
+            break;
         case S_SPOS:
-            cmd[i] = 0x34;
-            ++i;
-            break; // 读取电机实时设定的目标位置
+            cmd[i++] = 0x34; // 读取实时设定目标位置
+            break;
         case S_VEL:
-            cmd[i] = 0x35;
-            ++i;
-            break; // 读取电机实时转速
+            cmd[i++] = 0x35; // 读取实时转速
+            break;
         case S_CPOS:
-            cmd[i] = 0x36;
-            ++i;
-            break; // 读取电机实时位置
+            cmd[i++] = 0x36; // 读取实时位置
+            break;
         case S_PERR:
-            cmd[i] = 0x37;
-            ++i;
-            break; // 读取电机位置误差
+            cmd[i++] = 0x37; // 读取位置误差
+            break;
         case S_VBAT:
-            cmd[i] = 0x38;
-            ++i;
-            break; // 读取多圈编码器电池电压（Y42）
+            cmd[i++] = 0x38; // 读取多圈编码器电池电压（Y42）
+            break;
         case S_TEMP:
-            cmd[i] = 0x39;
-            ++i;
-            break; // 读取电机实时温度（Y42）
+            cmd[i++] = 0x39; // 读取实时温度（Y42）
+            break;
         case S_FLAG:
-            cmd[i] = 0x3A;
-            ++i;
-            break; // 读取电机状态标志位
+            cmd[i++] = 0x3A; // 读取状态标志位
+            break;
         case S_OFLAG:
-            cmd[i] = 0x3B;
-            ++i;
-            break; // 读取回零状态标志位
+            cmd[i++] = 0x3B; // 读取回零状态标志位
+            break;
         case S_OAF:
-            cmd[i] = 0x3C;
-            ++i;
-            break; // 读取电机状态标志位 + 回零状态标志位（Y42）
+            cmd[i++] = 0x3C; // 读取状态+回零标志位（Y42）
+            break;
         case S_PIN:
-            cmd[i] = 0x3D;
-            ++i;
-            break; // 读取引脚状态（Y42）
+            cmd[i++] = 0x3D; // 读取引脚状态（Y42）
+            break;
         default:
             break;
     }
 
-    cmd[i] = 0x6B;
-    ++i; // 校验字节
+    cmd[i++] = 0x6B; // 校验字节
 
-    // 加载当前命令到多电机命令中
     for (j = 0; j < i; j++) {
         MMCL_cmd[MMCL_count] = cmd[j];
         ++MMCL_count;
     }
 }
 
-/**********************************************************
-*** 读写驱动参数命令
-**********************************************************/
+/* ******************** 读取系统参数命令（多机） */

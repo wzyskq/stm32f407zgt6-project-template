@@ -16,6 +16,11 @@
 /* Global Types ------------------------------------------------------------ */
 
 typedef enum {
+    false = 0,
+    true = 1,
+} bool;
+
+typedef enum {
     normal = 0,
     inverse,
 } sign_t;

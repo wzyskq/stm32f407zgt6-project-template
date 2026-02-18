@@ -35,7 +35,7 @@ int main(void)
     timer_init(timObj_encoder, 3, 12, 0, 0, 2);     // 编码器模式 TIM3 通道1/2 10ms 响应优先级2
     timer_init(timObj_encoder, 4, 12, 0, 0, 2);     // 编码器模式 TIM4 通道1/2 10ms 响应优先级2
 
-    serial_printf(1, "1> System Init OK!\n");
+    // serial_printf(1, "1> System Init OK!\n");
     // serial_printf(2, "2> System Init OK!\n");
     // serial_printf(4, "4> System Init OK!\n");
 
@@ -43,6 +43,9 @@ int main(void)
     // wheel_pwm_set(2, 100);
 
     // oled_printf(0, 0, OLED_8X16, "你好");
+
+    // Emm_V5_Vel_Control(4, 1, 0, 60, 00, false);
+    // Emm_V5_Pos_Control(4, 1, 0, 60, 00, 16, true, false);
 
     loop();
 }

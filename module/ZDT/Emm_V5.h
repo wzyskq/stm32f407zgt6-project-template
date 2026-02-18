@@ -12,7 +12,12 @@
 ***	qq交流群：262438510
 **********************************************************/
 
+/* Global Macros ----------------------------------------------------------- */
+
 #define ABS(x) ((x) > 0 ? (x) : -(x))
+#define MMCL_LEN 512
+
+/* Global Types ------------------------------------------------------------ */
 
 typedef enum
 {
@@ -36,8 +41,11 @@ typedef enum
     S_PIN = 22,   // 读取引脚状态（Y42）
 } SysParams_t;
 
-#define MMCL_LEN 512
-extern __IO uint16_t MMCL_count, MMCL_cmd[MMCL_LEN];
+/* Global Variables -------------------------------------------------------- */
+
+extern __IO u16 MMCL_count, MMCL_cmd[MMCL_LEN];
+
+/* Global Functions -------------------------------------------------------- */
 
 /**
 ***********************************************************
@@ -50,112 +58,135 @@ extern __IO uint16_t MMCL_count, MMCL_cmd[MMCL_LEN];
 ***********************************************************
 ***********************************************************
 ***/
+
 /**********************************************************
 *** 触发动作命令
 **********************************************************/
+
 // 触发编码器校准
-void Emm_V5_Trig_Encoder_Cal(uint8_t addr);
 // 重启电机（Y42）
-void Emm_V5_Reset_Motor(uint8_t addr);
 // 将当前位置清零
-void Emm_V5_Reset_CurPos_To_Zero(uint8_t addr);
 // 解除堵转保护
-void Emm_V5_Reset_Clog_Pro(uint8_t addr);
 // 恢复出厂设置
-void Emm_V5_Restore_Motor(uint8_t addr);
+
+void Emm_V5_Trig_Encoder_Cal(u8 srlNum, u8 addr);
+void Emm_V5_Reset_Motor(u8 srlNum, u8 addr);
+void Emm_V5_Reset_CurPos_To_Zero(u8 srlNum, u8 addr);
+void Emm_V5_Reset_Clog_Pro(u8 srlNum, u8 addr);
+void Emm_V5_Restore_Motor(u8 srlNum, u8 addr);
+
 /**********************************************************
 *** 运动控制命令
 **********************************************************/
+
 // 多电机命令（Y42）
-void Emm_V5_Multi_Motor_Cmd(uint8_t addr);
 // 电机使能控制
-void Emm_V5_En_Control(uint8_t addr, bool state, bool snF);
 // 速度模式控制
-void Emm_V5_Vel_Control(uint8_t addr, uint8_t dir, uint16_t vel, uint8_t acc, bool snF);
 // 位置模式控制
-void Emm_V5_Pos_Control(uint8_t addr, uint8_t dir, uint16_t vel, uint8_t acc, uint32_t clk, bool raF, bool snF);
 // 让电机立即停止运动
-void Emm_V5_Stop_Now(uint8_t addr, bool snF);
 // 触发多机同步开始运动
-void Emm_V5_Synchronous_motion(uint8_t addr);
+
+void Emm_V5_Multi_Motor_Cmd(u8 srlNum, u8 addr);
+void Emm_V5_En_Control(u8 srlNum, u8 addr, bool state, bool snF);
+void Emm_V5_Vel_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, bool snF); 
+void Emm_V5_Pos_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, uint32_t clk, bool raF, bool snF); 
+void Emm_V5_Stop_Now(u8 srlNum, u8 addr, bool snF);
+void Emm_V5_Synchronous_motion(u8 srlNum, u8 addr);
+
 /**********************************************************
 *** 原点回零命令
 **********************************************************/
+
 // 设置单圈回零的零点位置
-void Emm_V5_Origin_Set_O(uint8_t addr, bool svF);
 // 触发回零
-void Emm_V5_Origin_Trigger_Return(uint8_t addr, uint8_t o_mode, bool snF);
 // 强制中断并退出回零
-void Emm_V5_Origin_Interrupt(uint8_t addr);
 // 读取回零参数
-void Emm_V5_Origin_Read_Params(uint8_t addr);
 // 修改回零参数
-void Emm_V5_Origin_Modify_Params(uint8_t addr, bool svF, uint8_t o_mode, uint8_t o_dir, uint16_t o_vel, uint32_t o_tm, uint16_t sl_vel, uint16_t sl_ma, uint16_t sl_ms, bool potF);
+
+void Emm_V5_Origin_Set_O(u8 srlNum, u8 addr, bool svF);
+void Emm_V5_Origin_Trigger_Return(u8 srlNum, u8 addr, u8 o_mode, bool snF);
+void Emm_V5_Origin_Interrupt(u8 srlNum, u8 addr);
+void Emm_V5_Origin_Read_Params(u8 srlNum, u8 addr);
+void Emm_V5_Origin_Modify_Params(u8 srlNum, u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, uint32_t o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF);
+
 /**********************************************************
 *** 读取系统参数命令
 **********************************************************/
-// 定时返回信息命令（Y42）
-void Emm_V5_Auto_Return_Sys_Params_Timed(uint8_t addr, SysParams_t s, uint16_t time_ms);
+
+// 定时返回信息命令（Y42） 
 // 读取系统参数
-void Emm_V5_Read_Sys_Params(uint8_t addr, SysParams_t s);
+
+void Emm_V5_Auto_Return_Sys_Params_Timed(u8 srlNum, u8 addr, SysParams_t s, u16 time_ms);
+void Emm_V5_Read_Sys_Params(u8 srlNum, u8 addr, SysParams_t s);
+
 /**********************************************************
 *** 读写驱动参数命令
 **********************************************************/
+
 // 修改电机ID地址
-void Emm_V5_Modify_Motor_ID(uint8_t addr, bool svF, uint8_t id);
 // 修改细分值
-void Emm_V5_Modify_MicroStep(uint8_t addr, bool svF, uint8_t mstep);
 // 修改掉电标志
-void Emm_V5_Modify_PDFlag(uint8_t addr, bool pdf);
 // 读取选项参数状态（Y42）
-void Emm_V5_Read_Opt_Param_Sta(uint8_t addr);
 // 修改电机类型（Y42）
-void Emm_V5_Modify_Motor_Type(uint8_t addr, bool svF, bool mottype);
 // 修改固件类型（Y42）
-void Emm_V5_Modify_Firmware_Type(uint8_t addr, bool svF, bool fwtype);
+
+void Emm_V5_Modify_Motor_ID(u8 srlNum, u8 addr, bool svF, u8 id);
+void Emm_V5_Modify_MicroStep(u8 srlNum, u8 addr, bool svF, u8 mstep);
+void Emm_V5_Modify_PDFlag(u8 srlNum, u8 addr, bool pdf);
+void Emm_V5_Read_Opt_Param_Sta(u8 srlNum, u8 addr);
+void Emm_V5_Modify_Motor_Type(u8 srlNum, u8 addr, bool svF, bool mottype);
+void Emm_V5_Modify_Firmware_Type(u8 srlNum, u8 addr, bool svF, bool fwtype);
+
 // 修改开环/闭环控制模式（Y42）
-void Emm_V5_Modify_Ctrl_Mode(uint8_t addr, bool svF, bool ctrl_mode);
 // 修改电机运动正方向（Y42）
-void Emm_V5_Modify_Motor_Dir(uint8_t addr, bool svF, bool dir);
 // 修改锁定按键功能（Y42）
-void Emm_V5_Modify_Lock_Btn(uint8_t addr, bool svF, bool lockbtn);
 // 修改命令速度值是否缩小10倍输入（Y42）
-void Emm_V5_Modify_S_Vel(uint8_t addr, bool svF, bool s_vel);
 // 修改开环模式工作电流
-void Emm_V5_Modify_OM_ma(uint8_t addr, bool svF, uint16_t om_ma);
 // 修改闭环模式最大电流
-void Emm_V5_Modify_FOC_mA(uint8_t addr, bool svF, uint16_t foc_mA);
+
+void Emm_V5_Modify_Ctrl_Mode(u8 srlNum, u8 addr, bool svF, bool ctrl_mode);
+void Emm_V5_Modify_Motor_Dir(u8 srlNum, u8 addr, bool svF, bool dir);
+void Emm_V5_Modify_Lock_Btn(u8 srlNum, u8 addr, bool svF, bool lockbtn);
+void Emm_V5_Modify_S_Vel(u8 srlNum, u8 addr, bool svF, bool s_vel);
+void Emm_V5_Modify_OM_mA(u8 srlNum, u8 addr, bool svF, u16 om_ma);
+void Emm_V5_Modify_FOC_mA(u8 srlNum, u8 addr, bool svF, u16 foc_mA);
+
 // 读取PID参数
-void Emm_V5_Read_PID_Params(uint8_t addr);
 // 修改PID参数
-void Emm_V5_Modify_PID_Params(uint8_t addr, bool svF, uint32_t kp, uint32_t ki, uint32_t kd);
 // 读取DMX512协议参数（Y42）
-void Emm_V5_Read_DMX512_Params(uint8_t addr);
 // 修改DMX512协议参数（Y42）
-void Emm_V5_Modify_DMX512_Params(uint8_t addr, bool svF, uint16_t tch, uint8_t nch, uint8_t mode, uint16_t vel, uint16_t acc, uint16_t vel_step, uint32_t pos_step);
 // 读取位置到达窗口（Y42）
-void Emm_V5_Read_Pos_Window(uint8_t addr);
 // 修改位置到达窗口（Y42）
-void Emm_V5_Modify_Pos_Window(uint8_t addr, bool svF, uint16_t prw);
+
+void Emm_V5_Read_PID_Params(u8 srlNum, u8 addr);
+void Emm_V5_Modify_PID_Params(u8 srlNum, u8 addr, bool svF, uint32_t kp, uint32_t ki, uint32_t kd);
+void Emm_V5_Read_DMX512_Params(u8 srlNum, u8 addr);
+void Emm_V5_Modify_DMX512_Params(u8 srlNum, u8 addr, bool svF, u16 tch, u8 nch, u8 mode, u16 vel, u16 acc, u16 vel_step, uint32_t pos_step);
+void Emm_V5_Read_Pos_Window(u8 srlNum, u8 addr);
+void Emm_V5_Modify_Pos_Window(u8 srlNum, u8 addr, bool svF, u16 prw);
+
 // 读取过热过流保护检测阈值（Y42）
-void Emm_V5_Read_Otocp(uint8_t addr);
 // 修改过热过流保护检测阈值（Y42）
-void Emm_V5_Modify_Otocp(uint8_t addr, bool svF, uint16_t otp, uint16_t ocp, uint16_t time_ms);
 // 读取心跳保护功能时间（Y42）
-void Emm_V5_Read_Heart_Protect(uint8_t addr);
 // 修改心跳保护功能时间（Y42）
-void Emm_V5_Modify_Heart_Protect(uint8_t addr, bool svF, uint32_t hp);
 // 读取积分限幅/刚性系数（Y42）
-void Emm_V5_Read_Integral_Limit(uint8_t addr);
 // 修改积分限幅/刚性系数（Y42）
-void Emm_V5_Modify_Integral_Limit(uint8_t addr, bool svF, uint32_t il);
+
+void Emm_V5_Read_Otocp(u8 srlNum, u8 addr);
+void Emm_V5_Modify_Otocp(u8 srlNum, u8 addr, bool svF, u16 otp, u16 ocp, u16 time_ms);
+void Emm_V5_Read_Heart_Protect(u8 srlNum, u8 addr);
+void Emm_V5_Modify_Heart_Protect(u8 srlNum, u8 addr, bool svF, uint32_t hp);
+void Emm_V5_Read_Integral_Limit(u8 srlNum, u8 addr);
+void Emm_V5_Modify_Integral_Limit(u8 srlNum, u8 addr, bool svF, uint32_t il);
+
 /**********************************************************
 *** 读取所有驱动参数命令
 **********************************************************/
+
 // 读取系统状态参数
-void Emm_V5_Read_System_State_Params(uint8_t addr);
 // 读取驱动配置参数
-void Emm_V5_Read_Motor_Conf_Params(uint8_t addr);
+void Emm_V5_Read_System_State_Params(u8 srlNum, u8 addr);
+void Emm_V5_Read_Motor_Conf_Params(u8 srlNum, u8 addr);
 
 /**
 ***********************************************************
@@ -168,50 +199,63 @@ void Emm_V5_Read_Motor_Conf_Params(uint8_t addr);
 ***********************************************************
 ***********************************************************
 ***/
+
 /**********************************************************
 *** 触发动作命令
 **********************************************************/
+
 // 触发编码器校准 - 加载到多电机指令上
-void Emm_V5_MMCL_Trig_Encoder_Cal(uint8_t addr);
 // 重启电机 - 加载到多电机指令上
-void Emm_V5_MMCL_Reset_Motor(uint8_t addr);
 // 将当前位置清零 - 加载到多电机指令上
-void Emm_V5_MMCL_Reset_CurPos_To_Zero(uint8_t addr);
 // 解除堵转保护 - 加载到多电机指令上
-void Emm_V5_MMCL_Reset_Clog_Pro(uint8_t addr);
 // 恢复出厂设置 - 加载到多电机指令上
-void Emm_V5_MMCL_Restore_Motor(uint8_t addr);
+
+void Emm_V5_MMCL_Trig_Encoder_Cal(u8 addr);
+void Emm_V5_MMCL_Reset_Motor(u8 addr);
+void Emm_V5_MMCL_Reset_CurPos_To_Zero(u8 addr);
+void Emm_V5_MMCL_Reset_Clog_Pro(u8 addr);
+void Emm_V5_MMCL_Restore_Motor(u8 addr);
+
 /**********************************************************
 *** 运动控制命令
 **********************************************************/
+
 // 电机使能控制 - 加载到多电机指令上
-void Emm_V5_MMCL_En_Control(uint8_t addr, bool state, bool snF);
 // 速度模式控制 - 加载到多电机指令上
-void Emm_V5_MMCL_Vel_Control(uint8_t addr, uint8_t dir, uint16_t vel, uint8_t acc, bool snF);
 // 位置模式控制 - 加载到多电机指令上
-void Emm_V5_MMCL_Pos_Control(uint8_t addr, uint8_t dir, uint16_t vel, uint8_t acc, uint32_t clk, bool raF, bool snF);
 // 让电机立即停止运动 - 加载到多电机指令上
-void Emm_V5_MMCL_Stop_Now(uint8_t addr, bool snF);
 // 触发多机同步开始运动 - 加载到多电机指令上
-void Emm_V5_MMCL_Synchronous_motion(uint8_t addr);
+
+void Emm_V5_MMCL_En_Control(u8 addr, bool state, bool snF);
+void Emm_V5_MMCL_Vel_Control(u8 addr, u8 dir, u16 vel, u8 acc, bool snF);
+void Emm_V5_MMCL_Pos_Control(u8 addr, u8 dir, u16 vel, u8 acc, uint32_t clk, bool raF, bool snF);
+void Emm_V5_MMCL_Stop_Now(u8 addr, bool snF);
+void Emm_V5_MMCL_Synchronous_motion(u8 addr);
+
 /**********************************************************
 *** 原点回零命令
 **********************************************************/
+
 // 设置单圈回零的零点位置 - 加载到多电机指令上
-void Emm_V5_MMCL_Origin_Set_O(uint8_t addr, bool svF);
 // 触发回零 - 加载到多电机指令上
-void Emm_V5_MMCL_Origin_Trigger_Return(uint8_t addr, uint8_t o_mode, bool snF);
 // 强制中断并退出回零 - 加载到多电机指令上
-void Emm_V5_MMCL_Origin_Interrupt(uint8_t addr);
 // 修改回零参数 - 加载到多电机指令上
-void Emm_V5_MMCL_Origin_Modify_Params(uint8_t addr, bool svF, uint8_t o_mode, uint8_t o_dir, uint16_t o_vel, uint32_t o_tm, uint16_t sl_vel, uint16_t sl_ma, uint16_t sl_ms, bool potF);
+
+void Emm_V5_MMCL_Origin_Set_O(u8 addr, bool svF);
+void Emm_V5_MMCL_Origin_Trigger_Return(u8 addr, u8 o_mode, bool snF);
+void Emm_V5_MMCL_Origin_Interrupt(u8 addr);
+void Emm_V5_MMCL_Origin_Modify_Params(u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, uint32_t o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF);
+
 /**********************************************************
 *** 读取系统参数命令
 **********************************************************/
+
 // 定时返回信息命令（Y42） - 加载到多电机指令上
-void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(uint8_t addr, SysParams_t s, uint16_t time_ms);
 // 读取系统参数 - 加载到多电机指令上
-void Emm_V5_MMCL_Read_Sys_Params(uint8_t addr, SysParams_t s);
+
+void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(u8 addr, SysParams_t s, u16 time_ms);
+void Emm_V5_MMCL_Read_Sys_Params(u8 addr, SysParams_t s);
+
 /**********************************************************
 *** 读写驱动参数命令
 **********************************************************/
