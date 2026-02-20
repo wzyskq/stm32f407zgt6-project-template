@@ -22,24 +22,18 @@ void future_2(void)
 
 void await_1(void)
 {
-    _s32 t = Emm_V5_Get_Sys_Params();
-    if (!t.isNull) {
-        serial_printf(1, "V> %d\n", t.v);
-        zdtTvFlg = false;
-        taskNum  = 102;
-    } else
-        return;
+    Emm_V5_Get_Sys_Params(&zdtSysData);
+    while(zdtRvFlg); // 等待清零
+    serial_printf(1, "V> %d\n", (s32)zdtSysData.vel);
+    taskNum = 102;
 }
 
 void await_2(void)
 {
-    _s32 t = Emm_V5_Get_Sys_Params();
-    if (!t.isNull) {
-        serial_printf(1, "P> %d\n", t.v);
-        zdtTvFlg = false;
-        taskNum  = 101;
-    } else
-        return;
+    Emm_V5_Get_Sys_Params(&zdtSysData);
+    while(zdtRvFlg); // 等待清零
+    serial_printf(1, "P> %d\n", (s32)zdtSysData.tpos);
+    taskNum = 101;
 }
 
 void demo_1(void)

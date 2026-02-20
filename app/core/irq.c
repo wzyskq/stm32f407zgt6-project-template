@@ -17,8 +17,8 @@ void TIM7_IRQHandler(void)
         // if (serialTimeFlag)
         //     serialTime++;
 
-        zdt_irqEndHandler();     // 电机中断请求处理
-        Emm_V5_Get_Sys_Params(); // 消费标志位 zdtTvFlg
+        zdt_irqEndHandler();                // 电机中断请求处理
+        Emm_V5_Get_Sys_Params(&zdtSysData); // 消费标志位 zdtTvFlg
 
         // 按键
         if (keyBox[2])

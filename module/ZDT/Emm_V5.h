@@ -39,7 +39,7 @@ typedef enum
     S_OFLAG = 20, // 读取回零状态标志位
     S_OAF = 21,   // 读取电机状态标志位 + 回零状态标志位（Y42）
     S_PIN = 22,   // 读取引脚状态（Y42）
-} SysParams_t;
+} zdtSysParams_t;
 
 /* Global Variables -------------------------------------------------------- */
 
@@ -116,8 +116,8 @@ void Emm_V5_Origin_Modify_Params(u8 srlNum, u8 addr, bool svF, u8 o_mode, u8 o_d
 // 定时返回信息命令（Y42） 
 // 读取系统参数
 
-void Emm_V5_Auto_Return_Sys_Params_Timed(u8 srlNum, u8 addr, SysParams_t s, u16 time_ms);
-void Emm_V5_Read_Sys_Params(u8 srlNum, u8 addr, SysParams_t s);
+void Emm_V5_Auto_Return_Sys_Params_Timed(u8 srlNum, u8 addr, zdtSysParams_t s, u16 time_ms);
+void Emm_V5_Read_Sys_Params(u8 srlNum, u8 addr, zdtSysParams_t s);
 
 /**********************************************************
 *** 读写驱动参数命令
@@ -253,8 +253,8 @@ void Emm_V5_MMCL_Origin_Modify_Params(u8 addr, bool svF, u8 o_mode, u8 o_dir, u1
 // 定时返回信息命令（Y42） - 加载到多电机指令上
 // 读取系统参数 - 加载到多电机指令上
 
-void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(u8 addr, SysParams_t s, u16 time_ms);
-void Emm_V5_MMCL_Read_Sys_Params(u8 addr, SysParams_t s);
+void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(u8 addr, zdtSysParams_t s, u16 time_ms);
+void Emm_V5_MMCL_Read_Sys_Params(u8 addr, zdtSysParams_t s);
 
 /**********************************************************
 *** 读写驱动参数命令

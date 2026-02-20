@@ -26,6 +26,9 @@
 
 ## 版本
 
+### 2.0.6
+- `Imp` 取消 Emm_V5_Get_Sys_Params 返回值，改为直接写入 zdtSysData_t 指针以简化调用
+
 ### 2.0.5
 Features:
 - `New` 新增张大头步进电机驱动代码 API 以便异步调用

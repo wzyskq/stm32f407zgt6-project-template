@@ -11,17 +11,16 @@
  **
  **         - zdt_irqEndHandler() 中的最大超时时长由定时中断时基和最大超时周期两者乘积决定.
  **
- **         - Emm_V5_Get_Sys_Params() 返回值为一个伪空安全类型 _s32.
- **           即当返回值的 isNull 为 true 时，表示数据包无效或解析失败；反之时，v 成员即为解析后的数值.
+ **         - Emm_V5_Get_Sys_Params() 将解析结果写入传入的 zdtSysData_t 指针，调用前应保证指针有效.
  **
  **         - 强烈建议在每次调用 Emm_V5.c/.h 命令前先判断 zdtTxFlg 是否为 true 来避免数据冲突.
  **           即使不用 Emm_V5_Get_Sys_Params() 读取数据，也建议在定时中断中调用以消耗 zdtFlg 来保持命令流畅调用.
- **  
+ **
  ** \example  // 放入中断后可在逻辑中直接连续设定不同的命令而不产生报错
  **           while (zdtTvFlg); // 等待清零
  **           Emm_V5_Vel_Control(4, 1, 0, 60, 0, false);
  **           while (zdtTvFlg); // 等待清零
- **           Emm_V5_Vel_Control(4, 1, 0, 30, 0, false); 
+ **           Emm_V5_Vel_Control(4, 1, 0, 30, 0, false);
  */
 
 #include "zdt_api.h"
@@ -31,6 +30,8 @@
 /* Private Variables ------------------------------------------------------- */
 
 /* Global Variables -------------------------------------------------------- */
+
+zdtSysData_t zdtSysData;
 
 __IO u8 zdtRxIdx    = 0; // 串口接收数据状态机
 __IO u8 zdtTimCnt   = 0; // 定时器周期计数变量
@@ -114,18 +115,20 @@ void zdt_irqEndHandler(void)
  * \brief  解析电机返回数据包内容
  * \note   在主循环中调用，当 zdtRvFlg 为 1 时
  */
-_s32 Emm_V5_Get_Sys_Params(void)
+void Emm_V5_Get_Sys_Params(zdtSysData_t *data)
 {
-    if (!zdtRvFlg)
-        return (_s32){.isNull = true};
+    if (!zdtRvFlg || data == NULL)
+        return;
 
     // serial_printf(1, "ZDT: Rv: %02X %02X %02X %02X\n", zdtRvBuf[1], zdtRvBuf[2], zdtRvBuf[3], zdtRvBuf[4]);
 
-    if (zdtRvBuf[1] != zdtTvTag[0])
-        return (_s32){.isNull = true};
+    if (zdtRvBuf[1] != zdtTvTag[0]) { // 地址不匹配，全部丢弃
+        zdtRvFlg = false;
+        zdtTvFlg = false;
+        return;
+    }
 
-    u32 v       = 0;
-    _s32 retval = {.isNull = false, .v = 0};
+    u32 v = 0;
 
     switch (zdtRvBuf[2]) {
         case 0x24: // S_VBUS 读取总线电压
@@ -149,21 +152,21 @@ _s32 Emm_V5_Get_Sys_Params(void)
         case 0x32: // S_CLKI 读取输入脉冲数
 
             break;
-        case 0x33: // S_TPOS 读取目标位置
-            v = (zdtRvBuf[4] << 24) | (zdtRvBuf[5] << 16) | (zdtRvBuf[6] << 8) | zdtRvBuf[7];
-            v = (u32)((float)v * 360.0 / 65536.0); // 转换为度数
-            if (v > 0x7FFFFFFF)
-                retval.isNull = 2; // 伪空，表示数据异常（超过s32范围）
-            else
-                retval.v = (zdtRvBuf[3] == 0) ? (s32)v : -(s32)v;
+        case 0x33: { // S_TPOS 读取目标位置
+            v          = (zdtRvBuf[4] << 24) | (zdtRvBuf[5] << 16) | (zdtRvBuf[6] << 8) | zdtRvBuf[7];
+            float deg  = (float)v * 360.0f / 65536.0f; // 转换为度数
+            data->tpos = (zdtRvBuf[3] == 0) ? deg : -deg;
             break;
+        }
         case 0x34: // S_SPOS 读取实时设定目标位置
 
             break;
-        case 0x35: // S_VEL 读取实时转速
-            v        = (zdtRvBuf[4] << 8) | zdtRvBuf[5];
-            retval.v = (zdtRvBuf[3] == 0) ? (s32)v : -(s32)v;
+        case 0x35: { // S_VEL 读取实时转速
+            v         = (zdtRvBuf[4] << 8) | zdtRvBuf[5];
+            float vel = (float)v;
+            data->vel = (zdtRvBuf[3] == 0) ? vel : -vel;
             break;
+        }
         case 0x36: // S_CPOS 读取实时位置
 
             break;
@@ -188,15 +191,12 @@ _s32 Emm_V5_Get_Sys_Params(void)
         case 0x3D: // S_PIN 读取引脚状态（Y42）
 
             break;
-        default:                   // 非读取命令的返回数据包/未知标签
-            zdtTvFlg      = false; // 直接消费，避免阻塞读取进程
-            retval.isNull = true;
+        default: // 非读取命令的返回数据包/未知标签
             if (zdtRvBuf[3] != 0x02)
                 serial_printf(1, "ZDT: Err: %02X %02X %02X\n", zdtRvBuf[1], zdtRvBuf[2], zdtRvBuf[3]);
             break;
     }
 
-    // zdtTvFlg = 0; // 注意：请在消费后清除标志位
     zdtRvFlg = false;
-    return retval;
+    zdtTvFlg = false; // 解析完成，允许下一次发送
 }

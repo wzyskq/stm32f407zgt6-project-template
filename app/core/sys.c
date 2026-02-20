@@ -53,13 +53,18 @@ void loop(void)
             // serial_printf(1, "Start Control\n");
             // Emm_V5_Pos_Control(4, 1, 0, 60, 00, 3200, true, false);
 
-            while (zdtTvFlg); // 等待清零
-            // serial_printf(1, "v = 60 rpm\n");
-            Emm_V5_Vel_Control(4, 1, 0, 60, 0, false);
+            // while (zdtTvFlg); // 等待清零
+            // // serial_printf(1, "v = 60 rpm\n");
+            // Emm_V5_Vel_Control(4, 1, 0, 60, 0, false);
             
             while (zdtTvFlg); // 等待清零
             // serial_printf(1, "v = 30 rpm\n");
-            Emm_V5_Vel_Control(4, 1, 0, 30, 0, false); 
+            Emm_V5_Vel_Control(4, 1, 0, 60, 0, false); 
+
+            while (zdtTvFlg); // 等待清零
+            Emm_V5_Read_Sys_Params(4, 1, S_VEL);
+            while (zdtTvFlg); // 等待清零
+            serial_printf(1, "v = %d rpm\n", (s32)zdtSysData.vel);
 
             // serial_printf(1, "Start Read\n");
             // Emm_V5_Read_Sys_Params(4, 1, S_TPOS);

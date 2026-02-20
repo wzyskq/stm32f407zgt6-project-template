@@ -233,6 +233,7 @@ void Emm_V5_En_Control(u8 srlNum, u8 addr, bool state, bool snF)
  */
 void Emm_V5_Vel_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, bool snF)
 {
+    vel *= 10; // 经测量实际输入单位为 0.1 RPM
     static u8 cmd[9] = {0};
 
     cmd[0] = addr;           // 地址
@@ -490,7 +491,7 @@ void Emm_V5_Origin_Modify_Params(u8 srlNum, u8 addr, bool svF, u8 o_mode, u8 o_d
  * \param[in]  time_ms 定时时间
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Auto_Return_Sys_Params_Timed(u8 srlNum, u8 addr, SysParams_t s, u16 time_ms)
+void Emm_V5_Auto_Return_Sys_Params_Timed(u8 srlNum, u8 addr, zdtSysParams_t s, u16 time_ms)
 {
     u8 i              = 0;
     static u8 cmd[16] = {0};
@@ -573,7 +574,7 @@ void Emm_V5_Auto_Return_Sys_Params_Timed(u8 srlNum, u8 addr, SysParams_t s, u16 
  * \param[in]  s      系统参数类型
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Read_Sys_Params(u8 srlNum, u8 addr, SysParams_t s)
+void Emm_V5_Read_Sys_Params(u8 srlNum, u8 addr, zdtSysParams_t s)
 {
     u8 i              = 0;
     static u8 cmd[16] = {0};
@@ -1701,7 +1702,7 @@ void Emm_V5_MMCL_Origin_Modify_Params(u8 addr, bool svF, u8 o_mode, u8 o_dir, u1
  * \param[in]  time_ms 定时时间
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(u8 addr, SysParams_t s, u16 time_ms)
+void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(u8 addr, zdtSysParams_t s, u16 time_ms)
 {
     u8 i = 0, j = 0;
     u8 cmd[16] = {0};
@@ -1785,7 +1786,7 @@ void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(u8 addr, SysParams_t s, u16 time_m
  * \param[in]  s    系统参数类型
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Read_Sys_Params(u8 addr, SysParams_t s)
+void Emm_V5_MMCL_Read_Sys_Params(u8 addr, zdtSysParams_t s)
 {
     u8 i = 0, j = 0;
     u8 cmd[16] = {0};
