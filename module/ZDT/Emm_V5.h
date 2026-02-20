@@ -15,7 +15,7 @@
 /* Global Macros ----------------------------------------------------------- */
 
 #define ABS(x) ((x) > 0 ? (x) : -(x))
-#define MMCL_LEN 512
+#define ZDT_MMCL_LEN 512
 
 /* Global Types ------------------------------------------------------------ */
 
@@ -43,7 +43,7 @@ typedef enum
 
 /* Global Variables -------------------------------------------------------- */
 
-extern __IO u16 MMCL_count, MMCL_cmd[MMCL_LEN];
+extern __IO u16 MMCL_count, MMCL_cmd[ZDT_MMCL_LEN];
 
 /* Global Functions -------------------------------------------------------- */
 
@@ -89,7 +89,7 @@ void Emm_V5_Restore_Motor(u8 srlNum, u8 addr);
 void Emm_V5_Multi_Motor_Cmd(u8 srlNum, u8 addr);
 void Emm_V5_En_Control(u8 srlNum, u8 addr, bool state, bool snF);
 void Emm_V5_Vel_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, bool snF); 
-void Emm_V5_Pos_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, uint32_t clk, bool raF, bool snF); 
+void Emm_V5_Pos_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, u32 clk, bool raF, bool snF); 
 void Emm_V5_Stop_Now(u8 srlNum, u8 addr, bool snF);
 void Emm_V5_Synchronous_motion(u8 srlNum, u8 addr);
 
@@ -107,7 +107,7 @@ void Emm_V5_Origin_Set_O(u8 srlNum, u8 addr, bool svF);
 void Emm_V5_Origin_Trigger_Return(u8 srlNum, u8 addr, u8 o_mode, bool snF);
 void Emm_V5_Origin_Interrupt(u8 srlNum, u8 addr);
 void Emm_V5_Origin_Read_Params(u8 srlNum, u8 addr);
-void Emm_V5_Origin_Modify_Params(u8 srlNum, u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, uint32_t o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF);
+void Emm_V5_Origin_Modify_Params(u8 srlNum, u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, u32 o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF);
 
 /**********************************************************
 *** 读取系统参数命令
@@ -159,9 +159,9 @@ void Emm_V5_Modify_FOC_mA(u8 srlNum, u8 addr, bool svF, u16 foc_mA);
 // 修改位置到达窗口（Y42）
 
 void Emm_V5_Read_PID_Params(u8 srlNum, u8 addr);
-void Emm_V5_Modify_PID_Params(u8 srlNum, u8 addr, bool svF, uint32_t kp, uint32_t ki, uint32_t kd);
+void Emm_V5_Modify_PID_Params(u8 srlNum, u8 addr, bool svF, u32 kp, u32 ki, u32 kd);
 void Emm_V5_Read_DMX512_Params(u8 srlNum, u8 addr);
-void Emm_V5_Modify_DMX512_Params(u8 srlNum, u8 addr, bool svF, u16 tch, u8 nch, u8 mode, u16 vel, u16 acc, u16 vel_step, uint32_t pos_step);
+void Emm_V5_Modify_DMX512_Params(u8 srlNum, u8 addr, bool svF, u16 tch, u8 nch, u8 mode, u16 vel, u16 acc, u16 vel_step, u32 pos_step);
 void Emm_V5_Read_Pos_Window(u8 srlNum, u8 addr);
 void Emm_V5_Modify_Pos_Window(u8 srlNum, u8 addr, bool svF, u16 prw);
 
@@ -175,9 +175,9 @@ void Emm_V5_Modify_Pos_Window(u8 srlNum, u8 addr, bool svF, u16 prw);
 void Emm_V5_Read_Otocp(u8 srlNum, u8 addr);
 void Emm_V5_Modify_Otocp(u8 srlNum, u8 addr, bool svF, u16 otp, u16 ocp, u16 time_ms);
 void Emm_V5_Read_Heart_Protect(u8 srlNum, u8 addr);
-void Emm_V5_Modify_Heart_Protect(u8 srlNum, u8 addr, bool svF, uint32_t hp);
+void Emm_V5_Modify_Heart_Protect(u8 srlNum, u8 addr, bool svF, u32 hp);
 void Emm_V5_Read_Integral_Limit(u8 srlNum, u8 addr);
-void Emm_V5_Modify_Integral_Limit(u8 srlNum, u8 addr, bool svF, uint32_t il);
+void Emm_V5_Modify_Integral_Limit(u8 srlNum, u8 addr, bool svF, u32 il);
 
 /**********************************************************
 *** 读取所有驱动参数命令
@@ -228,7 +228,7 @@ void Emm_V5_MMCL_Restore_Motor(u8 addr);
 
 void Emm_V5_MMCL_En_Control(u8 addr, bool state, bool snF);
 void Emm_V5_MMCL_Vel_Control(u8 addr, u8 dir, u16 vel, u8 acc, bool snF);
-void Emm_V5_MMCL_Pos_Control(u8 addr, u8 dir, u16 vel, u8 acc, uint32_t clk, bool raF, bool snF);
+void Emm_V5_MMCL_Pos_Control(u8 addr, u8 dir, u16 vel, u8 acc, u32 clk, bool raF, bool snF);
 void Emm_V5_MMCL_Stop_Now(u8 addr, bool snF);
 void Emm_V5_MMCL_Synchronous_motion(u8 addr);
 
@@ -244,7 +244,7 @@ void Emm_V5_MMCL_Synchronous_motion(u8 addr);
 void Emm_V5_MMCL_Origin_Set_O(u8 addr, bool svF);
 void Emm_V5_MMCL_Origin_Trigger_Return(u8 addr, u8 o_mode, bool snF);
 void Emm_V5_MMCL_Origin_Interrupt(u8 addr);
-void Emm_V5_MMCL_Origin_Modify_Params(u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, uint32_t o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF);
+void Emm_V5_MMCL_Origin_Modify_Params(u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, u32 o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF);
 
 /**********************************************************
 *** 读取系统参数命令

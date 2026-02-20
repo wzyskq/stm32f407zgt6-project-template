@@ -17,6 +17,9 @@ void TIM7_IRQHandler(void)
         // if (serialTimeFlag)
         //     serialTime++;
 
+        zdt_irqEndHandler();     // 电机中断请求处理
+        Emm_V5_Get_Sys_Params(); // 消费标志位 zdtTvFlg
+
         // 按键
         if (keyBox[2])
             keyBox[2]++;
@@ -156,11 +159,13 @@ void USART3_IRQHandler(void)
  */
 void UART4_IRQHandler(void)
 {
-    volatile static u8 rxIdx = 0;
-    if (USART_GetITStatus(UART4, USART_IT_RXNE) == SET) {
-        u8 rxData = USART_ReceiveData(UART4);
-        serial_send_byte(1, rxData); // 转发命令
-        USART_ClearITPendingBit(UART4, USART_IT_RXNE);
-    }
+    zdt_irqHandler(UART4);
+
+    // if (USART_GetITStatus(UART4, USART_IT_RXNE) == SET) {
+    //     u8 rxData = USART_ReceiveData(UART4);
+    //     serial_send_byte(1, rxData); // 转发命令
+    //     USART_ClearITPendingBit(UART4, USART_IT_RXNE);
+    // }
 }
+
 /* ******************** USART 中断请求 */

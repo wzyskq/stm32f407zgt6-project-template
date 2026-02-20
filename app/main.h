@@ -8,17 +8,13 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <stdarg.h>
 
 /* Global Macro ------------------------------------------------------------ */
 
 /* Global Types ------------------------------------------------------------ */
-
-typedef enum {
-    false = 0,
-    true = 1,
-} bool;
 
 typedef enum {
     normal = 0,
@@ -42,7 +38,7 @@ typedef enum {
 #include "timer.h"
 #include "serial.h"
 
-#include "Emm_V5.h"
+#include "zdt_api.h"
 
 /* Global Variables -------------------------------------------------------- */
 

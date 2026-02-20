@@ -32,14 +32,14 @@ u8 spdLogFlag = 1; // 速度调试标志位（1：开启；0：关闭）
 
 // 串口接收缓冲区（可自定义）
 
-volatile u8 srlSigBuf[SRL_SIGBUF_LEN] = {0}; // 标志位缓存
-volatile u8 srlSigFlg                 = 0;   // 标志位接收完成标志
-volatile u8 srlPkgBuf[SRL_PKGBUF_LEN] = {0}; // 数据包缓存
-volatile u8 srlPkgFlg                 = 0;   // 数据包接收完成标志
-volatile u8 srlPidBuf[SRL_PIDBUF_LEN] = {0}; // PID 缓存
-volatile u8 srlPidFlg                 = 0;   // PID 接收完成标志
-volatile u8 srlCmdBuf[SRL_CMDBUF_LEN] = {0}; // 命令缓存
-volatile u8 srlCmdFlg                 = 0;   // 命令接收完成标志
+__IO u8 srlSigBuf[SRL_SIGBUF_LEN] = {0}; // 标志位缓存
+__IO u8 srlSigFlg                 = 0;   // 标志位接收完成标志
+__IO u8 srlPkgBuf[SRL_PKGBUF_LEN] = {0}; // 数据包缓存
+__IO u8 srlPkgFlg                 = 0;   // 数据包接收完成标志
+__IO u8 srlPidBuf[SRL_PIDBUF_LEN] = {0}; // PID 缓存
+__IO u8 srlPidFlg                 = 0;   // PID 接收完成标志
+__IO u8 srlCmdBuf[SRL_CMDBUF_LEN] = {0}; // 命令缓存
+__IO u8 srlCmdFlg                 = 0;   // 命令接收完成标志
 
 /* Global Functions -------------------------------------------------------- */
 

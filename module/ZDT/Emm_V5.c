@@ -11,7 +11,7 @@
 
 /* Global Variables -------------------------------------------------------- */
 
-__IO u16 MMCL_count = 0, MMCL_cmd[MMCL_LEN] = {0};
+__IO u16 MMCL_count = 0, MMCL_cmd[ZDT_MMCL_LEN] = {0};
 
 /* Global Variables -------------------------------------------------------- */
 
@@ -20,17 +20,25 @@ __IO u16 MMCL_count = 0, MMCL_cmd[MMCL_LEN] = {0};
  * \param[in]  srlNum 串口号
  * \param[in]  cmd     命令字符串
  *
- * \note       一开始想用 serial_send_string 函数直接发送字符串，所以在每个字符串末尾补上了 \0
- *             但是忘记了 \0 其实就是 0x00，会被串口发送函数当作字符串结束标志，导致发送不完整
- *             目前暂时用用 0x6B 替代 \0 作为字符串结束标志
+ * \note       - 一开始想用 serial_send_string 函数直接发送字符串，所以在每个字符串末尾补上了 \0
+ *               但是忘记了 \0 其实就是 0x00，会被串口发送函数当作字符串结束标志，导致发送不完整
+ *               目前暂时用用 0x6B 替代 \0 作为字符串结束标志
+ * \warning    严禁在此函数内/紧邻后部调用其他串口，否则会导致系统死机、串口端口混淆死机等一系列问题！！！
  */
 void serial_send_emm_v5_cmd(u8 srlNum, u8 *cmd)
 {
+    // 这里一定不能加其他串口
+
+    zdtTvTag[0] = cmd[0]; // ******** 可选行，需配合 zdt_api.c/.h 使用，记录地址信息 ********
+    zdtTvTag[1] = cmd[1]; // ******** 可选行，需配合 zdt_api.c/.h 使用，记录功能码信息 ********
+
     u8 i;
     for (i = 0; cmd[i - 1] != 0x6B; i++) {
         serial_send_byte(srlNum, cmd[i]);
         // serial_send_byte(1, cmd[i]);
     }
+
+    zdtTvFlg = true; // ******** 可选行，需配合 zdt_api.c/.h 使用，设置发送标志位 ********
 }
 
 /*
@@ -166,8 +174,8 @@ void Emm_V5_Restore_Motor(u8 srlNum, u8 addr)
  */
 void Emm_V5_Multi_Motor_Cmd(u8 srlNum, u8 addr)
 {
-    u8 i                        = 0;
-    static u8 cmd[MMCL_LEN + 4] = {0};
+    u8 i                            = 0;
+    static u8 cmd[ZDT_MMCL_LEN + 4] = {0};
 
     cmd[i] = addr;
     ++i; // 地址
@@ -251,11 +259,11 @@ void Emm_V5_Vel_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, bool snF)
  * \param[in]  raF    相位/绝对标志，false 为相对，true 为绝对
  * \param[in]  snF    多机同步标志，false 为不启用，true 为启用
  * \return     地址 + 功能码 + 命令状态 + 校验字节
- * 
+ *
  * \note       每个脉冲转 1.8° / 16 = 0.1125°，
  *             发送 3200 个脉冲电机转一圈 360°；
  */
-void Emm_V5_Pos_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, uint32_t clk, bool raF, bool snF)
+void Emm_V5_Pos_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, u32 clk, bool raF, bool snF)
 {
     static u8 cmd[14] = {0};
 
@@ -429,7 +437,7 @@ void Emm_V5_Origin_Read_Params(u8 srlNum, u8 addr)
  * \param[in]  potF    上电自动触发回零标志
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Origin_Modify_Params(u8 srlNum, u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, uint32_t o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF)
+void Emm_V5_Origin_Modify_Params(u8 srlNum, u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, u32 o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF)
 {
     static u8 cmd[21] = {0};
 
@@ -952,7 +960,7 @@ void Emm_V5_Read_PID_Params(u8 srlNum, u8 addr)
  * \param[in]  kd     微分系数
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_PID_Params(u8 srlNum, u8 addr, bool svF, uint32_t kp, uint32_t ki, uint32_t kd)
+void Emm_V5_Modify_PID_Params(u8 srlNum, u8 addr, bool svF, u32 kp, u32 ki, u32 kd)
 {
     static u8 cmd[18] = {0};
 
@@ -1011,7 +1019,7 @@ void Emm_V5_Read_DMX512_Params(u8 srlNum, u8 addr)
  * \param[in]  pos_step 双通道模式运动步长
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_DMX512_Params(u8 srlNum, u8 addr, bool svF, u16 tch, u8 nch, u8 mode, u16 vel, u16 acc, u16 vel_step, uint32_t pos_step)
+void Emm_V5_Modify_DMX512_Params(u8 srlNum, u8 addr, bool svF, u16 tch, u8 nch, u8 mode, u16 vel, u16 acc, u16 vel_step, u32 pos_step)
 {
     static u8 cmd[20] = {0};
 
@@ -1155,7 +1163,7 @@ void Emm_V5_Read_Heart_Protect(u8 srlNum, u8 addr)
  * \param[in]  hp     心跳保护时间，单位 ms
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_Heart_Protect(u8 srlNum, u8 addr, bool svF, uint32_t hp)
+void Emm_V5_Modify_Heart_Protect(u8 srlNum, u8 addr, bool svF, u32 hp)
 {
     static u8 cmd[10] = {0};
 
@@ -1199,7 +1207,7 @@ void Emm_V5_Read_Integral_Limit(u8 srlNum, u8 addr)
  * \param[in]  il     积分限幅
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Modify_Integral_Limit(u8 srlNum, u8 addr, bool svF, uint32_t il)
+void Emm_V5_Modify_Integral_Limit(u8 srlNum, u8 addr, bool svF, u32 il)
 {
     static u8 cmd[10] = {0};
 
@@ -1478,7 +1486,7 @@ void Emm_V5_MMCL_Vel_Control(u8 addr, u8 dir, u16 vel, u8 acc, bool snF)
  * \param[in]  snF  多机同步标志，false 为不启用，true 为启用
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Pos_Control(u8 addr, u8 dir, u16 vel, u8 acc, uint32_t clk, bool raF, bool snF)
+void Emm_V5_MMCL_Pos_Control(u8 addr, u8 dir, u16 vel, u8 acc, u32 clk, bool raF, bool snF)
 {
     u8 j = 0, cmd[16] = {0};
 
@@ -1639,7 +1647,7 @@ void Emm_V5_MMCL_Origin_Interrupt(u8 addr)
  * \param[in]  potF   上电自动回零标志
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Origin_Modify_Params(u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, uint32_t o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF)
+void Emm_V5_MMCL_Origin_Modify_Params(u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, u32 o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF)
 {
     u8 j = 0, cmd[32] = {0};
 

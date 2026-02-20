@@ -23,14 +23,14 @@ extern u16 serialTime;
 
 extern u8 spdLogFlag;
 
-extern volatile u8 srlSigBuf[];
-extern volatile u8 srlSigFlg;
-extern volatile u8 srlPidBuf[];
-extern volatile u8 srlPidFlg;
-extern volatile u8 srlCmdBuf[];
-extern volatile u8 srlCmdFlg;
-extern volatile u8 srlPkgBuf[];
-extern volatile u8 srlPkgFlg;
+extern __IO u8 srlSigBuf[];
+extern __IO u8 srlSigFlg;
+extern __IO u8 srlPidBuf[];
+extern __IO u8 srlPidFlg;
+extern __IO u8 srlCmdBuf[];
+extern __IO u8 srlCmdFlg;
+extern __IO u8 srlPkgBuf[];
+extern __IO u8 srlPkgFlg;
 
 /* Global Functions -------------------------------------------------------- */
 

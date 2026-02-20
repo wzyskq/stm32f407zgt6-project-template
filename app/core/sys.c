@@ -46,7 +46,24 @@ void loop(void)
         key_judge(); // 按键检测
 
         if (taskNum == 1) {
+            // serial_printf(1, "Start Read\n");
+            // Emm_V5_Read_Sys_Params(4, 1, S_VEL);
+            taskNum = 101;
         } else if (taskNum == 2) {
+            // serial_printf(1, "Start Control\n");
+            // Emm_V5_Pos_Control(4, 1, 0, 60, 00, 3200, true, false);
+
+            while (zdtTvFlg); // 等待清零
+            // serial_printf(1, "v = 60 rpm\n");
+            Emm_V5_Vel_Control(4, 1, 0, 60, 0, false);
+            
+            while (zdtTvFlg); // 等待清零
+            // serial_printf(1, "v = 30 rpm\n");
+            Emm_V5_Vel_Control(4, 1, 0, 30, 0, false); 
+
+            // serial_printf(1, "Start Read\n");
+            // Emm_V5_Read_Sys_Params(4, 1, S_TPOS);
+            // taskNum = 101;
         } else if (taskNum == 3) {
         } else if (taskNum == 4) {
         } else if (taskNum == 5) {
@@ -59,6 +76,12 @@ void loop(void)
             else
                 oledViewIdx--;
             taskNum = 0;
+        }
+
+        if (taskNum == 101) {
+            demo_1();
+        } else if (taskNum == 102) {
+            demo_2();
         }
 
         // oled_printf(0, 16 * 0, OLED_8X16, "%4d |%5d", whlSpd[0], whlCnt[0]);
