@@ -1,26 +1,38 @@
 /******************************************************************
- ** 文件说明：
+ ** \file    zdt_api.c
+ **
  ** \brief  本文件（zdt_api.c/.h）主要功能为处理电机返回数据包的接收、解析
  **
  ** \pre    需配合 Emm_V5.c/.h 使用
  **
- ** \note   - 张大头闭环步进电机本身就是集成好的闭环系统，一般情况下直接用 Emm_V5.c/.h 提供的命令控制电机即可.
- **           但如果需要对电机返回的数据包进行分析处理就比较麻烦，所以笔者就封装了这一套 API 来处理电机返回数据包的接收和解析.
- **           使用时只需在相应的 USARTx 和 TIMx 中断服务函数中调用 zdt_irqHandler 和 zdt_irqEndHandler 函数.
- **           在需要的循环中调用 Emm_V5_Get_Sys_Params 函数即可获取解析后的数据包内容.
+ ** \note   张大头闭环步进电机本身就是集成好的闭环系统，一般情况下直接用 Emm_V5.c/.h 提供的命令控制电机即可.
+ **         但如果需要对电机返回的数据包进行分析处理就比较麻烦，所以笔者就封装了这一套 API 来处理电机返回数据包的接收和解析.
+ **         主要包括如下三个函数：
  **
- **         - zdt_irqEndHandler() 中的最大超时时长由定时中断时基和最大超时周期两者乘积决定.
+ **         - zdt_irqHandler() 串口中断中调用，缓存命令.
  **
- **         - Emm_V5_Get_Sys_Params() 将解析结果写入传入的 zdtSysData_t 指针，调用前应保证指针有效.
+ **         - zdt_irqEndHandler() 定时中断中调用，终止缓存命令，最大超时时长由定时中断时基和最大超时周期两者乘积决定.
  **
- **         - 强烈建议在每次调用 Emm_V5.c/.h 命令前先判断 zdtTxFlg 是否为 true 来避免数据冲突.
- **           即使不用 Emm_V5_Get_Sys_Params() 读取数据，也建议在定时中断中调用以消耗 zdtFlg 来保持命令流畅调用.
+ **         - Emm_V5_Get_Sys_Params() 定时中断中调用，解析缓存并传入的 zdtSysData 指针.
  **
- ** \example  // 放入中断后可在逻辑中直接连续设定不同的命令而不产生报错
- **           while (zdtTvFlg); // 等待清零
- **           Emm_V5_Vel_Control(4, 1, 0, 60, 0, false);
- **           while (zdtTvFlg); // 等待清零
- **           Emm_V5_Vel_Control(4, 1, 0, 30, 0, false);
+ **         虽然发送数据前已做阻塞判断处理，但仍建议在每次调用 Emm_V5 命令前先判断 zdtTxFlg 状态来避免数据冲突.
+ **         判断状态方式可采用短时阻塞（逻辑清晰但浪费部分处理资源）或跳出逻辑（系统调度及时但复杂化上下逻辑）两种方式.
+ **         具体示例如下.
+ **
+ ** \example  // 判断状态方式一：短时阻塞
+ **             while (zdtTvFlg); // 等待清零
+ **             Emm_V5_Vel_Control(4, 1, 0, 60, 0, false);
+ **             while (zdtTvFlg); // 等待清零
+ **             Emm_V5_Vel_Control(4, 1, 0, 30, 0, false);
+ **
+ ** \example  // 判断状态方式二：跳出逻辑
+ **             if (!zdtTvFlg) {
+ **                 Emm_V5_Vel_Control(4, 1, 0, 60, 0, false);
+ **                 // ... 其他命令 ...
+ **             } else return; // 或者其他处理方式
+ **
+ ** \note   Tips:
+ **         - 减小定时器时基和最大超时周期可以提高数据接收的实时性，但过小也可能会增加丢包风险.
  */
 
 #include "zdt_api.h"
@@ -112,8 +124,14 @@ void zdt_irqEndHandler(void)
 }
 
 /******************************************************************
- * \brief  解析电机返回数据包内容
- * \note   在主循环中调用，当 zdtRvFlg 为 1 时
+ * \brief    解析电机返回数据包内容
+ * \note     在 TIMx 中断服务函数中调用，当 zdtRvFlg 为 1 时.
+ *           - 暂时仅写了部分解析代码，其他部分可参考示例自行补充.
+ * \example  // 请放置在 zdt_irqEndHandler(); 之后以确保数据包已接收完成
+ *              // ... 其他代码 ...
+ *              zdt_irqEndHandler();
+ *              Emm_V5_Get_Sys_Params(&zdtSysData);
+ *              // ... 其他代码 ...
  */
 void Emm_V5_Get_Sys_Params(zdtSysData_t *data)
 {
@@ -155,7 +173,7 @@ void Emm_V5_Get_Sys_Params(zdtSysData_t *data)
         case 0x33: { // S_TPOS 读取目标位置
             v          = (zdtRvBuf[4] << 24) | (zdtRvBuf[5] << 16) | (zdtRvBuf[6] << 8) | zdtRvBuf[7];
             float deg  = (float)v * 360.0f / 65536.0f; // 转换为度数
-            data->tpos = (zdtRvBuf[3] == 0) ? deg : -deg;
+            data->tpos = (!zdtRvBuf[3]) ? deg : -deg;
             break;
         }
         case 0x34: // S_SPOS 读取实时设定目标位置
@@ -164,12 +182,15 @@ void Emm_V5_Get_Sys_Params(zdtSysData_t *data)
         case 0x35: { // S_VEL 读取实时转速
             v         = (zdtRvBuf[4] << 8) | zdtRvBuf[5];
             float vel = (float)v;
-            data->vel = (zdtRvBuf[3] == 0) ? vel : -vel;
+            data->vel = (!zdtRvBuf[3]) ? vel : -vel;
             break;
         }
-        case 0x36: // S_CPOS 读取实时位置
-
+        case 0x36: { // S_CPOS 读取实时位置
+            v          = (zdtRvBuf[4] << 24) | (zdtRvBuf[5] << 16) | (zdtRvBuf[6] << 8) | zdtRvBuf[7];
+            float deg  = (float)v * 360.0f / 65536.0f; // 转换为度数
+            data->cpos = (!zdtRvBuf[3]) ? deg : -deg;
             break;
+        }
         case 0x37: // S_PERR 读取位置误差
 
             break;

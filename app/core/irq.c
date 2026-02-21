@@ -85,33 +85,35 @@ void USART1_IRQHandler(void)
     volatile static u8 rxIdx = 0;
     if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET) {
         u8 rxData = USART_ReceiveData(USART1);
-        //         if (rxData == '(') {
-        //             rxIdx        = 2;
-        //             srlCmdBuf[0] = 0; // 长度位清零
-        //         } else if (rxData == '<') {
-        //             rxIdx        = 3;
-        //             srlPidBuf[0] = 0; // 长度位清零
-        //         }
-        //
-        //         else if (rxIdx == 2) {
-        //             if (rxData == ')') {
-        //                 srlCmdBuf[srlCmdBuf[0] + 1] = '\0'; // 字符串结束符
-        //                 srlCmdFlg                   = 1;    // 接收完成标志
-        //                 rxIdx                       = 0;
-        //             } else if (srlCmdBuf[0] < SRL_CMDBUF_LEN - 1) {
-        //                 srlCmdBuf[++srlCmdBuf[0]] = rxData;
-        //             }
-        //         } else if (rxIdx == 3) {
-        //             if (rxData == '>') {
-        //                 srlPidBuf[srlPidBuf[0] + 1] = '\0'; // 字符串结束符
-        //                 srlPidFlg                   = 1;    // 接收完成标志
-        //                 rxIdx                       = 0;
-        //             } else if (srlPidBuf[0] < SRL_PIDBUF_LEN - 1) {
-        //                 srlPidBuf[++srlPidBuf[0]] = rxData;
-        //             }
-        //         }
-        serial_send_byte(4, rxData); // 转发命令
-
+                if (rxData == '(') {
+                    rxIdx        = 2;
+                    srlCmdBuf[0] = 0; // 长度位清零
+                } else if (rxData == '<') {
+                    rxIdx        = 3;
+                    srlPidBuf[0] = 0; // 长度位清零
+                } else if (rxData == 0xEE) {
+                    rxIdx        = 5;
+                }
+        
+                else if (rxIdx == 2) {
+                    if (rxData == ')') {
+                        srlCmdBuf[srlCmdBuf[0] + 1] = '\0'; // 字符串结束符
+                        srlCmdFlg                   = 1;    // 接收完成标志
+                        rxIdx                       = 0;
+                    } else if (srlCmdBuf[0] < SRL_CMDBUF_LEN - 1) {
+                        srlCmdBuf[++srlCmdBuf[0]] = rxData;
+                    }
+                } else if (rxIdx == 3) {
+                    if (rxData == '>') {
+                        srlPidBuf[srlPidBuf[0] + 1] = '\0'; // 字符串结束符
+                        srlPidFlg                   = 1;    // 接收完成标志
+                        rxIdx                       = 0;
+                    } else if (srlPidBuf[0] < SRL_PIDBUF_LEN - 1) {
+                        srlPidBuf[++srlPidBuf[0]] = rxData;
+                    }
+                } else if (rxIdx == 5) {
+                    serial_send_byte(4, rxData); // 转发命令
+                }
         USART_ClearITPendingBit(USART1, USART_IT_RXNE);
     }
 }
