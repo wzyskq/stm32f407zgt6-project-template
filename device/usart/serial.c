@@ -328,7 +328,7 @@ void serial_decode_cmd(void)
             u8 dir  = (vel > 0) ? 0 : 1; // 根据速度正负自动判断方向
             u8 acc  = (u8)strtof(cCmd, &cCmd);
             vel *= 10;        // 开启了缩小十倍，实际输入单位为 0.1 RPM
-            while (zdtTvFlg); // 等待清零
+            // while (zdtTvFlg); // 等待清零
             Emm_V5_Vel_Control(4, addr, dir, (u16)ABS(vel), acc, false);
         } else if (cCmd = strmatch_s(rCmd, "-p")) {
             u8 addr = (u8)strtof(cCmd, &cCmd);
@@ -337,7 +337,7 @@ void serial_decode_cmd(void)
             s32 pos = (s32)strtof(cCmd, &cCmd);
             vel *= 10;                  // 开启了缩小十倍，实际输入单位为 0.1 RPM
             u8 dir = (pos > 0) ? 0 : 1; // 根据位置正负自动判断方向
-            while (zdtTvFlg);           // 等待清零
+            // while (zdtTvFlg);           // 等待清零
             Emm_V5_Pos_Control(4, addr, dir, (u16)ABS(vel), acc, (u32)ABS(pos), true, false);
         } else if (cCmd = strmatch_s(rCmd, "-o"))
         {

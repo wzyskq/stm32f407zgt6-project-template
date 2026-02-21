@@ -1,12 +1,12 @@
 /******************************************************************
- ** \file   Emm_V5.h 
+ ** \file   Emm_V5.h
  **
  ** \brief  本文件（Emm_V5.c/.h）修改自张大头闭环步进电机驱动，主要功能为发送控制/读取命令
  **
  ** \post   可配合笔者封装的 zdt_api.c/.h 使用实现电机返回数据包的异步接收和解析
  **
  ** \note   相较于原版，主要修改内容包括：
- **          
+ **
  **         - 采用 Doxygen 风格格式化函数注释，并用将类型名更换为更简洁的别名（u8，u16，u32 等等）.
  **
  **         - 函数增加形参串口号来适配多串口控制，并用 serial_send_emm_v5_cmd() 统一命令发送接口（若需移植直接改该函数即可）.
@@ -104,8 +104,8 @@ void Emm_V5_Restore_Motor(u8 srlNum, u8 addr);
 
 void Emm_V5_Multi_Motor_Cmd(u8 srlNum, u8 addr);
 void Emm_V5_En_Control(u8 srlNum, u8 addr, bool state, bool snF);
-void Emm_V5_Vel_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, bool snF); 
-void Emm_V5_Pos_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, u32 clk, bool raF, bool snF); 
+void Emm_V5_Vel_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, bool snF);
+void Emm_V5_Pos_Control(u8 srlNum, u8 addr, u8 dir, u16 vel, u8 acc, u32 clk, bool raF, bool snF);
 void Emm_V5_Stop_Now(u8 srlNum, u8 addr, bool snF);
 void Emm_V5_Synchronous_motion(u8 srlNum, u8 addr);
 
@@ -129,7 +129,7 @@ void Emm_V5_Origin_Modify_Params(u8 srlNum, u8 addr, bool svF, u8 o_mode, u8 o_d
 *** 读取系统参数命令
 **********************************************************/
 
-// 定时返回信息命令（Y42） 
+// 定时返回信息命令（Y42）
 // 读取系统参数
 
 void Emm_V5_Auto_Return_Sys_Params_Timed(u8 srlNum, u8 addr, zdtSysParams_t s, u16 time_ms);

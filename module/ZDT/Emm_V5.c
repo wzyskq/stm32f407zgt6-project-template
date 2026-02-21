@@ -6,7 +6,7 @@
  ** \post   可配合笔者封装的 zdt_api.c/.h 使用实现电机返回数据包的异步接收和解析
  **
  ** \note   相较于原版，主要修改内容包括：
- **          
+ **
  **         - 采用 Doxygen 风格格式化函数注释，并用将类型名更换为更简洁的别名（u8，u16，u32 等等）.
  **
  **         - 函数增加形参串口号来适配多串口控制，并用 serial_send_emm_v5_cmd() 统一命令发送接口（若需移植直接改该函数即可）.
@@ -44,8 +44,10 @@ __IO u16 MMCL_count = 0, MMCL_cmd[ZDT_MMCL_LEN] = {0};
 void serial_send_emm_v5_cmd(u8 srlNum, u8 *cmd)
 {
     // 这里一定不能加其他串口
-    
+
     while (zdtTvFlg); // ******** 可选行，需配合 zdt_api.c/.h 使用，等待清零 ********
+
+    zdtTvFlg = true; // ******** 可选行，需配合 zdt_api.c/.h 使用，设置发送标志位 ********
 
     zdtTvTag[0] = cmd[0]; // ******** 可选行，需配合 zdt_api.c/.h 使用，记录地址信息 ********
     zdtTvTag[1] = cmd[1]; // ******** 可选行，需配合 zdt_api.c/.h 使用，记录功能码信息 ********
@@ -55,8 +57,6 @@ void serial_send_emm_v5_cmd(u8 srlNum, u8 *cmd)
         serial_send_byte(srlNum, cmd[i]);
         // serial_send_byte(1, cmd[i]);
     }
-
-    zdtTvFlg = true; // ******** 可选行，需配合 zdt_api.c/.h 使用，设置发送标志位 ********
 }
 
 /*
