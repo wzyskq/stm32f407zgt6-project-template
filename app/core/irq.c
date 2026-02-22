@@ -171,3 +171,33 @@ void UART4_IRQHandler(void)
 }
 
 /* ******************** USART 中断请求 */
+
+/*
+
+
+
+
+
+*/
+
+/* SDIO 中断请求 ******************** */
+
+/******************************************************************
+ * \brief  SDIO 中断请求处理函数
+ */
+void SDIO_IRQHandler(void)
+{
+	/* Process All SDIO Interrupt Sources */
+	SD_ProcessIRQSrc();
+}
+
+/******************************************************************
+ * \brief  SDIO DMA 中断请求处理函数
+ */
+void SD_SDIO_DMA_IRQHANDLER(void)
+{
+	/* Process DMA2 Stream3 or DMA2 Stream6 Interrupt Sources */
+	SD_ProcessDMAIRQ();
+}
+
+/* ******************** SDIO 中断请求 */

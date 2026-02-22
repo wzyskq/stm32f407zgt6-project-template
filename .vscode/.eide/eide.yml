@@ -32,10 +32,12 @@ targets:
         - ../device
         - ../device/gpio
         - ../device/i2c
+        - ../device/sdio
         - ../device/tim
         - ../device/usart
         - ../module
         - ../module/ZDT
+        - ../module/FatFS
       libList: []
     excludeList: []
     toolchain: AC5

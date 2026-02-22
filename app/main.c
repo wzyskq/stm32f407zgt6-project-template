@@ -14,7 +14,7 @@ int main(void)
 
     serial_init(1, 115200, 0);
     // serial_init(2, 115200, 1);
-    serial_init(4, 115200, 2);
+    // serial_init(4, 115200, 2);
 
     mpu_init();
 
@@ -46,6 +46,20 @@ int main(void)
 
     // Emm_V5_Vel_Control(4, 1, 0, 60, 00, false);
     // Emm_V5_Pos_Control(4, 1, 0, 60, 00, 16, true, false);
+
+    sdc_init();
+    if (mounted == FR_OK) {
+        u32 allCapacity, freeCapacity;
+        serial_printf(1, "FatFs:  SD Card Init Success.\n");
+        sdc_get(&allCapacity, &freeCapacity, MB);
+        serial_printf(1, "FatFs:  Available space: %d / %d MB\n", allCapacity, freeCapacity);
+    }
+
+    if (mounted == FR_OK){
+        sdc_open("demo.txt");
+        sdc_read(READ_FILE, 0);
+        serial_printf(1, "FatFs:  File content:\n%s\n", sdcBuf);
+    }
 
     loop();
 }

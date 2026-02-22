@@ -2,6 +2,7 @@
 #define __IRQ_H
 
 #include "main.h"
+#include "sdio_sd.h"
 
 /* Global Variables -------------------------------------------------------- */
 

@@ -23,11 +23,15 @@ typedef enum {
 
 /* User Includes ------------------------------------------------------------ */
 
+// 业务及工具
+
 #include "funs.h"
 #include "pid.h"
 #include "irq.h"
 #include "task.h"
 #include "sys.h"
+
+// 常用外设
 
 #include "grayscale.h"
 #include "key.h"
@@ -35,10 +39,14 @@ typedef enum {
 #include "i2c.h"
 #include "mpu6050.h"
 #include "oled.h"
+#include "sdc.h"
 #include "timer.h"
 #include "serial.h"
 
+// 三方组件
+
 #include "zdt_api.h"
+#include "diskio.h"
 
 /* Global Variables -------------------------------------------------------- */
 
