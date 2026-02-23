@@ -55,11 +55,14 @@ int main(void)
         serial_printf(1, "FatFs:  Available space: %d / %d MB\n", allCapacity, freeCapacity);
     }
 
-    if (mounted == FR_OK){
-        sdc_open("demo.txt");
-        sdc_read(READ_FILE, 0);
-        serial_printf(1, "FatFs:  File content:\n%s\n", sdcBuf);
-    }
+    // if (mounted == FR_OK){
+    //     sdc_open("demo.txt");
+    //     sdc_read(sdc_rFile, 0);
+    //     sdc_open("1/demo.txt");
+    //     sdc_read(sdc_rFile, 0);
+    //     sdc_open("main.txt");
+    //     sdc_write("Hello, 测试.\r\n");
+    // }
 
     loop();
 }

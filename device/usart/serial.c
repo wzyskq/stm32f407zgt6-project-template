@@ -327,7 +327,7 @@ void serial_decode_cmd(void)
             s32 vel = (s32)strtof(cCmd, &cCmd);
             u8 dir  = (vel > 0) ? 0 : 1; // 根据速度正负自动判断方向
             u8 acc  = (u8)strtof(cCmd, &cCmd);
-            vel *= 10;        // 开启了缩小十倍，实际输入单位为 0.1 RPM
+            vel *= 10; // 开启了缩小十倍，实际输入单位为 0.1 RPM
             // while (zdtTvFlg); // 等待清零
             Emm_V5_Vel_Control(4, addr, dir, (u16)ABS(vel), acc, false);
         } else if (cCmd = strmatch_s(rCmd, "-p")) {
@@ -339,13 +339,41 @@ void serial_decode_cmd(void)
             u8 dir = (pos > 0) ? 0 : 1; // 根据位置正负自动判断方向
             // while (zdtTvFlg);           // 等待清零
             Emm_V5_Pos_Control(4, addr, dir, (u16)ABS(vel), acc, (u32)ABS(pos), true, false);
-        } else if (cCmd = strmatch_s(rCmd, "-o"))
-        {
+        } else if (cCmd = strmatch_s(rCmd, "-o")) {
             u8 addr = (u8)strtof(cCmd, &cCmd);
             while (zdtTvFlg); // 等待清零
             Emm_V5_Stop_Now(4, addr, false);
         }
-        
+
+    } else if (rCmd = strmatch_s(cCmd, "sd")) {
+        if (mounted != FR_OK) {
+            serial_printf(1, "> SD Card Not Detected!\n");
+            srlCmdFlg = 0;
+            return;
+        } else if (cCmd = strmatch_s(rCmd, "-l")) {
+            if (strmatch_s(cCmd, "-i"))
+                sdcReFlag = 1;
+            else if (strmatch_s(cCmd, "-o"))
+                sdcReFlag = 0;
+        } else if (cCmd = strmatch_s(rCmd, "-o")) {
+            while (cCmd[0] == ' ') cCmd++; // 跳过空格
+            sdc_open(cCmd);
+        } else if (cCmd = strmatch_s(rCmd, "-c")) {
+            sdc_close();
+        } else if (cCmd = strmatch_s(rCmd, "-r")) {
+            if (rCmd = strmatch_s(cCmd, "--line")) {
+                u32 line_num = (u32)strtof(rCmd, NULL);
+                sdc_read(sdc_rLine, line_num);
+            } else if (strmatch_s(cCmd, "--file")) {
+                sdc_read(sdc_rFile, 0);
+            }
+        } else if (cCmd = strmatch_s(rCmd, "-w")) {
+            while (cCmd[0] == ' ') cCmd++; // 跳过空格
+            sdc_write(cCmd);
+        } else if (cCmd = strmatch_s(rCmd, "-d")) {
+            while (cCmd[0] == ' ') cCmd++; // 跳过空格
+            sdc_delete(cCmd);
+        }
 
     } else if (rCmd = strmatch_s(cCmd, "oled")) {
         // if (cCmd = strmatch_s(rCmd, "-d")) {
