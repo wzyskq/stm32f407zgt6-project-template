@@ -13,10 +13,10 @@
 void TIM7_IRQHandler(void)
 {
     if (TIM_GetITStatus(TIM7, TIM_IT_Update) == SET) {
-        // 串口
-        // if (serialTimeFlag)
-        //     serialTime++;
+        // 时间刷新
+        ++sysTime;
 
+        // 步进电机
         zdt_irqEndHandler();                // 电机中断请求处理
         Emm_V5_Get_Sys_Params(&zdtSysData); // 消费标志位 zdtTvFlg
 
@@ -27,10 +27,6 @@ void TIM7_IRQHandler(void)
             key_action();
             keyBox[2] = 0; // 关闭自增
         }
-
-        // 时间刷新
-        sysTime++;
-        // whlTime++;
 
         // 方向环
         // direction_loop();
@@ -85,35 +81,35 @@ void USART1_IRQHandler(void)
     volatile static u8 rxIdx = 0;
     if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET) {
         u8 rxData = USART_ReceiveData(USART1);
-                if (rxData == '(') {
-                    rxIdx        = 2;
-                    srlCmdBuf[0] = 0; // 长度位清零
-                } else if (rxData == '<') {
-                    rxIdx        = 3;
-                    srlPidBuf[0] = 0; // 长度位清零
-                } else if (rxData == 0xEE) {
-                    rxIdx        = 5;
-                }
-        
-                else if (rxIdx == 2) {
-                    if (rxData == ')') {
-                        srlCmdBuf[srlCmdBuf[0] + 1] = '\0'; // 字符串结束符
-                        srlCmdFlg                   = 1;    // 接收完成标志
-                        rxIdx                       = 0;
-                    } else if (srlCmdBuf[0] < SRL_CMDBUF_LEN - 1) {
-                        srlCmdBuf[++srlCmdBuf[0]] = rxData;
-                    }
-                } else if (rxIdx == 3) {
-                    if (rxData == '>') {
-                        srlPidBuf[srlPidBuf[0] + 1] = '\0'; // 字符串结束符
-                        srlPidFlg                   = 1;    // 接收完成标志
-                        rxIdx                       = 0;
-                    } else if (srlPidBuf[0] < SRL_PIDBUF_LEN - 1) {
-                        srlPidBuf[++srlPidBuf[0]] = rxData;
-                    }
-                } else if (rxIdx == 5) {
-                    serial_send_byte(4, rxData); // 转发命令
-                }
+        if (rxData == '(') {
+            rxIdx        = 2;
+            srlCmdBuf[0] = 0; // 长度位清零
+        } else if (rxData == '<') {
+            rxIdx        = 3;
+            srlPidBuf[0] = 0; // 长度位清零
+        } else if (rxData == 0xEE) {
+            rxIdx = 5;
+        }
+
+        else if (rxIdx == 2) {
+            if (rxData == ')') {
+                srlCmdBuf[srlCmdBuf[0] + 1] = '\0'; // 字符串结束符
+                srlCmdFlg                   = 1;    // 接收完成标志
+                rxIdx                       = 0;
+            } else if (srlCmdBuf[0] < SRL_CMDBUF_LEN - 1) {
+                srlCmdBuf[++srlCmdBuf[0]] = rxData;
+            }
+        } else if (rxIdx == 3) {
+            if (rxData == '>') {
+                srlPidBuf[srlPidBuf[0] + 1] = '\0'; // 字符串结束符
+                srlPidFlg                   = 1;    // 接收完成标志
+                rxIdx                       = 0;
+            } else if (srlPidBuf[0] < SRL_PIDBUF_LEN - 1) {
+                srlPidBuf[++srlPidBuf[0]] = rxData;
+            }
+        } else if (rxIdx == 5) {
+            serial_send_byte(4, rxData); // 转发命令
+        }
         USART_ClearITPendingBit(USART1, USART_IT_RXNE);
     }
 }
@@ -187,8 +183,8 @@ void UART4_IRQHandler(void)
  */
 void SDIO_IRQHandler(void)
 {
-	/* Process All SDIO Interrupt Sources */
-	SD_ProcessIRQSrc();
+    /* Process All SDIO Interrupt Sources */
+    SD_ProcessIRQSrc();
 }
 
 /******************************************************************
@@ -196,8 +192,8 @@ void SDIO_IRQHandler(void)
  */
 void SD_SDIO_DMA_IRQHANDLER(void)
 {
-	/* Process DMA2 Stream3 or DMA2 Stream6 Interrupt Sources */
-	SD_ProcessDMAIRQ();
+    /* Process DMA2 Stream3 or DMA2 Stream6 Interrupt Sources */
+    SD_ProcessDMAIRQ();
 }
 
 /* ******************** SDIO 中断请求 */

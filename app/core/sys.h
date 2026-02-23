@@ -19,23 +19,22 @@ typedef enum {
 
 extern u8 oledViewIdx;
 extern u32 sysTime;
-extern u8 whlTime;
 
-/* 巡线 */
+// 巡线
 
 extern u8 trkMode;
 extern s16 trkSpd;
 
-/* 方向环 */
+// 方向环
 
 extern s16 carDeg;
 
-/* 位置环 */
+// 位置环
 
 extern u8 gray[];
 extern s8 grayVal;
 
-/* 速度环 */ 
+// 速度环 
 
 extern s16 whlSpd[];
 extern s16 whlCnt[];
@@ -45,7 +44,7 @@ extern u8 spdStepDiv;
 extern u8 spdStepErr;
 extern u8 spdStepExp;
 
-/* 临时调试变量 */ 
+// 临时调试变量
 
 extern u8 tWhlS;
 extern s16 tWhlVn;

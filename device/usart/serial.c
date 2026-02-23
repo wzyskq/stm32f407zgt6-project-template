@@ -25,8 +25,7 @@ static const u8 srlGpioSrcRx[]  = {0, GPIO_PinSource10, GPIO_PinSource6, GPIO_Pi
 
 u8 srlReFlag = 0; // 串口调试返回标志位
 
-u8 serialTimeFlag = 0; // MCU 运行时间标志位
-u16 serialTime    = 0; // 运行时间 单位：10ms
+// 委托控制标志位
 
 u8 spdLogFlag = 1; // 速度调试标志位（1：开启；0：关闭）
 
@@ -329,7 +328,7 @@ void serial_decode_cmd(void)
             u8 acc  = (u8)strtof(cCmd, &cCmd);
             vel *= 10; // 开启了缩小十倍，实际输入单位为 0.1 RPM
             // while (zdtTvFlg); // 等待清零
-            Emm_V5_Vel_Control(4, addr, dir, (u16)ABS(vel), acc, false);
+            Emm_V5_Vel_Control(ZDT_SRL, addr, dir, (u16)ABS(vel), acc, false);
         } else if (cCmd = strmatch_s(rCmd, "-p")) {
             u8 addr = (u8)strtof(cCmd, &cCmd);
             s32 vel = (s32)strtof(cCmd, &cCmd);
@@ -338,11 +337,11 @@ void serial_decode_cmd(void)
             vel *= 10;                  // 开启了缩小十倍，实际输入单位为 0.1 RPM
             u8 dir = (pos > 0) ? 0 : 1; // 根据位置正负自动判断方向
             // while (zdtTvFlg);           // 等待清零
-            Emm_V5_Pos_Control(4, addr, dir, (u16)ABS(vel), acc, (u32)ABS(pos), true, false);
+            Emm_V5_Pos_Control(ZDT_SRL, addr, dir, (u16)ABS(vel), acc, (u32)ABS(pos), true, false);
         } else if (cCmd = strmatch_s(rCmd, "-o")) {
             u8 addr = (u8)strtof(cCmd, &cCmd);
             while (zdtTvFlg); // 等待清零
-            Emm_V5_Stop_Now(4, addr, false);
+            Emm_V5_Stop_Now(ZDT_SRL, addr, false);
         }
 
     } else if (rCmd = strmatch_s(cCmd, "sd")) {
@@ -426,69 +425,3 @@ void serial_decode_cmd(void)
 }
 
 /* ******************** 处理函数 */
-
-/*
-
-
-
-
-
-*/
-
-/* 等待函数 ******************** */
-
-/******************************************************************
- * \brief  while 型串口等待机
- * \param  flagString* 要发送的标志字符串
- * \param  getFlagFun* 获取标志位的函数指针
- *
- * \note 该函数用于阻塞等待，直到获取到标志位为止
- */
-void serial_wait_while(u8 *flagString, u8 (*getFlagFun)(void))
-{
-    serial_send_string(3, flagString);
-    serialTimeFlag = 1;
-    serialTime     = 0;
-    while (!getFlagFun()) {
-        serial_decode_packet();
-        if (serialTimeFlag && serialTime > SERIAL_TIMEOUT) {
-            serialTime = 0;
-            serial_send_string(3, flagString);
-        }
-    }
-    serialTimeFlag = 0;
-    serialTime     = 0; // 清除计时器
-}
-
-/******************************************************************
- * \brief  if 型串口等待机
- * \param  flagString* 要发送的标志字符串
- * \param  getFlagFun* 获取标志位的函数指针
- * \retval 0 获取失败，1 获取成功
- *
- * \note 该函数用于非阻塞等待，适用于需要在主循环中处理数据包的场景
- */
-u8 serial_wait_if(u8 *flagString, u8 (*getFlagFun)(void))
-{
-    if (!serialTimeFlag) // 如果 serialTimeFlag 为 0，表示首次调用
-    {
-        serial_send_string(3, flagString);
-        serialTimeFlag = 1;
-        return 0; // 由于串口解析是在主循环中进行的，这里不阻塞等待
-    }
-
-    if (!getFlagFun()) {
-        // serial_decode_packet(); // 非阻塞等待，主循环会处理数据包
-        if (serialTimeFlag && serialTime > SERIAL_TIMEOUT) {
-            serialTime = 1; // 从 1 开始计时，防止 serialTime 为 0 时直接发送
-            serial_send_string(3, flagString);
-        }
-        return 0; // 获取失败
-    }
-
-    serialTimeFlag = 0;
-    serialTime     = 0;
-    return 1; // 获取成功
-}
-
-/* ******************** 等待函数 */

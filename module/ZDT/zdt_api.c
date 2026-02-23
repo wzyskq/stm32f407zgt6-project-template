@@ -219,7 +219,7 @@ void Emm_V5_Get_Sys_Params(zdtSysData_t *data)
             break;
         default: // 非读取命令的返回数据包/未知标签
             if (zdtRvBuf[3] != 0x02)
-                serial_printf(1, "ZDT: Err: %02X %02X %02X\n", zdtRvBuf[1], zdtRvBuf[2], zdtRvBuf[3]);
+                serial_printf(ZDT_RESRL, "ZDT: Err: %02X %02X %02X\n", zdtRvBuf[1], zdtRvBuf[2], zdtRvBuf[3]);
             break;
     }
 

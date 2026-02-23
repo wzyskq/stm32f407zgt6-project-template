@@ -18,10 +18,11 @@
 
 extern u8 srlReFlag; // 串口调试返回标志位
 
-extern u8 serialTimeFlag;
-extern u16 serialTime;
+// 委托控制标志位
 
 extern u8 spdLogFlag;
+
+// 串口接收缓冲区（可自定义）
 
 extern __IO u8 srlSigBuf[];
 extern __IO u8 srlSigFlg;
@@ -50,10 +51,5 @@ void serial_decode_sign(void);
 void serial_decode_packet(void);
 void serial_decode_pid(void);
 void serial_decode_cmd(void);
-
-// 等待函数
-
-u8 serial_wait_if(u8 *flagString, u8 (*getFlagFun)(void));
-void serial_wait_while(u8 *flagString, u8 (*getFlagFun)(void));
 
 #endif

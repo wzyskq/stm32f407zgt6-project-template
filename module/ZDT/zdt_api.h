@@ -49,6 +49,8 @@
 /* Global Macros ----------------------------------------------------------- */
 
 #define ZDT_NUM 2        // 电机数量
+#define ZDT_SRL 4        // 电机串口号
+#define ZDT_RESRL 1      // 调试返回串口号
 #define ZDT_TIMEOUT 1    // 定时器超时周期
 #define ZDT_RVBUF_LEN 64 // 缓存数据包长度
 
