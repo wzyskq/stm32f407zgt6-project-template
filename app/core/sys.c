@@ -37,10 +37,10 @@ s16 tWhlVn = 0; // 时刻速度变量
 void loop(void)
 {
     while (1) {
-        serial_decode_packet();
-        serial_decode_sign();
-        serial_decode_cmd();
-        serial_decode_pid();
+        // serial_decode_packet();
+        // serial_decode_sign();
+        // serial_decode_cmd();
+        // serial_decode_pid();
 
         key_judge(); // 按键检测
 
@@ -50,13 +50,13 @@ void loop(void)
             // while (zdtTvFlg); // 等待清零
             Emm_V5_Read_Sys_Params(ZDT_SRL, 1, S_VEL);
             while (zdtTvFlg); // 等待数据
-            serial_printf(1, "v = %d rpm\n", (s32)zdtSysData.vel);
+            serial_printf(SRL_RESRL, "v = %d rpm\n", (s32)zdtSysData.vel);
 
         } else if (taskNum == 3) {
             // while (zdtTvFlg); // 等待清零
             Emm_V5_Read_Sys_Params(ZDT_SRL, 1, S_CPOS);
             while (zdtTvFlg); // 等待数据
-            serial_printf(1, "cpos = %.2f deg\n", zdtSysData.cpos);
+            serial_printf(SRL_RESRL, "cpos = %.2f deg\n", zdtSysData.cpos);
 
         } else if (taskNum == 4) {
         } else if (taskNum == 5) {

@@ -3,26 +3,35 @@
 
 #include "main.h"
 
-/* Global Macro ------------------------------------------------------------ */
+/* Global Macros ----------------------------------------------------------- */
 
-#define SRL_SIGBUF_LEN 8
-#define SRL_PKGBUF_LEN 8
-#define SRL_PIDBUF_LEN 16
-#define SRL_CMDBUF_LEN 1024
+#define SRL_RESRL    usart1 // 调试返回串口号
+#define SRL_SEND_LEN 1024   // 串口发送缓冲区长度
 
-#define SRL_PRINTF_LEN 1024
+#define SRL_BUF_SLEN 8   // 短缓冲区
+#define SRL_BUF_MLEN 16  // 中缓冲区
+#define SRL_BUF_LLEN 256 // 长缓冲区
 
-#define SERIAL_TIMEOUT 200 // 超时限制（单位：10ms）
+/* Private Types ----------------------------------------------------------- */
+
+// USART 配置索引请至 types.h 修改
+
+// USART 配置结构体
+typedef struct
+{
+    u32 rccGpio;
+    GPIO_TypeDef *gpio;
+    u16 TxRx[2];
+    u8 srcTxRx[2];
+    u8 af;
+    u32 rccUart;
+    USART_TypeDef *uart;
+    IRQn_Type irqn;
+} srl_s;
 
 /* Global Variables -------------------------------------------------------- */
 
-extern u8 srlReFlag; // 串口调试返回标志位
-
-// 委托控制标志位
-
-extern u8 spdLogFlag;
-
-// 串口接收缓冲区（可自定义）
+extern u8 srlReFlag;
 
 extern __IO u8 srlSigBuf[];
 extern __IO u8 srlSigFlg;
@@ -37,19 +46,12 @@ extern __IO u8 srlPkgFlg;
 
 // 初始化函数
 
-void serial_init(u8 srlNum, u32 baudRate, u8 subPriority);
+void serial_init(srl_e idx, u32 baudRate, u8 priority);
 
 // 发送函数
 
-void serial_send_byte(u8 srlNum, u8 Byte);
-void serial_send_string(u8 srlNum, u8 *String);
-void serial_printf(u8 srlNum, const char *format, ...);
-
-// 处理函数
-
-void serial_decode_sign(void);
-void serial_decode_packet(void);
-void serial_decode_pid(void);
-void serial_decode_cmd(void);
+void serial_send_byte(srl_e idx, u8 byte);
+void serial_send_string(srl_e idx, u8 *str);
+void serial_printf(srl_e idx, u8 *format, ...);
 
 #endif

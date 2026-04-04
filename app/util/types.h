@@ -43,6 +43,8 @@ typedef enum {
     usart2,
     usart3,
     uart4,
+    uart5,
+    usart6
 } srl_e;
 
 #endif

@@ -29,6 +29,10 @@
 
 ## 版本
 
+### 2.2.2
+Features:
+- `Imp` 格式化 usart 相关代码
+
 ### 2.2.1
 Features:
 - `Imp` 格式化 wheel, i2c 类, tim 类相关代码
