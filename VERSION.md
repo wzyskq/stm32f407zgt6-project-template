@@ -28,6 +28,10 @@
 
 ## 版本
 
+### 2.2.0
+Features:
+- `Imp` 格式化：key, gray, led 相关代码
+
 ### 2.1.2<
 Features:
 - `Imp` 加入 ZDT_SRL、ZDT_RESRL 两个步进电机串口号宏定义

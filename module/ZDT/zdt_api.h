@@ -1,6 +1,8 @@
 /******************************************************************
  ** \file    zdt_api.c
  **
+ ** \author  Yiiry
+ **
  ** \brief  本文件（zdt_api.c/.h）主要功能为处理电机返回数据包的接收、解析
  **
  ** \pre    需配合 Emm_V5.c/.h 使用
@@ -11,7 +13,7 @@
  **
  **         - zdt_irqHandler() 串口中断中调用，缓存命令.
  **
- **         - zdt_irqEndHandler() 定时中断中调用，终止缓存命令，最大超时时长由定时中断时基和最大超时周期两者乘积决定.
+ **         - zdt_irqEndHandler() 定时中断中调用，终止缓存命令，最大超时时长由 **定时中断时基** 和 **超时判断周期** 两者乘积决定.
  **
  **         - Emm_V5_Get_Sys_Params() 定时中断中调用，解析缓存并传入的 zdtSysData 指针.
  **
@@ -48,13 +50,14 @@
 
 /* Global Macros ----------------------------------------------------------- */
 
-#define ZDT_NUM 2        // 电机数量
-#define ZDT_SRL 4        // 电机串口号
-#define ZDT_RESRL 1      // 调试返回串口号
-#define ZDT_TIMEOUT 1    // 定时器超时周期
-#define ZDT_RVBUF_LEN 64 // 缓存数据包长度
+#define ZDT_NUM           2      // 电机数量
+#define ZDT_SRL           uart4  // 电机串口号
+#define ZDT_RESRL         usart1 // 调试返回串口号
+#define ZDT_TIMEOUT       8      // 接收超时时长（ms）
+#define ZDT_RVBUF_LEN     64     // 缓存数据包长度
+#define ZDT_IRQEND_PERIOD 1      // 结束接收超时判断周期
 
-/* Global Types ------------------------------------------------------------ */
+/* Private Types ----------------------------------------------------------- */
 
 typedef struct
 {
@@ -80,21 +83,40 @@ typedef struct
 
 /* Global Variables -------------------------------------------------------- */
 
+// 存储
+
 extern zdtSysData_t zdtSysData;
+
+// 调试 & 安全
+
+extern __IO bool zdtReFlag;
+extern __IO bool zdtTimeoutFlg;
+extern __IO u32 zdtTimeoutCnt;
+
+// 接收 & 处理
 
 extern __IO u8 zdtRxIdx;
 extern __IO u8 zdtTimCnt;
 extern __IO bool zdtTimFlg;
 extern __IO bool zdtRvFlg;
-
 extern __IO bool zdtTvFlg;
 extern __IO u8 zdtRvBuf[];
 extern u8 zdtTvTag[];
 
 /* Global Functions -------------------------------------------------------- */
 
-extern void zdt_irqHandler(USART_TypeDef *usart);
-extern void zdt_irqEndHandler(void);
-extern void Emm_V5_Get_Sys_Params(zdtSysData_t *data);
+// 工具函数
+
+void zdt_srl_send_hexString(srl_e idx, __IO u8 *data);
+void zdt_irqTimeoutHandler(void);
+
+// 接收函数
+
+void zdt_irqHandler(USART_TypeDef *usart);
+void zdt_irqEndHandler(void);
+
+// 处理函数
+
+void Emm_V5_Get_Sys_Params(zdtSysData_t *data);
 
 #endif

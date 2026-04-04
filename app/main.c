@@ -12,16 +12,17 @@ int main(void)
     /* NVIC中断分组 */
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); // 抢占0~3, 响应0~3
 
+    leds_init();
+    keys_init();
+    oled_init();
+    
+    mpu_init();
+    grays_init();
+    wheels_init();
+
     serial_init(1, 115200, 0);
     // serial_init(2, 115200, 1);
     // serial_init(4, 115200, 2);
-
-    mpu_init();
-
-    oled_init();
-    grays_init();
-    keys_init();
-    wheels_init();
 
     // PID 初始化
     pid_init(&pidValue[pidObj_whlLt], 0.7, 0.07, 0.05);

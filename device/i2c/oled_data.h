@@ -13,7 +13,7 @@
 #define OLED_CHARSET_UTF8 // 定义字符集为UTF8
 // #define OLED_CHARSET_GB2312		//定义字符集为GB2312
 
-/* Global Types ------------------------------------------------------------ */
+/* Private Types ----------------------------------------------------------- */
 
 // 字模基本单元
 typedef struct

@@ -57,7 +57,7 @@ void loop(void)
             Emm_V5_Read_Sys_Params(ZDT_SRL, 1, S_CPOS);
             while (zdtTvFlg); // 等待数据
             serial_printf(1, "cpos = %.2f deg\n", zdtSysData.cpos);
-            
+
         } else if (taskNum == 4) {
         } else if (taskNum == 5) {
             oledViewIdx++;
@@ -79,6 +79,10 @@ void loop(void)
 
         // oled_printf(0, 16 * 0, OLED_8X16, "%4d |%5d", whlSpd[0], whlCnt[0]);
         // oled_printf(0, 16 * 1, OLED_8X16, "%4d |%5d", whlSpd[1], whlCnt[1]);
+
+        // 灰度传感器检测与滤波
+        gray_scan();
+        grayVal = gray_quant_core(graySrc, gray);
 
         oled_ui();
         // oled_printf(8 * 4, 16 * 3, OLED_8X16, "%9d.%02d", sysTime / 100, sysTime % 100);

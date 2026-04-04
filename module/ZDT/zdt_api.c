@@ -1,6 +1,8 @@
 /******************************************************************
  ** \file    zdt_api.c
  **
+ ** \author  Yiiry
+ **
  ** \brief  本文件（zdt_api.c/.h）主要功能为处理电机返回数据包的接收、解析
  **
  ** \pre    需配合 Emm_V5.c/.h 使用
@@ -11,7 +13,7 @@
  **
  **         - zdt_irqHandler() 串口中断中调用，缓存命令.
  **
- **         - zdt_irqEndHandler() 定时中断中调用，终止缓存命令，最大超时时长由定时中断时基和最大超时周期两者乘积决定.
+ **         - zdt_irqEndHandler() 定时中断中调用，终止缓存命令，最大超时时长由 **定时中断时基** 和 **超时判断周期** 两者乘积决定.
  **
  **         - Emm_V5_Get_Sys_Params() 定时中断中调用，解析缓存并传入的 zdtSysData 指针.
  **
@@ -48,18 +50,89 @@
 
 /* Global Variables -------------------------------------------------------- */
 
+// 存储
+
 zdtSysData_t zdtSysData;
 
-__IO u8 zdtRxIdx    = 0; // 串口接收数据状态机
-__IO u8 zdtTimCnt   = 0; // 定时器周期计数变量
-__IO bool zdtTimFlg = 0; // 定时器周期标志位
-__IO bool zdtRvFlg  = 0; // 串口返回数据标志位
+// 调试 & 安全
 
+__IO bool zdtReFlag     = 0; // 串口调试返回标志位
+__IO bool zdtTimeoutFlg = 0; // 串口接收超时计时标志位
+__IO u32 zdtTimeoutCnt  = 0; // 串口接收超时计数
+
+// 接收 & 处理
+
+__IO u8 zdtRxIdx                = 0;   // 串口接收数据状态机
+__IO u8 zdtTimCnt               = 0;   // 定时器周期计数变量
+__IO bool zdtTimFlg             = 0;   // 定时器周期标志位
+__IO bool zdtRvFlg              = 0;   // 串口返回数据标志位
 __IO bool zdtTvFlg              = 0;   // 串口发送数据标志位
 __IO u8 zdtRvBuf[ZDT_RVBUF_LEN] = {0}; // 串口返回数据包（有效值从 1 开始）
 u8 zdtTvTag[ZDT_NUM]            = {0}; // 串口返回数据信息 [地址, 功能码]
 
 /* Global Functions -------------------------------------------------------- */
+
+/* 工具函数 ******************** */
+
+/******************************************************************
+ * \brief      串口发送十六进制字符串
+ * \param[in]  idx 串口索引
+ * \param[in]  data 要发送的十六进制数据字符串，必须以 '\0' 结尾
+ */
+void zdt_srl_send_hexString(srl_e idx, __IO u8 *data)
+{
+    u16 i = 0;
+    for (;; i++) {
+        serial_printf(idx, "%02X ", data[i]);
+        if (data[i] == 0x6B && data[i + 1] == '\0')
+            break;
+    }
+}
+
+/******************************************************************
+ * \brief      串口接收超时处理
+ * \note       在 TIMx 中断服务函数中调用，以防止系统阻塞
+ * \example    // 假设用于 TIM6：
+ *              void TIM6_IRQHandler(void)
+ *              {
+ *                  if (TIM_GetITStatus(TIM6, TIM_IT_Update) == SET) {
+ *                      // ... 其他代码 ...
+ *                      zdt_irqEndHandler();
+ *                      // ... 其他代码 ...
+ *                      TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
+ *                  }
+ *              }
+ */
+void zdt_irqTimeoutHandler(void)
+{
+    if (zdtTimeoutFlg && zdtTvFlg)
+        zdtTimeoutCnt++;
+
+    if (zdtTimeoutCnt >= (ZDT_TIMEOUT * 2)) { // 接收超时时长
+        zdtTimeoutFlg = false;                // 设置超时标志位
+        zdtTvFlg      = false;                // 取消发送标志位，允许发送新数据
+        zdtTimeoutCnt = 0;                    // 重置超时计数
+
+        // 丢弃历史会话
+        zdtRxIdx = 0;     // 重置接收状态
+        zdtRvFlg = false; // 取消数据标志位
+
+        if (zdtReFlag)
+            serial_send_string(ZDT_RESRL, "ZDT:  WARNING: Receiving timeout!\n");
+    }
+}
+
+/* ******************** 工具函数 */
+
+/*
+
+
+
+
+
+*/
+
+/* 接收函数 ******************** */
 
 /******************************************************************
  * \brief      电机中断请求处理
@@ -102,16 +175,16 @@ void zdt_irqHandler(USART_TypeDef *usart)
 
 /******************************************************************
  * \brief      电机终止中断请求处理
- * \param[in]  srlIdx 串口索引，范围 [0, ZDT_SRL_NUM)
+ * \param[in]  srlIdx 串口索引
  * \note       在 TIMx 中断服务函数中调用
- * \example    // 假设用于 TIM7：
- *              void TIM7_IRQHandler(void)
+ * \example    // 假设用于 TIM6：
+ *              void TIM6_IRQHandler(void)
  *              {
- *                  if (TIM_GetITStatus(TIM7, TIM_IT_Update) == SET) {
+ *                  if (TIM_GetITStatus(TIM6, TIM_IT_Update) == SET) {
  *                      // ... 其他代码 ...
  *                      zdt_irqEndHandler();
  *                      // ... 其他代码 ...
- *                      TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
+ *                      TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
  *                  }
  *              }
  */
@@ -119,18 +192,34 @@ void zdt_irqEndHandler(void)
 {
     if (zdtTimFlg) {
         zdtTimCnt++;
-        if (zdtTimCnt >= ZDT_TIMEOUT) { // 最大超时时长 10ms
+        if (zdtTimCnt >= ZDT_IRQEND_PERIOD) { // 结束接收判断最大超时周期
             zdtTimFlg               = false;
             zdtRvFlg                = true; // 设置数据标志位
             zdtRvBuf[++zdtRvBuf[0]] = '\0'; // 字符串结束符
             zdtRxIdx                = 0;    // 重置接收状态
+
+            // 已判定接收完成，关闭超时计时
+            zdtTimeoutFlg = false;
+            zdtTimeoutCnt = 0;
         }
     }
 }
 
+/* ******************** 接收函数 */
+
+/*
+
+
+
+
+
+*/
+
+/* 处理函数 ******************** */
+
 /******************************************************************
  * \brief    解析电机返回数据包内容
- * \note     在 TIMx 中断服务函数中调用，当 zdtRvFlg 为 1 时.
+ * \note     在 TIMx 中断服务函数中调用
  *           - 暂时仅写了部分解析代码，其他部分可参考示例自行补充.
  * \example  // 请放置在 zdt_irqEndHandler(); 之后以确保数据包已接收完成
  *              // ... 其他代码 ...
@@ -146,8 +235,10 @@ void Emm_V5_Get_Sys_Params(zdtSysData_t *data)
     // serial_printf(1, "ZDT: Rv: %02X %02X %02X %02X\n", zdtRvBuf[1], zdtRvBuf[2], zdtRvBuf[3], zdtRvBuf[4]);
 
     if (zdtRvBuf[1] != zdtTvTag[0]) { // 地址不匹配，全部丢弃
-        zdtRvFlg = false;
-        zdtTvFlg = false;
+        zdtRvFlg      = false;
+        zdtTvFlg      = false;
+        zdtTimeoutFlg = false;
+        zdtTimeoutCnt = 0;
         return;
     }
 
@@ -219,10 +310,20 @@ void Emm_V5_Get_Sys_Params(zdtSysData_t *data)
             break;
         default: // 非读取命令的返回数据包/未知标签
             if (zdtRvBuf[3] != 0x02)
-                serial_printf(ZDT_RESRL, "ZDT: Err: %02X %02X %02X\n", zdtRvBuf[1], zdtRvBuf[2], zdtRvBuf[3]);
+                serial_printf(ZDT_RESRL, "ZDT:  Err: %02X %02X %02X\n", zdtRvBuf[1], zdtRvBuf[2], zdtRvBuf[3]);
             break;
     }
 
-    zdtRvFlg = false;
-    zdtTvFlg = false; // 解析完成，允许下一次发送
+    if (zdtReFlag) {
+        serial_send_string(ZDT_RESRL, "ZDT:  Re: ");
+        zdt_srl_send_hexString(ZDT_RESRL, zdtRvBuf);
+        serial_send_byte(ZDT_RESRL, '\n');
+    }
+
+    zdtRvFlg      = false;
+    zdtTvFlg      = false; // 解析完成，允许下一次发送
+    zdtTimeoutFlg = false; // 取消超时计时
+    zdtTimeoutCnt = 0;
 }
+
+/* ******************** 处理函数 */

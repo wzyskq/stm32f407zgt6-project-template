@@ -40,6 +40,8 @@ targets:
         - ../module/FatFS
       libList: []
     excludeList: []
+    settings:
+      debugger: cortex-debug
     toolchain: AC5
     toolchainConfigMap:
       AC5:

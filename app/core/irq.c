@@ -20,12 +20,20 @@ void TIM7_IRQHandler(void)
         zdt_irqEndHandler();                // 电机中断请求处理
         Emm_V5_Get_Sys_Params(&zdtSysData); // 消费标志位 zdtTvFlg
 
+//         u32 t = sysTime / 100;
+// 
+//         if (t % 2 == 0) {
+//             led_on(led0);
+//         } else {
+//             led_off(led0);
+//         }
+
         // 按键
-        if (keyBox[2])
-            keyBox[2]++;
-        if (keyBox[2] == 100) { // 1s 后检查
+        if (keySts.tim)
+            keySts.tim++;
+        if (keySts.tim > keySts.overtime) { // 超时后检查
             key_action();
-            keyBox[2] = 0; // 关闭自增
+            keySts.tim = 0; // 关闭自增
         }
 
         // 方向环

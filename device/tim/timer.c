@@ -402,7 +402,7 @@ void timer_pwm_set(u8 timNum, u8 chNum, u16 duty)
  * \warning     - 确保私有变量配置正确！
  *              - timNum 必须在 timMapping 映射表中有对应配置!
  */
-s16 timer_encoder_read(u8 timNum, sign_t sign)
+s16 timer_encoder_read(u8 timNum, sign_e sign)
 {
     /* 定时器 检测与重映射 */
     if (timNum < 1 || timNum > 14) return 0;
