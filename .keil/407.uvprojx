@@ -385,14 +385,14 @@
           <GroupName>sdk/library</GroupName>
           <Files>
             <File>
-              <FileName>misc.c</FileName>
+              <FileName>stm32f4xx_misc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\sdk\library\misc.c</FilePath>
+              <FilePath>..\sdk\library\stm32f4xx_misc.c</FilePath>
             </File>
             <File>
-              <FileName>misc.h</FileName>
+              <FileName>stm32f4xx_misc.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\sdk\library\misc.h</FilePath>
+              <FilePath>..\sdk\library\stm32f4xx_misc.h</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_adc.c</FileName>

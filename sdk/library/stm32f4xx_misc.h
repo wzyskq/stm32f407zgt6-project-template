@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    misc.h
+  * @file    stm32f4xx_misc.h
   * @author  MCD Application Team
   * @version V1.8.1
   * @date    27-January-2022
@@ -20,8 +20,8 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MISC_H
-#define __MISC_H
+#ifndef __STM32F4xx_MISC_H
+#define __STM32F4xx_MISC_H
 
 #ifdef __cplusplus
  extern "C" {

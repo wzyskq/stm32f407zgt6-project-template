@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    misc.c
+  * @file    stm32f4xx_misc.c
   * @author  MCD Application Team
   * @version V1.8.1
   * @date    27-January-2022
@@ -66,7 +66,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "misc.h"
+#include "stm32f4xx_misc.h"
 
 /** @addtogroup STM32F4xx_StdPeriph_Driver
   * @{
