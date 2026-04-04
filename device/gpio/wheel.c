@@ -2,69 +2,24 @@
 
 /* Global Macros ----------------------------------------------------------- */
 
-#define WHL_NUM 2 // 轮子数量
-
 /* Private Variables ------------------------------------------------------- */
 
-// 私有常量数组（可自定义）
-
-/******************************************************************
- * \brief    轮子对应的定时器及通道映射表
- * \note      - 每个轮子对应一个定时器的单通道 PWM 输出！
- *            - 当前映射表 timer.c 中的 timMapping 映射表无关！
- * \example  {1, 3}, {1, 4}, etc.
- *           定时器1的通道3和通道4分别控制两个轮子
- */
-static const u8 timMapping[][2] = {
-    {0, 0},
-    {1, 3}, // 左轮 TIM1通道3
-    {1, 4}, // 右轮 TIM1通道4
+static const wheel_s whlList[] = {
+    [wheelLt] = {
+        .rccGpio = RCC_AHB1Periph_GPIOD,
+        .gpio    = GPIOD,
+        .pin     = {GPIO_Pin_3, GPIO_Pin_4},
+        .tim     = tim1,
+        .ch      = 3,
+    },
+    [wheelRt] = {
+        .rccGpio = RCC_AHB1Periph_GPIOG,
+        .gpio    = GPIOG,
+        .pin     = {GPIO_Pin_11, GPIO_Pin_10},
+        .tim     = tim1,
+        .ch      = 4,
+    },
 };
-
-/******************************************************************
- * \brief    电机 RCC 外设时钟使能映射表
- * \note      - 仅需列出常用定时器的 GPIO 外设时钟使能宏定义
- *            - 默认控制一个轮子的两个引脚在同一个 GPIO 端口
- * \extends   - AHB1 总线: GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG
- * \example  RCC_AHB1Periph_GPIOA, RCC_AHB1Periph_GPIOB, etc.
- */
-static const u32 whlRccGpio[] = {
-    0,
-    RCC_AHB1Periph_GPIOD,
-    RCC_AHB1Periph_GPIOG,
-};
-
-/******************************************************************
- * \brief    电机 GPIO 端口映射表
- * \note      - 默认控制一个轮子的两个引脚在同一个 GPIO 端口
- * \extends   - GPIO 端口类型: GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG
- * \example  GPIOA, GPIOB, etc.
- */
-static GPIO_TypeDef *whlGpioPort[] = {
-    0,
-    GPIOD,
-    GPIOG,
-};
-
-/******************************************************************
- * \brief    电机 GPIO 引脚映射表
- * \note      - 每个轮子使用两个引脚控制前进与后退
- * \extends   - GPIO_Pin_x, x=0..15
- * \example  {GPIO_Pin_8, GPIO_Pin_9}, etc.
- */
-static const u16 whlGpioPin[][2] = {
-    {0, 0},
-    {GPIO_Pin_3, GPIO_Pin_4}, // 左轮
-    {GPIO_Pin_11, GPIO_Pin_10}, // 右轮
-};
-
-/*
-
-
-
-
-
-*/
 
 /* Global Variables -------------------------------------------------------- */
 
@@ -72,39 +27,38 @@ static const u16 whlGpioPin[][2] = {
 
 /******************************************************************
  * \brief      受控电机 GPIO 初始化
- * \param[in]  whlNum 轮子编号
+ * \param[in]  idx 轮子编号
  * \note        - 建议使用 wheels_init() 初始化所有轮子
- * \warning     - 确保私有变量配置正确！
+ *              - 请先确保 keyNum 置于配置索引末尾
  */
-void wheel_init(u8 whlNum)
+void wheel_init(wheel_e idx)
 {
     /* 轮子检测 */
-    if (whlNum < 1 || whlNum > WHL_NUM) return;
+    if (idx >= wheelNum) return;
 
-    RCC_AHB1PeriphClockCmd(whlRccGpio[whlNum], ENABLE);
+    RCC_AHB1PeriphClockCmd(whlList[idx].rccGpio, ENABLE);
 
-    GPIO_InitTypeDef GPIO_InitStructure;
-    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
+    GPIO_InitTypeDef gpio = {0};
+    gpio.GPIO_Mode  = GPIO_Mode_OUT;
+    gpio.GPIO_Speed = GPIO_Speed_50MHz;
+    gpio.GPIO_OType = GPIO_OType_PP;
+    gpio.GPIO_PuPd  = GPIO_PuPd_NOPULL;
 
     for (u8 i = 0; i < 2; i++) {
-        GPIO_InitStructure.GPIO_Pin = whlGpioPin[whlNum][i];
-        GPIO_Init(whlGpioPort[whlNum], &GPIO_InitStructure);
-        GPIO_ResetBits(whlGpioPort[whlNum], whlGpioPin[whlNum][i]);
+        gpio.GPIO_Pin = whlList[idx].pin[i];
+        GPIO_Init(whlList[idx].gpio, &gpio);
+        GPIO_ResetBits(whlList[idx].gpio, whlList[idx].pin[i]);
     }
 }
 
 /******************************************************************
- * \brief      初始化所有轮子
- * \note       请先确保私有宏 WHL_NUM 已正确设置
- * \warning     - 确保私有变量配置正确！
+ * \brief  初始化所有轮子
+ * \note   请先确保 keyNum 置于配置索引末尾
  */
 void wheels_init(void)
 {
-    for (u8 i = 1; i <= WHL_NUM; i++)
-        wheel_init(i);
+    for (u8 i = 0; i < wheelNum; i++)
+        wheel_init((wheel_e)i);
 }
 
 /* ******************** 初始化函数 */
@@ -121,41 +75,38 @@ void wheels_init(void)
 
 /******************************************************************
  * \brief      轮子停止
- * \param[in]  whlNum 轮子编号
- * \warning     - 确保私有变量配置正确！
+ * \param[in]  idx 轮子编号
  */
-void wheel_stop(u8 whlNum)
+void wheel_stop(wheel_e idx)
 {
-    if (whlNum < 1 || whlNum > WHL_NUM) return;
+    if (idx >= wheelNum) return;
 
-    GPIO_SetBits(whlGpioPort[whlNum], whlGpioPin[whlNum][0]);
-    GPIO_SetBits(whlGpioPort[whlNum], whlGpioPin[whlNum][1]);
+    GPIO_SetBits(whlList[idx].gpio, whlList[idx].pin[0]);
+    GPIO_SetBits(whlList[idx].gpio, whlList[idx].pin[1]);
 }
 
 /*******************************************************************
  * \brief      轮子向前
- * \param[in]  whlNum 轮子编号
- * \warning     - 确保私有变量配置正确！
+ * \param[in]  idx 轮子编号
  */
-void wheel_forward(u8 whlNum)
+void wheel_forward(wheel_e idx)
 {
-    if (whlNum < 1 || whlNum > WHL_NUM) return;
+    if (idx >= wheelNum) return;
 
-    GPIO_SetBits(whlGpioPort[whlNum], whlGpioPin[whlNum][0]);
-    GPIO_ResetBits(whlGpioPort[whlNum], whlGpioPin[whlNum][1]);
+    GPIO_SetBits(whlList[idx].gpio, whlList[idx].pin[0]);
+    GPIO_ResetBits(whlList[idx].gpio, whlList[idx].pin[1]);
 }
 
 /******************************************************************
  * \brief      轮子向后
- * \param[in]  whlNum 轮子编号
- * \warning     - 确保私有变量配置正确！
+ * \param[in]  idx 轮子编号
  */
-void wheel_backward(u8 whlNum)
+void wheel_backward(wheel_e idx)
 {
-    if (whlNum < 1 || whlNum > WHL_NUM) return;
+    if (idx >= wheelNum) return;
 
-    GPIO_ResetBits(whlGpioPort[whlNum], whlGpioPin[whlNum][0]);
-    GPIO_SetBits(whlGpioPort[whlNum], whlGpioPin[whlNum][1]);
+    GPIO_ResetBits(whlList[idx].gpio, whlList[idx].pin[0]);
+    GPIO_SetBits(whlList[idx].gpio, whlList[idx].pin[1]);
 }
 
 /* ******************** 工具函数 */
@@ -173,26 +124,26 @@ void wheel_backward(u8 whlNum)
 /**
  * \brief      设置轮子速度
  * \pre        配置轮子对应的定时器及通道映射表 timMapping
- * \param[in]  whlNum 轮子编号，范围：0..WHL_NUM
- * \param[in]  pwm 速度(脉冲)值，范围：[-ARR, ARR]
- * \note       whlNum 为 0 时，设置所有轮子速度
- * \warning     - 确保私有变量配置正确！
+ * \param[in]  idx 轮子编号
+ * \param[in]  pwm 速度(脉冲)值，范围：-10000..10000
+ * \note       idx 为 wheelNum 时，设置所有轮子速度
  */
-void wheel_pwm_set(u8 whlNum, s16 pwm)
+void wheel_pwm_set(wheel_e idx, s16 pwm)
 {
-    if (whlNum > WHL_NUM) return;
+    if (idx >= wheelNum) return;
 
-    u8 i = (!whlNum) ? 1 : whlNum;
-    u8 m = (!whlNum) ? WHL_NUM : whlNum;
+    u8 i = (idx == wheelNum) ? 0 : idx;
+    u8 m = (idx == wheelNum) ? wheelNum - 1 : idx;  
+
     for (; i <= m; i++) {
         if (pwm > 0)
-            wheel_forward(i);
+            wheel_forward((wheel_e)i);
         else if (pwm < 0)
-            wheel_backward(i);
+            wheel_backward((wheel_e)i);
         else
-            wheel_stop(i);
+            wheel_stop((wheel_e)i);
 
-        timer_pwm_set(timMapping[i][0], timMapping[i][1], (pwm < 0) ? -pwm : pwm);
+        timer_pwmOut_setDuty(whlList[i].tim, whlList[i].ch, (u16)ABS(pwm));
     }
     return;
 }

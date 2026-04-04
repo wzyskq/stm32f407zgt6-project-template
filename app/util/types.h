@@ -3,15 +3,6 @@
 
 /* Global Types ------------------------------------------------------------ */
 
-// 端口类型
-typedef enum {
-    A = 1,
-    B,
-    C,
-    D,
-    E
-} port_e;
-
 // 电平类型
 typedef enum {
     low  = 0,
@@ -38,6 +29,10 @@ typedef enum {
     tim8,
     tim9,
     tim10,
+    tim11,
+    tim12,
+    tim13,
+    tim14
 } tim_e;
 
 /* serial.h ******************** */

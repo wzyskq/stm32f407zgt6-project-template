@@ -52,12 +52,12 @@ u8 f_isopen(FIL *file)
 void sdc_init(void)
 {
     // 配置中断优先级
-    NVIC_InitTypeDef NVIC_InitStructure;
-    NVIC_InitStructure.NVIC_IRQChannel                   = SDIO_IRQn; // SDIO
-    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;    // 使能SDIO中断
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;         // SDIO中断抢占优先级最高
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0;         // SDIO中断优先级最高
-    NVIC_Init(&NVIC_InitStructure);
+    NVIC_InitTypeDef nvic = {0};
+    nvic.NVIC_IRQChannel                   = SDIO_IRQn; // SDIO
+    nvic.NVIC_IRQChannelCmd                = ENABLE;    // 使能SDIO中断
+    nvic.NVIC_IRQChannelPreemptionPriority = 0;         // SDIO中断抢占优先级最高
+    nvic.NVIC_IRQChannelSubPriority        = 0;         // SDIO中断优先级最高
+    NVIC_Init(&nvic);
 
     // 尝试初始化 SD卡，最多5次
     DSTATUS s = 0;

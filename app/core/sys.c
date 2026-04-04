@@ -81,8 +81,8 @@ void loop(void)
         // oled_printf(0, 16 * 1, OLED_8X16, "%4d |%5d", whlSpd[1], whlCnt[1]);
 
         // 灰度传感器检测与滤波
-        gray_scan();
-        grayVal = gray_quant_core(graySrc, gray);
+        // gray_scan();
+        // grayVal = gray_quant_core(graySrc, gray);
 
         oled_ui();
         // oled_printf(8 * 4, 16 * 3, OLED_8X16, "%9d.%02d", sysTime / 100, sysTime % 100);
@@ -96,8 +96,8 @@ void loop(void)
 void speed_loop(void)
 {
     // 获取编码器速度
-    whlCnt[0] = timer_encoder_read(4, normal);
-    whlCnt[1] = timer_encoder_read(3, inverse);
+    whlCnt[0] = timer_encoder_readCnt(tim4, normal);
+    whlCnt[1] = timer_encoder_readCnt(tim3, inverse);
 
     // 指数步进实现
     static s16 Vn[2] = {0}; // 下一步目标速度
@@ -116,8 +116,8 @@ void speed_loop(void)
     if (-100 < whlPwm[1] && whlPwm[1] < 100) whlPwm[1] = 0;
 
     // PWM 调速
-    wheel_pwm_set(1, whlPwm[0]);
-    wheel_pwm_set(2, whlPwm[1]);
+    wheel_pwm_set(wheelLt, whlPwm[0]);
+    wheel_pwm_set(wheelRt, whlPwm[1]);
 }
 
 /******************************************************************

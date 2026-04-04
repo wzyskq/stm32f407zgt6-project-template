@@ -101,7 +101,7 @@ void OLED_WriteData(uint8_t *Data, uint8_t Count)
  */
 void oled_init(void)
 {
-    i2cIdx = i2cObj_OLED;  // 设置当前I2C设备为OLED设备
+    i2cIdx = i2c_OLED;     // 设置当前I2C设备为OLED设备
     i2c_gpio_init(i2cIdx); // 先调用底层的端口初始化
     delay_ms(5);           // 上电延时，等待OLED稳定
 
@@ -258,7 +258,7 @@ uint8_t OLED_IsInAngle(int16_t X, int16_t Y, int16_t StartAngle, int16_t EndAngl
  */
 void oled_update(void) // 四页
 {
-    i2cIdx = i2cObj_OLED; // 设置当前I2C设备为OLED设备
+    i2cIdx = i2c_OLED; // 设置当前I2C设备为OLED设备
     /* 遍历每一页 */
     for (u8 j = 0; j < 8; j++) // ************************************ ************************************ 高度更改
     {
@@ -278,7 +278,7 @@ void oled_update(void) // 四页
  */
 void oled_update_area(int16_t X, int16_t Y, uint8_t Width, uint8_t Height)
 {
-    i2cIdx = i2cObj_OLED; // 设置当前I2C设备为OLED设备
+    i2cIdx = i2c_OLED; // 设置当前I2C设备为OLED设备
     int16_t Page, Page1;
     /* 负数坐标在计算页地址时需要加一个偏移 */
     /* (Y + Height - 1) / 8 + 1的目的是(Y + Height) / 8并向上取整 */

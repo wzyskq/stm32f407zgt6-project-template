@@ -28,7 +28,7 @@ mpuYaw_t mpuYaw;
  */
 void mpu_init(void)
 {
-    i2cIdx = i2cObj_MPU6050;
+    i2cIdx = i2c_MPU6050;
     i2c_gpio_init(i2cIdx);
     delay_ms(8); // 等待器件稳定
 
@@ -110,9 +110,9 @@ u8 mpu_read_id(void)
  */
 void mpu_read_data(mpuData_t *mpuData)
 {
-    u8 lastIdx = i2cIdx;
+    i2c_e lastIdx = i2cIdx;
     u8 buf[14] = {0};
-    i2cIdx     = i2cObj_MPU6050;
+    i2cIdx     = i2c_MPU6050;
 
     i2c_start();
     i2c_send_byte(0xD0); // 写地址

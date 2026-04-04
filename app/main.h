@@ -14,6 +14,8 @@
 
 /* Global Macro ------------------------------------------------------------ */
 
+#define FRQ 84
+
 // 常用工具宏
 
 #define ABS(x)    ((x) > 0 ? (x) : -(x))  // 伪泛型绝对值
@@ -23,7 +25,7 @@
 // 优先级重映射
 
 #define PreemptingPriority(x) ((x) < 10 ? 0 : (x) / 10)
-#define SubPriority(x) ((x) % 10)
+#define SubPriority(x)        ((x) % 10)
 
 /* Private Types ----------------------------------------------------------- */
 

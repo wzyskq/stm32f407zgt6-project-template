@@ -1,31 +1,49 @@
+/******************************************************************
+ * \file    i2c.c
+ *
+ * \brief  软件模拟 I2C 驱动代码说明
+ *
+ * \note   - 本文件为软件模拟的 I2C 通信协议的通用驱动代码.
+ *           参考教程：（江协版）https://blog.csdn.net/xiaobaivera/article/details/140551276.
+ *
+ *         - 为了增加代码的复用性，本文件不作初始化 GPIO 的工作，
+ *           请在使用相应外设前调用 i2c_gpio_init(i2cIdx); 进行初始化.
+ *           同时添加枚举类型 i2cObj_t 来区分不同的 I2C 设备.
+ */
+
 #include "i2c.h"
 
 /* Private Macros ---------------------------------------------------------- */
 
 /* Private Variables ------------------------------------------------------- */
 
-static const u32 i2cRccGpio[] = {
-    0,
-    RCC_AHB1Periph_GPIOB, // mpu6050
-    RCC_AHB1Periph_GPIOF, // oled
+static const i2c_s i2cList[] = {
+    [i2c_OLED]    = {RCC_AHB1Periph_GPIOF, GPIOF, GPIO_Pin_9, GPIO_Pin_10},  // PF9, PF10
+    [i2c_MPU6050] = {RCC_AHB1Periph_GPIOB, GPIOB, GPIO_Pin_12, GPIO_Pin_13}, // PB12, PB13
 };
 
-static GPIO_TypeDef *i2cGpioPort[] = {
-    0,
-    GPIOB, // mpu6050
-    GPIOF, // oled
-};
-
-static const u16 i2cGpioPin[][2] = {
-    // SCL, SDA
-    {0, 0},
-    {GPIO_Pin_12, GPIO_Pin_13}, // mpu6050
-    {GPIO_Pin_9, GPIO_Pin_10},   // oled
-};
+// static const u32 i2cRccGpio[] = {
+//     0,
+//     RCC_AHB1Periph_GPIOB, // mpu6050
+//     RCC_AHB1Periph_GPIOF, // oled
+// };
+// 
+// static GPIO_TypeDef *i2cGpioPort[] = {
+//     0,
+//     GPIOB, // mpu6050
+//     GPIOF, // oled
+// };
+// 
+// static const u16 i2cGpioPin[][2] = {
+//     // SCL, SDA
+//     {0, 0},
+//     {GPIO_Pin_12, GPIO_Pin_13}, // mpu6050
+//     {GPIO_Pin_9, GPIO_Pin_10},  // oled
+// };
 
 /* Global Variables -------------------------------------------------------- */
 
-volatile u8 i2cIdx = 0; // I2C 对象索引
+__IO i2c_e i2cIdx = i2c_OLED; // I2C 对象索引
 
 /*
 
@@ -56,7 +74,7 @@ void i2c_delay(u16 delay)
  */
 void i2c_w_SCL(u8 bit)
 {
-    GPIO_WriteBit(i2cGpioPort[i2cIdx], i2cGpioPin[i2cIdx][0], (BitAction)(bit));
+    GPIO_WriteBit(i2cList[i2cIdx].gpio, i2cList[i2cIdx].scl, (BitAction)(bit));
     i2c_delay(1);
 }
 
@@ -66,7 +84,7 @@ void i2c_w_SCL(u8 bit)
  */
 void i2c_w_SDA(u8 bit)
 {
-    GPIO_WriteBit(i2cGpioPort[i2cIdx], i2cGpioPin[i2cIdx][1], (BitAction)(bit));
+    GPIO_WriteBit(i2cList[i2cIdx].gpio, i2cList[i2cIdx].sda, (BitAction)(bit));
     i2c_delay(1);
 }
 
@@ -76,7 +94,7 @@ void i2c_w_SDA(u8 bit)
  */
 u8 i2c_r_SCL(void)
 {
-    u8 bit = GPIO_ReadInputDataBit(i2cGpioPort[i2cIdx], i2cGpioPin[i2cIdx][0]);
+    u8 bit = GPIO_ReadInputDataBit(i2cList[i2cIdx].gpio, i2cList[i2cIdx].scl);
     i2c_delay(1);
     return bit;
 }
@@ -87,7 +105,7 @@ u8 i2c_r_SCL(void)
  */
 u8 i2c_r_SDA(void)
 {
-    u8 bit = GPIO_ReadInputDataBit(i2cGpioPort[i2cIdx], i2cGpioPin[i2cIdx][1]);
+    u8 bit = GPIO_ReadInputDataBit(i2cList[i2cIdx].gpio, i2cList[i2cIdx].sda);
     i2c_delay(1);
     return bit;
 }
@@ -204,21 +222,22 @@ u8 i2c_recv_ack(void)
  * \brief      I2C GPIO 初始化
  * \param[in]  idx I2C 对象索引
  */
-void i2c_gpio_init(u8 idx)
+void i2c_gpio_init(i2c_e idx)
 {
     /* 使能 GPIO 时钟 */
-    RCC_AHB1PeriphClockCmd(i2cRccGpio[idx], ENABLE);
+    RCC_AHB1PeriphClockCmd(i2cList[idx].rccGpio, ENABLE);
 
     /* I2C 引脚配置 */
-    GPIO_InitTypeDef GPIO_InitStruct;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_OUT;
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;
-    GPIO_InitStruct.GPIO_PuPd  = GPIO_PuPd_NOPULL;
-    GPIO_InitStruct.GPIO_Pin   = i2cGpioPin[idx][0] | i2cGpioPin[idx][1];
-    GPIO_Init(i2cGpioPort[idx], &GPIO_InitStruct);
+    GPIO_InitTypeDef gpio = {0};
+    gpio.GPIO_Speed = GPIO_Speed_50MHz;
+    gpio.GPIO_Mode  = GPIO_Mode_OUT;
+    gpio.GPIO_OType = GPIO_OType_OD;
+    gpio.GPIO_PuPd  = GPIO_PuPd_NOPULL;
+    gpio.GPIO_Pin   = i2cList[idx].scl | i2cList[idx].sda;
+    GPIO_Init(i2cList[idx].gpio, &gpio);
 
     /* 设置引脚初始状态 */
+    i2cIdx = idx;
     i2c_w_SCL(1);
     i2c_w_SDA(1);
 }
