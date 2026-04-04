@@ -28,7 +28,7 @@ targets:
         - ../sdk/user
         - ../app
         - ../app/core
-        - ../app/util
+        - ../app/utils
         - ../device
         - ../device/gpio
         - ../device/i2c

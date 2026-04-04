@@ -1,8 +1,7 @@
-#ifndef __IRQ_H
-#define __IRQ_H
+#ifndef __MISC_H
+#define __MISC_H
 
 #include "main.h"
-#include "sdio_sd.h"
 
 /* Global Macros ----------------------------------------------------------- */
 
@@ -12,15 +11,11 @@
 
 /* Global Functions -------------------------------------------------------- */
 
-// TIM 中断请求
+// 串口解析函数
 
-void TIM6_DAC_IRQHandler(void);
-void TIM7_IRQHandler(void);
-
-// USART 中断请求
-
-void USART1_IRQHandler(void);
-void USART2_IRQHandler(void);
-void UART4_IRQHandler(void);
+void misc_srlParse_sig(void);
+void misc_srlParse_pid(void);
+void misc_srlParse_cmd(void);
+void misc_srlParse_pkg(void);
 
 #endif

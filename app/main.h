@@ -36,7 +36,8 @@
 #include "irq.h"
 #include "sys.h"
 #include "task.h"
-#include "funs.h"
+#include "common.h"
+#include "misc.h"
 #include "pid.h"
 #include "types.h"
 

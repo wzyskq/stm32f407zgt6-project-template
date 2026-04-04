@@ -93,6 +93,17 @@ static const tim_s timList[] = {
         .tim     = TIM4,
         .irqn    = NONE_IRQn,
     },
+    [tim6] = { // 电机解析
+        .rccGpio = 0,
+        .chNum   = 0,
+        .gpio    = {0, 0, 0, 0},
+        .pin     = {0, 0, 0, 0},
+        .af      = {0, 0, 0, 0},
+        .src     = {0, 0, 0, 0},
+        .rccTim  = RCC_APB1Periph_TIM6,
+        .tim     = TIM6,
+        .irqn    = TIM6_DAC_IRQn,
+    },
     [tim7] = { // 系统时基
         .rccGpio = 0,
         .chNum   = 0,

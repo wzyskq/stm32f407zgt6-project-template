@@ -7,6 +7,25 @@
 /* TIM 中断请求 ******************** */
 
 /******************************************************************
+ * \brief  TIM6 中断请求处理函数
+ * \note   步进电机解析时基（中断周期 0.5ms）
+ */
+void TIM6_DAC_IRQHandler(void)
+{
+    if (TIM_GetITStatus(TIM6, TIM_IT_Update) == SET) {
+
+        // 超时计时
+        zdt_irqTimeoutHandler();
+
+        // 电机解析
+        zdt_irqEndHandler();
+        Emm_V5_Get_Sys_Params(&zdtSysData);
+
+        TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
+    }
+}
+
+/******************************************************************
  * \brief  TIM7 中断请求处理函数
  * \note   系统任务调度时基（中断周期 10ms）
  */
@@ -16,17 +35,13 @@ void TIM7_IRQHandler(void)
         // 时间刷新
         ++sysTime;
 
-        // 步进电机
-        zdt_irqEndHandler();                // 电机中断请求处理
-        Emm_V5_Get_Sys_Params(&zdtSysData); // 消费标志位 zdtTvFlg
-
-//         u32 t = sysTime / 100;
-// 
-//         if (t % 2 == 0) {
-//             led_on(led0);
-//         } else {
-//             led_off(led0);
-//         }
+        //         u32 t = sysTime / 100;
+        //
+        //         if (t % 2 == 0) {
+        //             led_on(led0);
+        //         } else {
+        //             led_off(led0);
+        //         }
 
         // 按键
         if (keySts.tim)

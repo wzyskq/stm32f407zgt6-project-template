@@ -37,10 +37,10 @@ s16 tWhlVn = 0; // 时刻速度变量
 void loop(void)
 {
     while (1) {
-        // serial_decode_packet();
-        // serial_decode_sign();
-        // serial_decode_cmd();
-        // serial_decode_pid();
+        misc_srlParse_sig();
+        misc_srlParse_pid();
+        misc_srlParse_cmd();
+        misc_srlParse_pkg();
 
         key_judge(); // 按键检测
 
