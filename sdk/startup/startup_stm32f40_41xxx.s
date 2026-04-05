@@ -33,8 +33,9 @@
 ; <h> Stack Configuration
 ;   <o> Stack Size (in Bytes) <0x0-0xFFFFFFFF:8>
 ; </h>
+; 原本是 0x00002000 (1KB), 结果串口爆栈了, 改成 8KB
 
-Stack_Size      EQU     0x00000400
+Stack_Size      EQU     0x00002000
 
                 AREA    STACK, NOINIT, READWRITE, ALIGN=3
 Stack_Mem       SPACE   Stack_Size

@@ -106,11 +106,13 @@ void misc_srlParse_cmd(void)
         serial_printf(SRL_RESRL, "SRL:  CMD: %s\n", srlCmdBuf + 1);
 
     if (strmatch_s("debug", cCmd, &cCmd)) {
-        if (strmatch_s("-i", cCmd, &cCmd))
+        if (strmatch_s("-i", cCmd, &cCmd)) {
+            serial_printf(SRL_RESRL, "SRL:  CMD: %s\n", srlCmdBuf + 1);
             srlReFlag = 1;
-        else if (strmatch_s("-o", cCmd, &cCmd))
+        } else if (strmatch_s("-o", cCmd, &cCmd)) {
+            serial_printf(SRL_RESRL, "SRL:  CMD: %s\n", srlCmdBuf + 1);
             srlReFlag = 0;
-        else
+        } else
             errLayer = 2;
 
     } else if (strmatch_s("srl", cCmd, &cCmd)) {
@@ -173,25 +175,25 @@ void misc_srlParse_cmd(void)
         } else
             errLayer = 2;
 
-    // } else if (strmatch_s("svo", cCmd, &cCmd)) {
-    //     u8 t = 0, c = 0;
-    //     if (strmatch_s("-p", cCmd, &cCmd)) {
-    //         t   = (u8)strtof(cCmd, &cCmd); // 获取舵机时钟
-    //         c   = (u8)strtof(cCmd, &cCmd); // 获取舵机通道
-    //         arg = strtof(cCmd, NULL);      // 获取位置
-    //         servo_set_pos(t, c, arg);      // 设置舵机位置
-    //     } else if (strmatch_s("-s", cCmd, &cCmd)) {
-    //         t   = (u8)strtof(cCmd, &cCmd); // 获取舵机时钟
-    //         c   = (u8)strtof(cCmd, &cCmd); // 获取舵机通道
-    //         arg = strtof(cCmd, NULL);      // 获取速度
-    //         servo_set_spd(t, c, arg);      // 设置舵机速度
-    //     } else if (strmatch_s("-d", cCmd, &cCmd)) {
-    //         t   = (u8)strtof(cCmd, &cCmd);   // 获取舵机时钟
-    //         c   = (u8)strtof(cCmd, &cCmd);   // 获取舵机通道
-    //         arg = strtof(cCmd, NULL);        // 获取占空比
-    //         timer_pwmOut_setDuty(t, c, arg); // 直接设置占空比
-    //     } else
-    //         errLayer = 2;
+        // } else if (strmatch_s("svo", cCmd, &cCmd)) {
+        //     u8 t = 0, c = 0;
+        //     if (strmatch_s("-p", cCmd, &cCmd)) {
+        //         t   = (u8)strtof(cCmd, &cCmd); // 获取舵机时钟
+        //         c   = (u8)strtof(cCmd, &cCmd); // 获取舵机通道
+        //         arg = strtof(cCmd, NULL);      // 获取位置
+        //         servo_set_pos(t, c, arg);      // 设置舵机位置
+        //     } else if (strmatch_s("-s", cCmd, &cCmd)) {
+        //         t   = (u8)strtof(cCmd, &cCmd); // 获取舵机时钟
+        //         c   = (u8)strtof(cCmd, &cCmd); // 获取舵机通道
+        //         arg = strtof(cCmd, NULL);      // 获取速度
+        //         servo_set_spd(t, c, arg);      // 设置舵机速度
+        //     } else if (strmatch_s("-d", cCmd, &cCmd)) {
+        //         t   = (u8)strtof(cCmd, &cCmd);   // 获取舵机时钟
+        //         c   = (u8)strtof(cCmd, &cCmd);   // 获取舵机通道
+        //         arg = strtof(cCmd, NULL);        // 获取占空比
+        //         timer_pwmOut_setDuty(t, c, arg); // 直接设置占空比
+        //     } else
+        //         errLayer = 2;
 
     } else
         errLayer = 1;

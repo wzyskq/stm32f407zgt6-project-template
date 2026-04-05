@@ -6,8 +6,8 @@ packDir: null
 srcDirs:
   - ../sdk
   - ../app
-  - ../device
-  - ../module
+  - ../drivers
+  - ../vendor
 virtualFolder:
   name: <virtual_root>
   files: []
@@ -29,15 +29,15 @@ targets:
         - ../app
         - ../app/core
         - ../app/utils
-        - ../device
-        - ../device/gpio
-        - ../device/i2c
-        - ../device/sdio
-        - ../device/tim
-        - ../device/usart
-        - ../module
-        - ../module/ZDT
-        - ../module/FatFS
+        - ../drivers
+        - ../drivers/gpio
+        - ../drivers/i2c
+        - ../drivers/sdio
+        - ../drivers/tim
+        - ../drivers/usart
+        - ../vendor
+        - ../vendor/ZDT
+        - ../vendor/FatFS
       libList: []
     excludeList: []
     settings:
