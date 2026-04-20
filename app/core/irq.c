@@ -35,13 +35,16 @@ void TIM7_IRQHandler(void)
         // 时间刷新
         ++sysTime;
 
-        //         u32 t = sysTime / 100;
-        //
-        //         if (t % 2 == 0) {
-        //             led_on(led0);
-        //         } else {
-        //             led_off(led0);
-        //         }
+//         u32 t = sysTime / 100;
+// 
+//         if (t % 2 == 0) {
+//             led_on(led0);
+//         } else {
+//             led_off(led0);
+//         }
+// 
+//         Emm_V5_Vel_Control(ZDT_SRL, 1, t % 2, 600, 200, false);
+//         Emm_V5_Vel_Control(ZDT_SRL, 2, t % 2, 360, 200, false);
 
         // 按键
         if (keySts.tim)

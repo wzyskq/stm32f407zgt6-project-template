@@ -36,14 +36,15 @@ __IO u16 MMCL_count = 0, MMCL_cmd[ZDT_MMCL_LEN] = {0};
 /******************************************************************
  * \brief      发送 Emm_V5.0 命令
  * \param[in]  idx    串口索引
- * \param[in]  cmd    命令字符串
+ * \param[in]  cmd    命令字节数组
+ * \param[in]  len    命令字节长度
  *
  * \note       - 一开始想用 serial_send_string 函数直接发送字符串，所以在每个字符串末尾补上了 \0
  *               但是忘记了 \0 其实就是 0x00，会被串口发送函数当作字符串结束标志，导致发送不完整
  *               目前暂时用用 0x6B 替代 \0 作为字符串结束标志
  * \warning    严禁在此函数内/紧邻后部调用其他串口，否则会导致系统死机、串口端口混淆死机等一系列问题！！！
  */
-void serial_send_emm_v5_cmd(srl_e idx, u8 *cmd)
+void serial_send_emm_v5_cmd(srl_e idx, u8 *cmd, u8 len)
 {
     // 这里一定不能加其他串口
 
@@ -55,7 +56,7 @@ void serial_send_emm_v5_cmd(srl_e idx, u8 *cmd)
     zdtTvTag[1] = cmd[1]; // ******** 可选行，需配合 zdt_api.c/.h 使用，记录功能码信息 ********
 
     u8 i;
-    for (i = 0; cmd[i - 1] != 0x6B; i++) {
+    for (i = 0; i < len; i++) {
         serial_send_byte(idx, cmd[i]);
         // serial_send_byte(1, cmd[i]);
     }
@@ -94,7 +95,7 @@ void Emm_V5_Trig_Encoder_Cal(srl_e idx, u8 addr)
     cmd[3] = 0x6B; // 校验字节
     cmd[4] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -113,7 +114,7 @@ void Emm_V5_Reset_Motor(srl_e idx, u8 addr)
     cmd[3] = 0x6B; // 校验字节
     cmd[4] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -132,7 +133,7 @@ void Emm_V5_Reset_CurPos_To_Zero(srl_e idx, u8 addr)
     cmd[3] = 0x6B; // 校验字节
     cmd[4] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -151,7 +152,7 @@ void Emm_V5_Reset_Clog_Pro(srl_e idx, u8 addr)
     cmd[3] = 0x6B; // 校验字节
     cmd[4] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -170,7 +171,7 @@ void Emm_V5_Restore_Motor(srl_e idx, u8 addr)
     cmd[3] = 0x6B; // 校验字节
     cmd[4] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /* ******************** 触发动作命令 */
@@ -216,7 +217,7 @@ void Emm_V5_Multi_Motor_Cmd(srl_e idx, u8 addr)
     ++i; // 校验字节
     cmd[i] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, i);
 
     MMCL_count = 0; // 发送后清空缓冲计数
 }
@@ -241,7 +242,7 @@ void Emm_V5_En_Control(srl_e idx, u8 addr, bool state, bool snF)
     cmd[5] = 0x6B;      // 校验字节
     cmd[6] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -268,7 +269,7 @@ void Emm_V5_Vel_Control(srl_e idx, u8 addr, u8 dir, u16 vel, u8 acc, bool snF)
     cmd[7] = 0x6B;           // 校验字节
     cmd[8] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -305,7 +306,7 @@ void Emm_V5_Pos_Control(srl_e idx, u8 addr, u8 dir, u16 vel, u8 acc, u32 clk, bo
     cmd[12] = 0x6B;            // 校验字节
     cmd[13] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -326,7 +327,7 @@ void Emm_V5_Stop_Now(srl_e idx, u8 addr, bool snF)
     cmd[4] = 0x6B; // 校验字节
     cmd[5] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -345,7 +346,7 @@ void Emm_V5_Synchronous_motion(srl_e idx, u8 addr)
     cmd[3] = 0x6B; // 校验字节
     cmd[4] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /* ******************** 运动控制命令 */
@@ -382,7 +383,7 @@ void Emm_V5_Origin_Set_O(srl_e idx, u8 addr, bool svF)
     cmd[4] = 0x6B; // 校验字节
     cmd[5] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -404,7 +405,7 @@ void Emm_V5_Origin_Trigger_Return(srl_e idx, u8 addr, u8 o_mode, bool snF)
     cmd[4] = 0x6B;   // 校验字节
     cmd[5] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -423,7 +424,7 @@ void Emm_V5_Origin_Interrupt(srl_e idx, u8 addr)
     cmd[3] = 0x6B; // 校验字节
     cmd[4] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -441,7 +442,7 @@ void Emm_V5_Origin_Read_Params(srl_e idx, u8 addr)
     cmd[2] = 0x6B; // 校验字节
     cmd[3] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -485,7 +486,7 @@ void Emm_V5_Origin_Modify_Params(srl_e idx, u8 addr, bool svF, u8 o_mode, u8 o_d
     cmd[19] = 0x6B;              // 校验字节
     cmd[20] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /* ********************** 原点回零命令 */
@@ -585,7 +586,7 @@ void Emm_V5_Auto_Return_Sys_Params_Timed(srl_e idx, u8 addr, zdtSysParams_t s, u
     cmd[i++] = 0x6B;               // 校验字节
     cmd[i]   = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, i);
 }
 
 /******************************************************************
@@ -664,7 +665,7 @@ void Emm_V5_Read_Sys_Params(srl_e idx, u8 addr, zdtSysParams_t s)
     cmd[i++] = 0x6B; // 校验字节
     cmd[i]   = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, i);
 }
 
 /* ******************** 读取系统参数命令 */
@@ -703,7 +704,7 @@ void Emm_V5_Modify_Motor_ID(srl_e idx, u8 addr, bool svF, u8 id)
     cmd[5] = 0x6B; // 校验字节
     cmd[6] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -726,7 +727,7 @@ void Emm_V5_Modify_MicroStep(srl_e idx, u8 addr, bool svF, u8 mstep)
     cmd[5] = 0x6B;  // 校验字节
     cmd[6] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -746,7 +747,7 @@ void Emm_V5_Modify_PDFlag(srl_e idx, u8 addr, bool pdf)
     cmd[3] = 0x6B; // 校验字节
     cmd[4] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -764,7 +765,7 @@ void Emm_V5_Read_Opt_Param_Sta(srl_e idx, u8 addr)
     cmd[2] = 0x6B; // 校验字节
     cmd[3] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -788,7 +789,7 @@ void Emm_V5_Modify_Motor_Type(srl_e idx, u8 addr, bool svF, bool mottype)
     cmd[5] = 0x6B;    // 校验字节
     cmd[6] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -811,7 +812,7 @@ void Emm_V5_Modify_Firmware_Type(srl_e idx, u8 addr, bool svF, bool fwtype)
     cmd[5] = 0x6B;   // 校验字节
     cmd[6] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -834,7 +835,7 @@ void Emm_V5_Modify_Ctrl_Mode(srl_e idx, u8 addr, bool svF, bool ctrl_mode)
     cmd[5] = 0x6B;      // 校验字节
     cmd[6] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -857,7 +858,7 @@ void Emm_V5_Modify_Motor_Dir(srl_e idx, u8 addr, bool svF, bool dir)
     cmd[5] = 0x6B; // 校验字节
     cmd[6] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -880,7 +881,7 @@ void Emm_V5_Modify_Lock_Btn(srl_e idx, u8 addr, bool svF, bool lock)
     cmd[5] = 0x6B; // 校验字节
     cmd[6] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -903,7 +904,7 @@ void Emm_V5_Modify_S_Vel(srl_e idx, u8 addr, bool svF, bool s_vel)
     cmd[5] = 0x6B;  // 校验字节
     cmd[6] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -927,7 +928,7 @@ void Emm_V5_Modify_OM_mA(srl_e idx, u8 addr, bool svF, u16 om_ma)
     cmd[6] = 0x6B;             // 校验字节
     cmd[7] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -951,7 +952,7 @@ void Emm_V5_Modify_FOC_mA(srl_e idx, u8 addr, bool svF, u16 foc_mA)
     cmd[6] = 0x6B;              // 校验字节
     cmd[7] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -969,7 +970,7 @@ void Emm_V5_Read_PID_Params(srl_e idx, u8 addr)
     cmd[2] = 0x6B; // 校验字节
     cmd[3] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -1005,7 +1006,7 @@ void Emm_V5_Modify_PID_Params(srl_e idx, u8 addr, bool svF, u32 kp, u32 ki, u32 
     cmd[16] = 0x6B; // 校验字节
     cmd[17] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -1024,7 +1025,7 @@ void Emm_V5_Read_DMX512_Params(srl_e idx, u8 addr)
     cmd[3] = 0x6B; // 校验字节
     cmd[4] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -1066,7 +1067,7 @@ void Emm_V5_Modify_DMX512_Params(srl_e idx, u8 addr, bool svF, u16 tch, u8 nch, 
     cmd[18] = 0x6B;                 // 校验字节
     cmd[19] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -1084,7 +1085,7 @@ void Emm_V5_Read_Pos_Window(srl_e idx, u8 addr)
     cmd[2] = 0x6B; // 校验字节
     cmd[3] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -1108,7 +1109,7 @@ void Emm_V5_Modify_Pos_Window(srl_e idx, u8 addr, bool svF, u16 prw)
     cmd[6] = 0x6B;           // 校验字节
     cmd[7] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -1126,7 +1127,7 @@ void Emm_V5_Read_Otocp(srl_e idx, u8 addr)
     cmd[2] = 0x6B; // 校验字节
     cmd[3] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -1156,7 +1157,7 @@ void Emm_V5_Modify_Otocp(srl_e idx, u8 addr, bool svF, u16 otp, u16 ocp, u16 tim
     cmd[10] = 0x6B;               // 校验字节
     cmd[11] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -1174,7 +1175,7 @@ void Emm_V5_Read_Heart_Protect(srl_e idx, u8 addr)
     cmd[2] = 0x6B; // 校验字节
     cmd[3] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -1200,7 +1201,7 @@ void Emm_V5_Modify_Heart_Protect(srl_e idx, u8 addr, bool svF, u32 hp)
     cmd[8] = 0x6B;           // 校验字节
     cmd[9] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -1218,7 +1219,7 @@ void Emm_V5_Read_Integral_Limit(srl_e idx, u8 addr)
     cmd[2] = 0x6B; // 校验字节
     cmd[3] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -1244,7 +1245,7 @@ void Emm_V5_Modify_Integral_Limit(srl_e idx, u8 addr, bool svF, u32 il)
     cmd[8] = 0x6B;           // 校验字节
     cmd[9] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /* ******************** 读写驱动参数命令 */
@@ -1279,7 +1280,7 @@ void Emm_V5_Read_System_State_Params(srl_e idx, u8 addr)
     cmd[3] = 0x6B; // 校验字节
     cmd[4] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /******************************************************************
@@ -1298,7 +1299,7 @@ void Emm_V5_Read_Motor_Conf_Params(srl_e idx, u8 addr)
     cmd[3] = 0x6B; // 校验字节
     cmd[4] = '\0';
 
-    serial_send_emm_v5_cmd(idx, cmd);
+    serial_send_emm_v5_cmd(idx, cmd, (u8)(sizeof(cmd) - 1));
 }
 
 /* ******************** 读写驱动参数命令 */
