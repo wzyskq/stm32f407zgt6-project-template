@@ -1,7 +1,7 @@
 #ifndef __GRAYSCALE_H_
 #define __GRAYSCALE_H_
 
-#include "main.h"
+#include "heads.h"
 
 /* Global Macros ----------------------------------------------------------- */
 

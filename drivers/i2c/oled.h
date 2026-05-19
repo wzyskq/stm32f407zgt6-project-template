@@ -1,7 +1,7 @@
 #ifndef __OLED_H
 #define __OLED_H
 
-#include "main.h"
+#include "i2c.h"
 #include "oled_data.h"
 
 /* Exported Macros --------------------------------------------------------- */

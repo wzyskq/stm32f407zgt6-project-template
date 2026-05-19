@@ -1,13 +1,29 @@
 #ifndef __TIMER_H
 #define __TIMER_H
 
-#include "main.h"
+#include "heads.h"
 
 /* Global Macros ----------------------------------------------------------- */
 
 /* Private Types ----------------------------------------------------------- */
 
-// TIM 配置索引请至 types.h 修改
+// TIM 配置索引
+typedef enum {
+    tim1 = 0,
+    tim2,
+    tim3,
+    tim4,
+    tim5,
+    tim6,
+    tim7,
+    tim8,
+    tim9,
+    tim10,
+    tim11,
+    tim12,
+    tim13,
+    tim14
+} tim_e;
 
 // TIM 配置结构体
 typedef struct {

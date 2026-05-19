@@ -1,7 +1,7 @@
 #ifndef __SERIAL_H
 #define __SERIAL_H
 
-#include "main.h"
+#include "heads.h"
 
 /* Global Macros ----------------------------------------------------------- */
 
@@ -14,7 +14,15 @@
 
 /* Private Types ----------------------------------------------------------- */
 
-// USART 配置索引请至 types.h 修改
+// USART 配置索引
+typedef enum {
+    usart1 = 0,
+    usart2,
+    usart3,
+    uart4,
+    uart5,
+    usart6
+} srl_e;
 
 // USART 配置结构体
 typedef struct
@@ -33,14 +41,10 @@ typedef struct
 
 extern u8 srlReFlag;
 
-extern __IO u8 srlSigBuf[];
-extern __IO u8 srlSigFlg;
 extern __IO u8 srlPidBuf[];
 extern __IO u8 srlPidFlg;
 extern __IO u8 srlCmdBuf[];
 extern __IO u8 srlCmdFlg;
-extern __IO u8 srlPkgBuf[];
-extern __IO u8 srlPkgFlg;
 
 /* Global Functions -------------------------------------------------------- */
 

@@ -8,37 +8,67 @@
 
 /* Global Functions -------------------------------------------------------- */
 
+/* 执行函数 ******************** */
+
+/******************************************************************
+ * @brief  执行按键动作
+ */
+void key_action(void)
+{
+
+    if (keySts.idx == key0) {
+        if (keySts.cnt == 1)
+            led_turn(led0);
+    } else if (keySts.idx == key1) {
+        if (keySts.cnt == 1)
+            taskNum = 1;
+        // else if (keySts.cnt == 2)
+        //     taskNum = 5;
+    } else if (keySts.idx == key2) {
+        if (keySts.cnt == 1)
+            taskNum = 2;
+        // else if (keySts.cnt == 2)
+        //     taskNum = 6;
+    } else if (keySts.idx == key3) {
+        if (keySts.cnt == 1)
+            taskNum = 3;
+        // else if (keySts.cnt == 2)
+        //     taskNum = 7;
+    } else if (keySts.idx == key4) {
+        if (keySts.cnt == 1)
+            taskNum = 4;
+        // else if (keySts.cnt == 2)
+        //     taskNum = 8;
+    } else if (keySts.idx == key5) {
+        if (keySts.cnt == 1)
+            taskNum = 5;
+        // else if (keySts.cnt == 2)
+        // taskNum = 10;
+    } else if (keySts.idx == key6) {
+        if (keySts.cnt == 1)
+            taskNum = 6;
+        // else if (keySts.cnt == 2)
+        // taskNum = 12;
+    }
+
+    oled_printf(0, 48, OLED_8X16, "%d-%d", keySts.idx, keySts.cnt);
+    // oled_update();
+
+    if (keySts.idx)
+        keySts.idx = 0;
+}
+
+/* ******************** 执行函数 */
+
+/*
+
+
+
+
+
+*/
+
 /* 串口解析函数 ******************** */
-
-/******************************************************************
- * \brief  解析 srlSigBuf 数据包内容
- * \note   在主循环中调用，当 srlSigFlg 为 1 时
- */
-void misc_srlParse_sig(void)
-{
-    if (!srlSigFlg)
-        return;
-
-    // pass
-
-    srlSigFlg = 0;
-    if (srlReFlag)
-        serial_printf(SRL_RESRL, "> Signal\n");
-}
-
-/******************************************************************
- * \brief  解析 srlPkgBuf 数据包内容
- * \note   在主循环中调用，当 srlPkgFlg 为 1 时
- */
-void misc_srlParse_pkg(void)
-{
-    if (!srlPkgFlg)
-        return;
-
-    srlPkgFlg = 0;
-    if (srlReFlag)
-        serial_printf(SRL_RESRL, "> Package\n");
-}
 
 /******************************************************************
  * \brief  解析 srlPidBuf 数据包内容
@@ -89,9 +119,6 @@ void misc_srlParse_pid(void)
  *            srl -r <x> <str>         向串口x发送字符串
  *            led -i/-o/-t <x>         打开/关闭/切换 LEDx
  *            svo -p/-s <t> <c> <val>  设置指定时钟舵机位置/速度
- * \note   Q&A：
- *            Q1: 为什么要用传递指针 rCmd？
- *            A1: 若直接将 strmatch_s 的值赋给 cCmd，一旦第一个条件不满足，其值会直接变成 NULL，导致后续判断无法进行
  */
 void misc_srlParse_cmd(void)
 {
@@ -150,7 +177,8 @@ void misc_srlParse_cmd(void)
             u8 acc    = (u8)strtof(cCmd, &cCmd);
             vel *= 10; // 开启了缩小十倍，实际输入单位为 0.1 RPM
             // while (zdtTvFlg); // 等待清零
-            Emm_V5_Vel_Control(ZDT_SRL, addr, dir, (u16)ABS(vel), acc, false);
+            // Emm_V5_Vel_Control(ZDT_SRL, addr, dir, (u16)ABS(vel), acc, false);
+            zdt_vel_control(ZDT_SRL, addr, dir, (u16)ABS(vel), acc, false);
         } else if (strmatch_s("-p", cCmd, &cCmd)) {
             u8 addr   = (u8)strtof(cCmd, &cCmd);
             float vel = (float)strtof(cCmd, &cCmd);
@@ -159,19 +187,23 @@ void misc_srlParse_cmd(void)
             vel *= 10;                  // 开启了缩小十倍，实际输入单位为 0.1 RPM
             u8 dir = (pos > 0) ? 0 : 1; // 根据位置正负自动判断方向
             // while (zdtTvFlg);           // 等待清零
-            Emm_V5_Pos_Control(ZDT_SRL, addr, dir, (u16)ABS(vel), acc, (u32)ABS(pos), true, false);
+            // Emm_V5_Pos_Control(ZDT_SRL, addr, dir, (u16)ABS(vel), acc, (u32)ABS(pos), true, false);
+            zdt_pos_control(ZDT_SRL, addr, dir, (u16)ABS(vel), acc, (u32)ABS(pos), true, false);
         } else if (strmatch_s("-o", cCmd, &cCmd)) {
             u8 addr = (u8)strtof(cCmd, &cCmd);
             // while (zdtTvFlg); // 等待清零
-            Emm_V5_Stop_Now(ZDT_SRL, addr, false);
+            // Emm_V5_Stop_Now(ZDT_SRL, addr, false);
+            zdt_stop_now(ZDT_SRL, addr, false);
         } else if (strmatch_s("--oso", cCmd, &cCmd)) {
             u8 addr = (u8)strtof(cCmd, &cCmd);
             // while (zdtTvFlg); // 等待清零
-            Emm_V5_Origin_Set_O(ZDT_SRL, addr, true);
+            // Emm_V5_Origin_Set_O(ZDT_SRL, addr, true);
+            zdt_origin_set_o(ZDT_SRL, addr, true);
         } else if (strmatch_s("--otr", cCmd, &cCmd)) {
             u8 addr = (u8)strtof(cCmd, &cCmd);
             // while (zdtTvFlg); // 等待清零
-            Emm_V5_Origin_Trigger_Return(ZDT_SRL, addr, 1, false); // 1 为单圈方向回零
+            // Emm_V5_Origin_Trigger_Return(ZDT_SRL, addr, 1, false); // 1 为单圈方向回零
+            zdt_origin_trigger_return(ZDT_SRL, addr, 1, false); // 1 为单圈方向回零
         } else
             errLayer = 2;
 

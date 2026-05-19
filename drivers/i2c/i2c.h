@@ -1,20 +1,24 @@
 /******************************************************************
  ** \file    i2c.h
- ** 
- ** \brief  软件模拟 I2C 驱动代码说明
- ** 
+ **
+ ** \author  Yiiry
+ **
+ ** \date    2026.1
+ **
+ ** \brief   软件模拟 I2C 驱动代码说明
+ **
  ** \note   - 本文件为软件模拟的 I2C 通信协议的通用驱动代码.
  **           参考教程：（江协版）https://blog.csdn.net/xiaobaivera/article/details/140551276.
  **
  **         - 为了增加代码的复用性，本文件不作初始化 GPIO 的工作，
  **           请在使用相应外设前调用 i2c_gpio_init(i2cIdx); 进行初始化.
  **           同时添加枚举类型 i2cObj_t 来区分不同的 I2C 设备.
- **/
+ */
 
 #ifndef __I2C_H_
 #define __I2C_H_
 
-#include "main.h"
+#include "heads.h"
 
 /* Private Types ----------------------------------------------------------- */
 

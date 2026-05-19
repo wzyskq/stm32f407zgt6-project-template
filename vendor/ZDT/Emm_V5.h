@@ -13,13 +13,16 @@
  **
  **         - 函数增加形参串口号来适配多串口控制，并用 serial_send_emm_v5_cmd() 统一命令发送接口（若需移植直接改该函数即可）.
  **
- **         推荐配合 zdt_api.c/.h 使用，具体使用方法请参考文件中的函数注释和示例.
+ **         推荐配合 zdt_api.c/.h 和 zdt_pro.c/.h 使用，具体使用方法请参考文件中的函数注释和示例.
  */
 
 #ifndef __EMM_V5_H
 #define __EMM_V5_H
 
-#include "main.h"
+#include "serial.h"
+#include "zdt_api.h"
+
+#if defined(ZDT_EMM_V5) && !defined(ZDT_X_V2) // 仅当定义 ZDT_EMM_V5 时编译当前文件内容
 
 /**********************************************************
 ***	Emm_V5.0步进闭环控制例程
@@ -35,27 +38,6 @@
 #define ZDT_MMCL_LEN 512
 
 /* Private Types ----------------------------------------------------------- */
-
-typedef enum {
-    S_VBUS  = 5,  // 读取总线电压
-    S_CBUS  = 6,  // 读取总线电流
-    S_CPHA  = 7,  // 读取相电流
-    S_ENCO  = 8,  // 读取编码器原始值
-    S_CLKC  = 9,  // 读取实时脉冲数
-    S_ENCL  = 10, // 读取经过线性化校准后的编码器值
-    S_CLKI  = 11, // 读取输入脉冲数
-    S_TPOS  = 12, // 读取电机目标位置
-    S_SPOS  = 13, // 读取电机实时设定的目标位置
-    S_VEL   = 14, // 读取电机实时转速
-    S_CPOS  = 15, // 读取电机实时位置
-    S_PERR  = 16, // 读取电机位置误差
-    S_VBAT  = 17, // 读取多圈编码器电池电压（Y42）
-    S_TEMP  = 18, // 读取电机实时温度（Y42）
-    S_FLAG  = 19, // 读取电机状态标志位
-    S_OFLAG = 20, // 读取回零状态标志位
-    S_OAF   = 21, // 读取电机状态标志位 + 回零状态标志位（Y42）
-    S_PIN   = 22, // 读取引脚状态（Y42）
-} zdtSysParams_t;
 
 /* Global Variables -------------------------------------------------------- */
 
@@ -132,8 +114,8 @@ void Emm_V5_Origin_Modify_Params(srl_e idx, u8 addr, bool svF, u8 o_mode, u8 o_d
 // 定时返回信息命令（Y42）
 // 读取系统参数
 
-void Emm_V5_Auto_Return_Sys_Params_Timed(srl_e idx, u8 addr, zdtSysParams_t s, u16 time_ms);
-void Emm_V5_Read_Sys_Params(srl_e idx, u8 addr, zdtSysParams_t s);
+void Emm_V5_Auto_Return_Sys_Params_Timed(srl_e idx, u8 addr, zdtSysParams_e s, u16 time_ms);
+void Emm_V5_Read_Sys_Params(srl_e idx, u8 addr, zdtSysParams_e s);
 
 /**********************************************************
 *** 读写驱动参数命令
@@ -269,11 +251,13 @@ void Emm_V5_MMCL_Origin_Modify_Params(u8 addr, bool svF, u8 o_mode, u8 o_dir, u1
 // 定时返回信息命令（Y42） - 加载到多电机指令上
 // 读取系统参数 - 加载到多电机指令上
 
-void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(u8 addr, zdtSysParams_t s, u16 time_ms);
-void Emm_V5_MMCL_Read_Sys_Params(u8 addr, zdtSysParams_t s);
+void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(u8 addr, zdtSysParams_e s, u16 time_ms);
+void Emm_V5_MMCL_Read_Sys_Params(u8 addr, zdtSysParams_e s);
 
 /**********************************************************
 *** 读写驱动参数命令
 **********************************************************/
+
+#endif
 
 #endif

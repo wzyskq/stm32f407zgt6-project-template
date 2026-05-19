@@ -1,52 +1,46 @@
 /******************************************************************
- ** \file    zdt_api.c
+ ** \file    zdt_api.h
  **
  ** \author  Yiiry
  **
- ** \brief  本文件（zdt_api.c/.h）主要功能为处理电机返回数据包的接收、解析
+ ** \brief  本文件（zdt_api.c/.h）主要功能为发送电机控制命令.
+ **         衍生文件（zdt_pro.c/.h）处理电机返回数据包的接收、解析.
  **
- ** \pre    需配合 Emm_V5.c/.h 使用
+ ** \pre    需配合 Emm_V5.c/.h 和 X_V2.c/.h 使用
  **
- ** \note   张大头闭环步进电机本身就是集成好的闭环系统，一般情况下直接用 Emm_V5.c/.h 提供的命令控制电机即可.
- **         但如果需要对电机返回的数据包进行分析处理就比较麻烦，所以笔者就封装了这一套 API 来处理电机返回数据包的接收和解析.
- **         主要包括如下三个函数：
- **
- **         - zdt_irqHandler() 串口中断中调用，缓存命令.
- **
- **         - zdt_irqEndHandler() 定时中断中调用，终止缓存命令，最大超时时长由 **定时中断时基** 和 **超时判断周期** 两者乘积决定.
- **
- **         - Emm_V5_Get_Sys_Params() 定时中断中调用，解析缓存并传入的 zdtSysData 指针.
- **
- **         发送数据前已做阻塞判断处理，但建议在每次调用 Emm_V5 命令前先判断 zdtTxFlg 状态来避免数据冲突.
- **         判断状态方式可采用短时阻塞（逻辑清晰但浪费部分处理资源）或跳出逻辑（系统调度及时但复杂化上下逻辑）两种方式.
- **         具体示例如下.
- **
- ** \example  // 判断状态方式一：短时阻塞
- **             while (zdtTvFlg); // 等待清零
- **             Emm_V5_Vel_Control(4, 1, 0, 60, 0, false);
- **             while (zdtTvFlg); // 等待清零
- **             Emm_V5_Vel_Control(4, 1, 0, 30, 0, false);
- **
- ** \example  // 判断状态方式二：跳出逻辑
- **             if (!zdtTvFlg) {
- **                 Emm_V5_Vel_Control(4, 1, 0, 60, 0, false);
- **                 // ... 其他命令 ...
- **             } else return; // 或者其他处理方式
- **
- ** \example  // 获取实时数据
- **             Emm_V5_Read_Sys_Params(4, 1, S_VEL);                   // 申请获取速度
- **             while (zdtTvFlg);                                      // 等待更新数据
- **             serial_printf(1, "v = %d rpm\n", (s32)zdtSysData.vel); // 串口打印数据
- **
- ** \note   Tips:
- **         - 减小定时器时基和最大超时周期可以提高数据接收的实时性，但过小也可能会增加丢包风险.
+ ** \note   张大头闭环步进电机本身就是集成好的闭环系统，一般情况下直接用本文件提供的命令控制电机即可.
  */
 
 #ifndef __ZDT_API_H
 #define __ZDT_API_H
 
+#include "heads.h"
+#include "zdt_com.h"
+#include "zdt_pro.h"
+
+/* 固件选择 */
+
+#if !defined(ZDT_EMM_V5) && !defined(ZDT_X_V2)
+
+#define ZDT_EMM_V5 // Emm 固件
+// #define ZDT_X_V2   // X 固件
+
+#endif
+
+/* 重复定义检查 */
+
+#if defined(ZDT_EMM_V5) && defined(ZDT_X_V2)
+#error "请仅定义 ZDT_EMM_V5 或 ZDT_X_V2 中的一个，当前定义了两个，请检查 zdt_api.h 文件顶部的宏定义部分！"
+#endif
+
+/* 文件引用 */
+
+#ifdef ZDT_EMM_V5
 #include "Emm_V5.h"
-#include "main.h"
+#elif defined(ZDT_X_V2)
+#include "X_V2.h"
+#endif
+
 
 /* Global Macros ----------------------------------------------------------- */
 
@@ -59,64 +53,69 @@
 
 /* Private Types ----------------------------------------------------------- */
 
-typedef struct
-{
-    float vbus;  // 读取总线电压
-    float cbus;  // 读取总线电流
-    float cpha;  // 读取相电流
-    float enco;  // 读取编码器原始值
-    float clkc;  // 读取实时脉冲数
-    float encl;  // 读取经过线性化校准后的编码器值
-    float clki;  // 读取输入脉冲数
-    float tpos;  // 读取电机目标位置
-    float spos;  // 读取电机实时设定的目标位置
-    float vel;   // 读取电机实时转速
-    float cpos;  // 读取电机实时位置
-    float perr;  // 读取电机位置误差
-    float vbat;  // 读取多圈编码器电池电压（Y42）
-    float temp;  // 读取电机实时温度（Y42）
-    float flag;  // 读取电机状态标志位
-    float oflag; // 读取回零状态标志位
-    float oaf;   // 读取电机状态标志位 + 回零状态标志位（Y42）
-    float pin;   // 读取引脚状态（Y42）
-} zdtSysData_t;
-
 /* Global Variables -------------------------------------------------------- */
-
-// 存储
-
-extern zdtSysData_t zdtSysData;
-
-// 调试 & 安全
-
-extern __IO bool zdtReFlag;
-extern __IO bool zdtTimeoutFlg;
-extern __IO u32 zdtTimeoutCnt;
-
-// 接收 & 处理
-
-extern __IO u8 zdtRxIdx;
-extern __IO u8 zdtTimCnt;
-extern __IO bool zdtTimFlg;
-extern __IO bool zdtRvFlg;
-extern __IO bool zdtTvFlg;
-extern __IO u8 zdtRvBuf[];
-extern u8 zdtTvTag[];
 
 /* Global Functions -------------------------------------------------------- */
 
-// 工具函数
-
-void zdt_srl_send_hexString(srl_e idx, __IO u8 *data);
-void zdt_irqTimeoutHandler(void);
-
-// 接收函数
-
-void zdt_irqHandler(USART_TypeDef *usart);
-void zdt_irqEndHandler(void);
-
-// 处理函数
-
-void Emm_V5_Get_Sys_Params(zdtSysData_t *data);
+void zdt_trig_encoder_cal(srl_e idx, u8 addr);
+void zdt_reset_motor(srl_e idx, u8 addr);
+void zdt_reset_curpos_to_zero(srl_e idx, u8 addr);
+void zdt_reset_clog_pro(srl_e idx, u8 addr);
+void zdt_restore_motor(srl_e idx, u8 addr);
+void zdt_multi_motor_cmd(srl_e idx, u8 addr);
+void zdt_en_control(srl_e idx, u8 addr, bool state, bool snF);
+void zdt_vel_control(srl_e idx, u8 addr, u8 dir, u16 vel, u8 acc, bool snF);
+void zdt_pos_control(srl_e idx, u8 addr, u8 dir, u16 vel, u8 acc, u32 clk, bool raF, bool snF);
+void zdt_stop_now(srl_e idx, u8 addr, bool snF);
+void zdt_synchronous_motion(srl_e idx, u8 addr);
+void zdt_origin_set_o(srl_e idx, u8 addr, bool svF);
+void zdt_origin_trigger_return(srl_e idx, u8 addr, u8 o_mode, bool snF);
+void zdt_origin_interrupt(srl_e idx, u8 addr);
+void zdt_origin_read_params(srl_e idx, u8 addr);
+void zdt_origin_modify_params(srl_e idx, u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, u32 o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF);
+void zdt_auto_return_sys_params_timed(srl_e idx, u8 addr, zdtSysParams_e s, u16 time_ms);
+void zdt_read_sys_params(srl_e idx, u8 addr, zdtSysParams_e s);
+void zdt_modify_motor_id(srl_e idx, u8 addr, bool svF, u8 id);
+void zdt_modify_micro_step(srl_e idx, u8 addr, bool svF, u8 mstep);
+void zdt_modify_pdflag(srl_e idx, u8 addr, bool pdf);
+void zdt_read_opt_param_sta(srl_e idx, u8 addr);
+void zdt_modify_motor_type(srl_e idx, u8 addr, bool svF, bool mottype);
+void zdt_modify_firmware_type(srl_e idx, u8 addr, bool svF, bool fwtype);
+void zdt_modify_ctrl_mode(srl_e idx, u8 addr, bool svF, bool ctrl_mode);
+void zdt_modify_motor_dir(srl_e idx, u8 addr, bool svF, bool dir);
+void zdt_modify_lock_btn(srl_e idx, u8 addr, bool svF, bool lockbtn);
+void zdt_modify_s_vel(srl_e idx, u8 addr, bool svF, bool s_vel);
+void zdt_modify_om_ma(srl_e idx, u8 addr, bool svF, u16 om_ma);
+void zdt_modify_foc_ma(srl_e idx, u8 addr, bool svF, u16 foc_mA);
+void zdt_read_pid_params(srl_e idx, u8 addr);
+void zdt_modify_pid_params(srl_e idx, u8 addr, bool svF, u32 kp, u32 ki, u32 kd);
+void zdt_read_dmx512_params(srl_e idx, u8 addr);
+void zdt_modify_dmx512_params(srl_e idx, u8 addr, bool svF, u16 tch, u8 nch, u8 mode, u16 vel, u16 acc, u16 vel_step, u32 pos_step);
+void zdt_read_pos_window(srl_e idx, u8 addr);
+void zdt_modify_pos_window(srl_e idx, u8 addr, bool svF, u16 prw);
+void zdt_read_otocp(srl_e idx, u8 addr);
+void zdt_modify_otocp(srl_e idx, u8 addr, bool svF, u16 otp, u16 ocp, u16 time_ms);
+void zdt_read_heart_protect(srl_e idx, u8 addr);
+void zdt_modify_heart_protect(srl_e idx, u8 addr, bool svF, u32 hp);
+void zdt_read_integral_limit(srl_e idx, u8 addr);
+void zdt_modify_integral_limit(srl_e idx, u8 addr, bool svF, u32 il);
+void zdt_read_system_state_params(srl_e idx, u8 addr);
+void zdt_read_motor_conf_params(srl_e idx, u8 addr);
+void zdt_mmcl_trig_encoder_cal(u8 addr);
+void zdt_mmcl_reset_motor(u8 addr);
+void zdt_mmcl_reset_curpos_to_zero(u8 addr);
+void zdt_mmcl_reset_clog_pro(u8 addr);
+void zdt_mmcl_restore_motor(u8 addr);
+void zdt_mmcl_en_control(u8 addr, bool state, bool snF);
+void zdt_mmcl_vel_control(u8 addr, u8 dir, u16 vel, u8 acc, bool snF);
+void zdt_mmcl_pos_control(u8 addr, u8 dir, u16 vel, u8 acc, u32 clk, bool raF, bool snF);
+void zdt_mmcl_stop_now(u8 addr, bool snF);
+void zdt_mmcl_synchronous_motion(u8 addr);
+void zdt_mmcl_origin_set_o(u8 addr, bool svF);
+void zdt_mmcl_origin_trigger_return(u8 addr, u8 o_mode, bool snF);
+void zdt_mmcl_origin_interrupt(u8 addr);
+void zdt_mmcl_origin_modify_params(u8 addr, bool svF, u8 o_mode, u8 o_dir, u16 o_vel, u32 o_tm, u16 sl_vel, u16 sl_ma, u16 sl_ms, bool potF);
+void zdt_mmcl_auto_return_sys_params_timed(u8 addr, zdtSysParams_e s, u16 time_ms);
+void zdt_mmcl_read_sys_params(u8 addr, zdtSysParams_e s);
 
 #endif

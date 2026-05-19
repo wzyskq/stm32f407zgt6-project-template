@@ -52,9 +52,8 @@ void keys_init(void);
 
 // 功能函数
 
-bool key_read(key_e idx);
-key_e key_scan(void);
+bool key_read(key_e idx, bool block);
+key_e key_scan(bool block);
 void key_judge(void);
-void key_action(void);
 
 #endif

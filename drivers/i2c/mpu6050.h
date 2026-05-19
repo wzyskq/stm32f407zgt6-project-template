@@ -5,7 +5,7 @@
 #ifndef __MPU6050_H_
 #define __MPU6050_H_
 
-#include "main.h"
+#include "i2c.h"
 #include "mpu6050_reg.h"
 
 /* Private Types ----------------------------------------------------------- */

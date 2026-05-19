@@ -1,14 +1,18 @@
 /******************************************************************
- * \file    i2c.c
- *
- * \brief  软件模拟 I2C 驱动代码说明
- *
- * \note   - 本文件为软件模拟的 I2C 通信协议的通用驱动代码.
- *           参考教程：（江协版）https://blog.csdn.net/xiaobaivera/article/details/140551276.
- *
- *         - 为了增加代码的复用性，本文件不作初始化 GPIO 的工作，
- *           请在使用相应外设前调用 i2c_gpio_init(i2cIdx); 进行初始化.
- *           同时添加枚举类型 i2cObj_t 来区分不同的 I2C 设备.
+ ** \file    i2c.c
+ **
+ ** \author  Yiiry
+ **
+ ** \date    2026.1
+ **
+ ** \brief   软件模拟 I2C 驱动代码说明
+ **
+ ** \note   - 本文件为软件模拟的 I2C 通信协议的通用驱动代码.
+ **           参考教程：（江协版）https://blog.csdn.net/xiaobaivera/article/details/140551276.
+ **
+ **         - 为了增加代码的复用性，本文件不作初始化 GPIO 的工作，
+ **           请在使用相应外设前调用 i2c_gpio_init(i2cIdx); 进行初始化.
+ **           同时添加枚举类型 i2cObj_t 来区分不同的 I2C 设备.
  */
 
 #include "i2c.h"
@@ -27,13 +31,13 @@ static const i2c_s i2cList[] = {
 //     RCC_AHB1Periph_GPIOB, // mpu6050
 //     RCC_AHB1Periph_GPIOF, // oled
 // };
-// 
+//
 // static GPIO_TypeDef *i2cGpioPort[] = {
 //     0,
 //     GPIOB, // mpu6050
 //     GPIOF, // oled
 // };
-// 
+//
 // static const u16 i2cGpioPin[][2] = {
 //     // SCL, SDA
 //     {0, 0},
@@ -229,11 +233,11 @@ void i2c_gpio_init(i2c_e idx)
 
     /* I2C 引脚配置 */
     GPIO_InitTypeDef gpio = {0};
-    gpio.GPIO_Speed = GPIO_Speed_50MHz;
-    gpio.GPIO_Mode  = GPIO_Mode_OUT;
-    gpio.GPIO_OType = GPIO_OType_OD;
-    gpio.GPIO_PuPd  = GPIO_PuPd_NOPULL;
-    gpio.GPIO_Pin   = i2cList[idx].scl | i2cList[idx].sda;
+    gpio.GPIO_Speed       = GPIO_Speed_50MHz;
+    gpio.GPIO_Mode        = GPIO_Mode_OUT;
+    gpio.GPIO_OType       = GPIO_OType_OD;
+    gpio.GPIO_PuPd        = GPIO_PuPd_NOPULL;
+    gpio.GPIO_Pin         = i2cList[idx].scl | i2cList[idx].sda;
     GPIO_Init(i2cList[idx].gpio, &gpio);
 
     /* 设置引脚初始状态 */

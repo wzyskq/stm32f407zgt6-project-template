@@ -13,10 +13,12 @@
  **
  **         - 函数增加形参串口号来适配多串口控制，并用 serial_send_emm_v5_cmd() 统一命令发送接口（若需移植直接改该函数即可）.
  **
- **         推荐配合 zdt_api.c/.h 使用，具体使用方法请参考文件中的函数注释和示例.
+ **         推荐配合 zdt_api.c/.h 和 zdt_pro.c/.h 使用，具体使用方法请参考文件中的函数注释和示例.
  */
 
 #include "Emm_V5.h"
+
+#if defined(ZDT_EMM_V5) && !defined(ZDT_X_V2) // 仅当定义 ZDT_EMM_V5 时编译当前文件内容
 
 /**********************************************************
 *** Emm_V5.0步进闭环控制例程
@@ -26,6 +28,10 @@
 *** CSDN博客：https://blog.csdn.net/zhangdatou666
 *** qq交流群：262438510
 **********************************************************/
+
+/* Private Macros ---------------------------------------------------------- */
+
+/* Private Variables ------------------------------------------------------- */
 
 /* Global Variables -------------------------------------------------------- */
 
@@ -39,9 +45,6 @@ __IO u16 MMCL_count = 0, MMCL_cmd[ZDT_MMCL_LEN] = {0};
  * \param[in]  cmd    命令字节数组
  * \param[in]  len    命令字节长度
  *
- * \note       - 一开始想用 serial_send_string 函数直接发送字符串，所以在每个字符串末尾补上了 \0
- *               但是忘记了 \0 其实就是 0x00，会被串口发送函数当作字符串结束标志，导致发送不完整
- *               目前暂时用用 0x6B 替代 \0 作为字符串结束标志
  * \warning    严禁在此函数内/紧邻后部调用其他串口，否则会导致系统死机、串口端口混淆死机等一系列问题！！！
  */
 void serial_send_emm_v5_cmd(srl_e idx, u8 *cmd, u8 len)
@@ -56,10 +59,8 @@ void serial_send_emm_v5_cmd(srl_e idx, u8 *cmd, u8 len)
     zdtTvTag[1] = cmd[1]; // ******** 可选行，需配合 zdt_api.c/.h 使用，记录功能码信息 ********
 
     u8 i;
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
         serial_send_byte(idx, cmd[i]);
-        // serial_send_byte(1, cmd[i]);
-    }
 
     zdtTimeoutCnt = 0;    // ******** 可选行，需配合 zdt_api.c/.h 使用，重置超时计数 ********
     zdtTimeoutFlg = true; // ******** 可选行，需配合 zdt_api.c/.h 使用，设置超时标志位，开始计时 ********
@@ -513,7 +514,7 @@ void Emm_V5_Origin_Modify_Params(srl_e idx, u8 addr, bool svF, u8 o_mode, u8 o_d
  * \param[in]  time_ms 定时时间
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Auto_Return_Sys_Params_Timed(srl_e idx, u8 addr, zdtSysParams_t s, u16 time_ms)
+void Emm_V5_Auto_Return_Sys_Params_Timed(srl_e idx, u8 addr, zdtSysParams_e s, u16 time_ms)
 {
     u8 i              = 0;
     static u8 cmd[16] = {0};
@@ -596,7 +597,7 @@ void Emm_V5_Auto_Return_Sys_Params_Timed(srl_e idx, u8 addr, zdtSysParams_t s, u
  * \param[in]  s      系统参数类型
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_Read_Sys_Params(srl_e idx, u8 addr, zdtSysParams_t s)
+void Emm_V5_Read_Sys_Params(srl_e idx, u8 addr, zdtSysParams_e s)
 {
     u8 i              = 0;
     static u8 cmd[16] = {0};
@@ -1724,7 +1725,7 @@ void Emm_V5_MMCL_Origin_Modify_Params(u8 addr, bool svF, u8 o_mode, u8 o_dir, u1
  * \param[in]  time_ms 定时时间
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(u8 addr, zdtSysParams_t s, u16 time_ms)
+void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(u8 addr, zdtSysParams_e s, u16 time_ms)
 {
     u8 i = 0, j = 0;
     u8 cmd[16] = {0};
@@ -1808,7 +1809,7 @@ void Emm_V5_MMCL_Auto_Return_Sys_Params_Timed(u8 addr, zdtSysParams_t s, u16 tim
  * \param[in]  s    系统参数类型
  * \return     地址 + 功能码 + 命令状态 + 校验字节
  */
-void Emm_V5_MMCL_Read_Sys_Params(u8 addr, zdtSysParams_t s)
+void Emm_V5_MMCL_Read_Sys_Params(u8 addr, zdtSysParams_e s)
 {
     u8 i = 0, j = 0;
     u8 cmd[16] = {0};
@@ -1883,3 +1884,5 @@ void Emm_V5_MMCL_Read_Sys_Params(u8 addr, zdtSysParams_t s)
 }
 
 /* ******************** 读取系统参数命令（多机） */
+
+#endif

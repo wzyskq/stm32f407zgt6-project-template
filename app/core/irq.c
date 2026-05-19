@@ -19,7 +19,7 @@ void TIM6_DAC_IRQHandler(void)
 
         // 电机解析
         zdt_irqEndHandler();
-        Emm_V5_Get_Sys_Params(&zdtSysData);
+        zdt_get_sysParams(&zdtSysData);
 
         TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
     }
